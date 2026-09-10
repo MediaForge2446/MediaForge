@@ -5,6 +5,8 @@
     xmlns:converters="using:MediaForge.Converters">
     <Page.Resources>
         <converters:ChangeStatusToBrushConverter x:Key="ChangeStatusBrushConverter" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <converters:FailedStatusToVisibilityConverter x:Key="FailedStatusToVisibilityConverter" />
     </Page.Resources>
 
     <Grid Padding="24" RowSpacing="16">
@@ -149,12 +151,10 @@
                                     <TextBlock Text="{Binding StatusText}"
                                                Foreground="{Binding Status, Converter={StaticResource ChangeStatusBrushConverter}}"
                                                TextTrimming="CharacterEllipsis" />
-                                    <ProgressBar Grid.Row="1"
-                                                 Maximum="1"
+                                    <ProgressBar Maximum="1"
                                                  Value="{Binding Progress}"
                                                  Visibility="{Binding ShowProgress, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                    <TextBlock Grid.Row="1"
-                                               Text="{Binding ErrorMessage}"
+                                    <TextBlock Text="{Binding ErrorMessage}"
                                                Foreground="{StaticResource FailedStatusBrush}"
                                                TextWrapping="Wrap"
                                                Visibility="{Binding Status, Converter={StaticResource FailedStatusToVisibilityConverter}}" />
