@@ -39,7 +39,10 @@ public sealed class ToolManager : IToolManager, IDisposable
     {
         _toolsDirectory = Path.GetFullPath(
             string.IsNullOrWhiteSpace(toolsDirectory)
-                ? Path.Combine(AppContext.BaseDirectory, "Tools")
+                ? Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "MediaForge",
+                    "Tools")
                 : toolsDirectory);
 
         Directory.CreateDirectory(_toolsDirectory);
@@ -156,13 +159,7 @@ public sealed class ToolManager : IToolManager, IDisposable
             ?? throw new InvalidOperationException("yt-dlp latest release did not contain a tag name.");
         var assets = document.RootElement.GetProperty("assets");
         var executableName = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "yt-dlp_arm64.exe" : "yt-dlp.exe";
-        return new ToolRelease(
-            "yt-dlp",
-            tag,
-            FindAsset(assets, executableName),
-            FindAsset(assets, "SHA2-256SUMS"),
-            false,
-            executableName);
+        return new ToolRelease("yt-dlp", tag, FindAsset(assets, executableName), FindAsset(assets, "SHA2-256SUMS"), false, executableName);
     }
 
     private async Task<ToolRelease> GetFfmpegReleaseAsync(CancellationToken cancellationToken)
@@ -174,13 +171,7 @@ public sealed class ToolManager : IToolManager, IDisposable
             ? "ffmpeg-master-latest-winarm64-gpl.zip"
             : "ffmpeg-master-latest-win64-gpl.zip";
         var assets = document.RootElement.GetProperty("assets");
-        return new ToolRelease(
-            "FFmpeg",
-            publishedAt,
-            FindAsset(assets, zipName),
-            FindAsset(assets, "checksums.sha256"),
-            true,
-            zipName);
+        return new ToolRelease("FFmpeg", publishedAt, FindAsset(assets, zipName), FindAsset(assets, "checksums.sha256"), true, zipName);
     }
 
     private async Task<ToolStatus> InspectYoutubeDlAsync(Architecture architecture, CancellationToken cancellationToken)
@@ -260,20 +251,14 @@ public sealed class ToolManager : IToolManager, IDisposable
         TryDelete(backup);
         try
         {
-            if (File.Exists(destinationPath))
-            {
-                File.Move(destinationPath, backup);
-            }
+            if (File.Exists(destinationPath)) File.Move(destinationPath, backup);
             File.Move(sourcePath, destinationPath);
             TryDelete(backup);
         }
         catch
         {
             TryDelete(destinationPath);
-            if (File.Exists(backup))
-            {
-                File.Move(backup, destinationPath);
-            }
+            if (File.Exists(backup)) File.Move(backup, destinationPath);
             throw;
         }
     }
@@ -284,9 +269,11 @@ public sealed class ToolManager : IToolManager, IDisposable
         foreach (var rawLine in text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
         {
             var parts = rawLine.Trim().Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length >= 2 && string.Equals(parts[^1].TrimStart('*'), assetName, StringComparison.OrdinalIgnoreCase))
+            if (parts.Length >= 2)
             {
-                return parts[0];
+                var name = parts[^1].TrimStart('*').TrimStart('.', '/');
+                var expectedName = assetName.TrimStart('.', '/');
+                if (string.Equals(name, expectedName, StringComparison.OrdinalIgnoreCase)) return parts[0];
             }
         }
         throw new InvalidOperationException($"No SHA-256 checksum was found for {assetName}.");
@@ -298,9 +285,7 @@ public sealed class ToolManager : IToolManager, IDisposable
         var hash = await SHA256.HashDataAsync(stream, cancellationToken).ConfigureAwait(false);
         var actual = Convert.ToHexString(hash);
         if (!string.Equals(actual, expectedHash.Trim(), StringComparison.OrdinalIgnoreCase))
-        {
             throw new InvalidDataException("Downloaded tool checksum verification failed.");
-        }
     }
 
     private async Task DownloadToFileAsync(string url, string targetPath, CancellationToken cancellationToken)
@@ -353,8 +338,7 @@ public sealed class ToolManager : IToolManager, IDisposable
     {
         foreach (var asset in assets.EnumerateArray())
         {
-            if (string.Equals(asset.GetProperty("name").GetString(), name, StringComparison.OrdinalIgnoreCase))
-                return asset;
+            if (string.Equals(asset.GetProperty("name").GetString(), name, StringComparison.OrdinalIgnoreCase)) return asset;
         }
         throw new InvalidOperationException($"Release asset not found: {name}");
     }
@@ -365,11 +349,12 @@ public sealed class ToolManager : IToolManager, IDisposable
         SetStatus(new[]
         {
             new ToolStatus { Name = "yt-dlp", InstalledVersion = File.Exists(provider.YoutubeDLPath) ? "Installed" : "Not installed", IsInstalled = File.Exists(provider.YoutubeDLPath) },
-            new ToolStatus { Name = "FFmpeg", InstalledVersion = File.Exists(Path.Combine(_toolsDirectory, "ffmpeg.exe")) ? "Installed" : "Not installed", IsInstalled = File.Exists(Path.Combine(_toolsDirectory, "ffmpeg.exe")) }
+            new ToolStatus { Name = "FFmpeg", InstalledVersion = File.Exists(provider.FFmpegPath) ? "Installed" : "Not installed", IsInstalled = File.Exists(provider.FFmpegPath) }
         });
     }
 
-    private ToolStatus[] UpdateFailedStatus(string toolName, Exception exception) => Status.Select(status => status.Name.Equals(toolName, StringComparison.OrdinalIgnoreCase) ? status with { ErrorMessage = exception.Message, UpdateAvailable = true } : status).ToArray();
+    private ToolStatus[] UpdateFailedStatus(string toolName, Exception exception) =>
+        Status.Select(status => status.Name.Equals(toolName, StringComparison.OrdinalIgnoreCase) ? status with { ErrorMessage = exception.Message, UpdateAvailable = true } : status).ToArray();
 
     private void SetStatus(IEnumerable<ToolStatus> statuses)
     {
@@ -408,13 +393,7 @@ public sealed class ToolManager : IToolManager, IDisposable
         try { if (Directory.Exists(path)) Directory.Delete(path, true); } catch { }
     }
 
-    private sealed record ToolRelease(
-        string Name,
-        string Version,
-        JsonElement Asset,
-        JsonElement ChecksumAsset,
-        bool IsArchive,
-        string ExpectedChecksumFileName)
+    private sealed record ToolRelease(string Name, string Version, JsonElement Asset, JsonElement ChecksumAsset, bool IsArchive, string ExpectedChecksumFileName)
     {
         public string AssetName => Asset.GetProperty("name").GetString()!;
         public string DownloadUrl => Asset.GetProperty("browser_download_url").GetString()!;
