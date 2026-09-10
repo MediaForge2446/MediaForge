@@ -63,4 +63,20 @@ public sealed class LibraryState
 
         return removed;
     }
+
+    public void Restore(IEnumerable<MediaFolder> folders)
+    {
+        ArgumentNullException.ThrowIfNull(folders);
+
+        lock (_sync)
+        {
+            _rootFolders.Clear();
+            _rootFolders.AddRange(
+                folders.Where(folder =>
+                    !string.IsNullOrWhiteSpace(folder.Id) &&
+                    !string.IsNullOrWhiteSpace(folder.Path)));
+        }
+
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
 }
