@@ -1,11 +1,21 @@
+using MediaForge.Core.Enums;
 using MediaForge.Core.Interfaces;
 using MediaForge.Core.Models;
+using YoutubeExplode;
+using YoutubeExplode.Common;
 
 namespace MediaForge.Services;
 
 public sealed class MediaResolverService : IMediaResolver
 {
-    public Task<IReadOnlyList<MediaItem>> ResolveAsync(
+    private readonly YoutubeClient _youtube;
+
+    public MediaResolverService(YoutubeClient? youtubeClient = null)
+    {
+        _youtube = youtubeClient ?? new YoutubeClient();
+    }
+
+    public async Task<IReadOnlyList<MediaItem>> ResolveAsync(
         string sourceUrl,
         CancellationToken cancellationToken = default)
     {
@@ -20,45 +30,82 @@ public sealed class MediaResolverService : IMediaResolver
         cancellationToken.ThrowIfCancellationRequested();
 
         var normalizedUrl = uri.ToString();
-        var isPlaylist = IsPlaylist(uri);
-        var itemCount = isPlaylist ? 8 : 1;
-        var baseTitle = GetBaseTitle(uri);
-        var items = Enumerable.Range(1, itemCount)
-            .Select(index => new MediaItem
-            {
-                Id = $"{Guid.NewGuid():N}",
-                SourceUrl = normalizedUrl,
-                Title = itemCount == 1 ? baseTitle : $"{baseTitle} {index}",
-                Artist = null,
-                ThumbnailUrl = null,
-                Format = MediaForge.Core.Enums.MediaFormat.Mp3,
-                IsSelected = true
-            })
-            .ToArray();
-
-        return Task.FromResult<IReadOnlyList<MediaItem>>(items);
+        return LooksLikePlaylist(uri)
+            ? await ResolvePlaylistAsync(normalizedUrl, cancellationToken).ConfigureAwait(false)
+            : new[] { await ResolveVideoAsync(normalizedUrl, null, cancellationToken).ConfigureAwait(false) };
     }
 
-    private static bool IsPlaylist(Uri uri)
+    private async Task<IReadOnlyList<MediaItem>> ResolvePlaylistAsync(
+        string playlistUrl,
+        CancellationToken cancellationToken)
     {
-        var query = uri.Query;
-        return query.Contains("list=", StringComparison.OrdinalIgnoreCase)
-            || query.Contains("playlist", StringComparison.OrdinalIgnoreCase)
-            || uri.AbsolutePath.Contains("playlist", StringComparison.OrdinalIgnoreCase);
-    }
+        var playlist = await _youtube.Playlists.GetAsync(playlistUrl, cancellationToken).ConfigureAwait(false);
+        var items = new List<MediaItem>();
+        var playlistTitle = NullIfWhiteSpace(playlist.Title);
 
-    private static string GetBaseTitle(Uri uri)
-    {
-        var segment = uri.Segments.LastOrDefault(segment => !string.IsNullOrWhiteSpace(segment));
-        if (!string.IsNullOrWhiteSpace(segment))
+        await foreach (var video in _youtube.Playlists.GetVideosAsync(playlist.Id)
+            .WithCancellation(cancellationToken)
+            .ConfigureAwait(false))
         {
-            var title = Uri.UnescapeDataString(segment.Trim('/'));
-            if (title.Length > 0)
-            {
-                return title;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
+
+            items.Add(CreateMediaItem(
+                video.Id.Value,
+                video.Url,
+                video.Title,
+                video.Author.ChannelTitle,
+                video.Thumbnails.GetWithHighestResolution().Url,
+                video.Duration,
+                playlistTitle));
         }
 
-        return "Media item";
+        return items;
     }
+
+    private async Task<MediaItem> ResolveVideoAsync(
+        string videoUrl,
+        string? playlistTitle,
+        CancellationToken cancellationToken)
+    {
+        var video = await _youtube.Videos.GetAsync(videoUrl, cancellationToken).ConfigureAwait(false);
+
+        return CreateMediaItem(
+            video.Id.Value,
+            video.Url,
+            video.Title,
+            video.Author.ChannelTitle,
+            video.Thumbnails.GetWithHighestResolution().Url,
+            video.Duration,
+            playlistTitle);
+    }
+
+    private static MediaItem CreateMediaItem(
+        string id,
+        string sourceUrl,
+        string? title,
+        string? artist,
+        string? thumbnailUrl,
+        TimeSpan? duration,
+        string? playlistTitle)
+    {
+        return new MediaItem
+        {
+            Id = id,
+            SourceUrl = sourceUrl,
+            Title = NullIfWhiteSpace(title),
+            Artist = NullIfWhiteSpace(artist),
+            ThumbnailUrl = Uri.TryCreate(thumbnailUrl, UriKind.Absolute, out var uri) ? uri : null,
+            Duration = duration,
+            PlaylistTitle = playlistTitle,
+            Format = MediaFormat.Mp3,
+            IsSelected = true
+        };
+    }
+
+    private static bool LooksLikePlaylist(Uri uri) =>
+        uri.Query.Contains("list=", StringComparison.OrdinalIgnoreCase) ||
+        uri.AbsolutePath.Contains("/playlist", StringComparison.OrdinalIgnoreCase);
+
+    private static string? NullIfWhiteSpace(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }
