@@ -10,6 +10,7 @@ public sealed class PendingChangesViewModel : ViewModelBase
 {
     private readonly PendingChangesState _state;
     private readonly ICommitService _commitService;
+    private readonly IStagingHistory _history;
     private readonly MainViewModel _main;
 
     public ObservableCollection<PendingChangeItemViewModel> Changes { get; } = new();
@@ -23,6 +24,7 @@ public sealed class PendingChangesViewModel : ViewModelBase
             if (SetProperty(ref _isSaving, value))
             {
                 OnPropertyChanged(nameof(CanSave));
+                OnPropertyChanged(nameof(CanCancel));
             }
         }
     }
@@ -35,14 +37,17 @@ public sealed class PendingChangesViewModel : ViewModelBase
     }
 
     public bool CanSave => !IsSaving && Changes.Any(change => change.Status == ChangeStatus.Pending);
+    public bool CanCancel => !IsSaving && Changes.Any(change => change.Status == ChangeStatus.Pending);
 
     public PendingChangesViewModel(
         PendingChangesState state,
         ICommitService commitService,
+        IStagingHistory history,
         MainViewModel main)
     {
         _state = state ?? throw new ArgumentNullException(nameof(state));
         _commitService = commitService ?? throw new ArgumentNullException(nameof(commitService));
+        _history = history ?? throw new ArgumentNullException(nameof(history));
         _main = main ?? throw new ArgumentNullException(nameof(main));
 
         Refresh();
@@ -68,6 +73,88 @@ public sealed class PendingChangesViewModel : ViewModelBase
         }
 
         OnPropertyChanged(nameof(CanSave));
+        OnPropertyChanged(nameof(CanCancel));
+    }
+
+    public bool Undo(Guid changeId)
+    {
+        try
+        {
+            if (IsSaving)
+            {
+                return false;
+            }
+
+            if (!_history.Remove(changeId, out var removed) || removed is null)
+            {
+                return false;
+            }
+
+            if (!_state.Remove(changeId))
+            {
+                _history.Restore(removed);
+                return false;
+            }
+
+            OnPropertyChanged(nameof(CanSave));
+            OnPropertyChanged(nameof(CanCancel));
+            return true;
+        }
+        catch (Exception exception)
+        {
+            _main.ReportError(exception);
+            return false;
+        }
+    }
+
+    public bool UndoLast()
+    {
+        try
+        {
+            if (IsSaving)
+            {
+                return false;
+            }
+
+            var last = _history.Snapshot.LastOrDefault(change => change.Status == ChangeStatus.Pending);
+            return last is not null && Undo(last.Id);
+        }
+        catch (Exception exception)
+        {
+            _main.ReportError(exception);
+            return false;
+        }
+    }
+
+    public int CancelAll()
+    {
+        try
+        {
+            if (IsSaving)
+            {
+                return 0;
+            }
+
+            var pending = _state.Changes
+                .Where(change => change.Status == ChangeStatus.Pending)
+                .Select(change => change.Id)
+                .ToArray();
+
+            foreach (var changeId in pending)
+            {
+                _state.Remove(changeId);
+                _history.Remove(changeId, out _);
+            }
+
+            OnPropertyChanged(nameof(CanSave));
+            OnPropertyChanged(nameof(CanCancel));
+            return pending.Length;
+        }
+        catch (Exception exception)
+        {
+            _main.ReportError(exception);
+            return 0;
+        }
     }
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -90,6 +177,11 @@ public sealed class PendingChangesViewModel : ViewModelBase
                 cancellationToken).ConfigureAwait(true);
 
             _state.Replace(results);
+            foreach (var result in results.Where(change => change.Status != ChangeStatus.Pending))
+            {
+                _history.Remove(result.Id, out _);
+            }
+
             OverallProgress = CalculateOverallProgress();
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
