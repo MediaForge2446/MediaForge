@@ -53,7 +53,12 @@ try {
         throw "Installer output was not created: $installerPath"
     }
 
-    Write-Host "Installer created: $installerPath"
+    & (Join-Path $repoRoot 'scripts\installer-smoke-test.ps1') -InstallerPath $installerPath
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Installer smoke test failed.'
+    }
+
+    Write-Host "Installer created and validated: $installerPath"
 }
 finally {
     Pop-Location
