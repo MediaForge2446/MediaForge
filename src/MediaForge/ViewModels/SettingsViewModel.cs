@@ -137,14 +137,19 @@ public sealed class SettingsViewModel : ViewModelBase, IDisposable
 
         try
         {
-            var status = await _toolManager.CheckForUpdatesAsync(token).ConfigureAwait(false);
+            var status = await _toolManager.CheckForUpdatesAsync(token).ConfigureAwait(true);
             RefreshTools(status);
 
             if (_settingsService.Current.AutomaticToolUpdates && status.Any(tool => tool.UpdateAvailable))
             {
                 var progress = new Progress<double>(value => Progress = value);
-                var updated = await _toolManager.UpdateAllAsync(progress, token).ConfigureAwait(false);
+                var updated = await _toolManager.UpdateAllAsync(progress, token).ConfigureAwait(true);
                 RefreshTools(updated);
+                StatusMessage = "Background tool maintenance completed";
+            }
+            else
+            {
+                StatusMessage = "Tools are ready";
             }
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
@@ -179,7 +184,6 @@ public sealed class SettingsViewModel : ViewModelBase, IDisposable
         {
             Tools.Add(tool);
         }
-        OnPropertyChanged(nameof(Tools));
     }
 
     private void OnSettingsChanged(object? sender, EventArgs e)
