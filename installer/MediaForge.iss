@@ -1,5 +1,7 @@
 #define AppName "MediaForge"
-#define AppVersion "1.0.0"
+#ifndef AppVersion
+  #define AppVersion "1.0.0"
+#endif
 #define AppPublisher "MediaForge"
 #define AppExeName "MediaForge.exe"
 
