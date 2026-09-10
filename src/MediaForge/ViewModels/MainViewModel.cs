@@ -48,7 +48,7 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
 
         Library = new LibraryViewModel(State.Library, this);
         Explorer = new ExplorerViewModel(_fileSystemService, State.PendingChanges, State.Library, _stagingHistory, this);
-        PendingChanges = new PendingChangesViewModel(State.PendingChanges, _commitService, this);
+        PendingChanges = new PendingChangesViewModel(State.PendingChanges, _commitService, _stagingHistory, this);
         Settings = new SettingsViewModel(_settingsService, _toolManager, this);
 
         State.Changed += OnStateChanged;
