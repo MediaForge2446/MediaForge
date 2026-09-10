@@ -39,29 +39,25 @@ public sealed partial class ExplorerPage : Page
     {
         try
         {
+            var textBox = new TextBox { PlaceholderText = "Folder name", MinWidth = 320 };
             var dialog = new ContentDialog
             {
                 Title = "New folder",
                 PrimaryButtonText = "Create",
                 CloseButtonText = "Cancel",
                 DefaultButton = ContentDialogButton.Primary,
-                Content = new TextBox { PlaceholderText = "Folder name", MinWidth = 320 },
+                Content = textBox,
                 XamlRoot = XamlRoot
             };
 
-            if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.Content is TextBox textBox)
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
             {
                 ViewModel.CreateFolder(textBox.Text);
-                ViewModel.Refresh();
             }
         }
         catch (Exception exception)
         {
-            ViewModel?.GetType();
-            if (App.Current is App app && app.MainWindow is MainWindow window)
-            {
-                window.ViewModel.ReportError(exception);
-            }
+            ReportUiError(exception);
         }
     }
 
@@ -92,10 +88,44 @@ public sealed partial class ExplorerPage : Page
         }
         catch (Exception exception)
         {
-            if (App.Current is App app && app.MainWindow is MainWindow window)
+            ReportUiError(exception);
+        }
+    }
+
+    private async void OnMoveClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (ExplorerList.SelectedItem is not FileItem item)
             {
-                window.ViewModel.ReportError(exception);
+                return;
             }
+
+            var textBox = new TextBox
+            {
+                Text = ViewModel.CurrentPath ?? string.Empty,
+                PlaceholderText = "Destination folder path",
+                MinWidth = 420
+            };
+
+            var dialog = new ContentDialog
+            {
+                Title = "Move item",
+                PrimaryButtonText = "Stage move",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary,
+                Content = textBox,
+                XamlRoot = XamlRoot
+            };
+
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
+                ViewModel.Move(item, textBox.Text);
+            }
+        }
+        catch (Exception exception)
+        {
+            ReportUiError(exception);
         }
     }
 
@@ -110,10 +140,7 @@ public sealed partial class ExplorerPage : Page
         }
         catch (Exception exception)
         {
-            if (App.Current is App app && app.MainWindow is MainWindow window)
-            {
-                window.ViewModel.ReportError(exception);
-            }
+            ReportUiError(exception);
         }
     }
 
@@ -136,9 +163,70 @@ public sealed partial class ExplorerPage : Page
         ViewModel.Refresh();
     }
 
+    private void OnUndoChangeClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: Guid changeId })
+        {
+            PendingViewModel.Undo(changeId);
+            ViewModel.Refresh();
+        }
+    }
+
+    private void OnUndoLastClick(object sender, RoutedEventArgs e)
+    {
+        PendingViewModel.UndoLast();
+        ViewModel.Refresh();
+    }
+
+    private async void OnCancelAllClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (!PendingViewModel.CanCancel)
+            {
+                return;
+            }
+
+            var dialog = new ContentDialog
+            {
+                Title = "Cancel pending changes?",
+                Content = "All unsaved changes will be removed from the staging list. Nothing on disk will be changed.",
+                PrimaryButtonText = "Cancel changes",
+                CloseButtonText = "Keep changes",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = XamlRoot
+            };
+
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
+                PendingViewModel.CancelAll();
+                ViewModel.Refresh();
+            }
+        }
+        catch (Exception exception)
+        {
+            ReportUiError(exception);
+        }
+    }
+
     private async void OnSaveChangesClick(object sender, RoutedEventArgs e)
     {
-        await PendingViewModel.SaveChangesAsync();
-        ViewModel.Refresh();
+        try
+        {
+            await PendingViewModel.SaveChangesAsync();
+            ViewModel.Refresh();
+        }
+        catch (Exception exception)
+        {
+            ReportUiError(exception);
+        }
+    }
+
+    private void ReportUiError(Exception exception)
+    {
+        if (App.Current is App app && app.MainWindow is MainWindow window)
+        {
+            window.ViewModel.ReportError(exception);
+        }
     }
 }
