@@ -162,6 +162,55 @@ public sealed class ExplorerViewModel : ViewModelBase
         }
     }
 
+    public void Move(FileItem item, string destinationDirectory)
+    {
+        try
+        {
+            ArgumentNullException.ThrowIfNull(item);
+            ArgumentException.ThrowIfNullOrWhiteSpace(destinationDirectory);
+
+            var destination = Path.GetFullPath(destinationDirectory.Trim());
+            if (!_fileSystem.DirectoryExists(destination))
+            {
+                throw new DirectoryNotFoundException($"Destination directory not found: {destination}");
+            }
+
+            var targetPath = Path.Combine(destination, item.Name);
+            var sourcePath = Path.GetFullPath(item.FullPath);
+
+            if (string.Equals(sourcePath, targetPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (string.Equals(sourcePath, destination, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("An item cannot be moved into itself.");
+            }
+
+            if (item.Kind == FileItemKind.Folder && IsSubPath(destination, sourcePath))
+            {
+                throw new InvalidOperationException("A folder cannot be moved into one of its own descendants.");
+            }
+
+            EnsurePendingTargetAvailable(targetPath);
+
+            AddPending(new PendingChange
+            {
+                Id = Guid.NewGuid(),
+                Type = ChangeType.Move,
+                Status = ChangeStatus.Pending,
+                SourcePath = sourcePath,
+                TargetPath = targetPath,
+                CreatedAtUtc = DateTimeOffset.UtcNow
+            });
+        }
+        catch (Exception exception)
+        {
+            _main.ReportError(exception);
+        }
+    }
+
     public bool Undo(Guid changeId)
     {
         try
@@ -277,6 +326,13 @@ public sealed class ExplorerViewModel : ViewModelBase
         {
             throw new IOException("A pending change already targets this path.");
         }
+    }
+
+    private static bool IsSubPath(string childPath, string parentPath)
+    {
+        var child = Path.GetFullPath(childPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var parent = Path.GetFullPath(parentPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        return child.StartsWith(parent, StringComparison.OrdinalIgnoreCase);
     }
 
     private static void ValidateFileName(string value, string parameterName)
