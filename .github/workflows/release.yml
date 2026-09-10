@@ -19,7 +19,7 @@ jobs:
         include:
           - rid: win-x64
             profile: win-x64
-            architecture: x64
+            architecture: x64compatible
           - rid: win-arm64
             profile: win-arm64
             architecture: arm64
