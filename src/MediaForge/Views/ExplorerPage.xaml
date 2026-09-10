@@ -121,7 +121,7 @@
 
                 <ListView Grid.Row="1"
                           ItemsSource="{Binding PendingViewModel.Changes}"
-                          MaxHeight="230"
+                          MaxHeight="260"
                           SelectionMode="None">
                     <ListView.ItemTemplate>
                         <DataTemplate>
@@ -134,6 +134,7 @@
                                     <ColumnDefinition Width="12" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
                                 <Ellipse Width="9"
@@ -159,6 +160,11 @@
                                                TextWrapping="Wrap"
                                                Visibility="{Binding Status, Converter={StaticResource FailedStatusToVisibilityConverter}}" />
                                 </StackPanel>
+                                <Button Grid.Column="3"
+                                        Content="Undo"
+                                        Tag="{Binding Id}"
+                                        Click="OnUndoChangeClick"
+                                        IsEnabled="{Binding Status, Converter={StaticResource PendingStatusEnabledConverter}}" />
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -168,6 +174,8 @@
                     <TextBlock Text="● Synced" Foreground="{StaticResource SyncedStatusBrush}" />
                     <TextBlock Text="● Pending" Foreground="{StaticResource PendingStatusBrush}" />
                     <TextBlock Text="● Failed" Foreground="{StaticResource FailedStatusBrush}" />
+                    <Button Content="Undo last" Click="OnUndoLastClick" IsEnabled="{Binding PendingViewModel.CanCancel}" />
+                    <Button Content="Cancel all" Click="OnCancelAllClick" IsEnabled="{Binding PendingViewModel.CanCancel}" />
                 </StackPanel>
             </Grid>
         </Border>
