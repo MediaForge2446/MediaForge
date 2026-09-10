@@ -49,9 +49,9 @@ jobs:
         shell: pwsh
         run: ./scripts/smoke-test.ps1 -PublishDirectory "artifacts/publish/${{ matrix.rid }}"
 
-      - name: Install Inno Setup
+      - name: Install Inno Setup 7.1.0
         shell: pwsh
-        run: winget install --id JRSoftware.InnoSetup.7 -e --source winget --accept-package-agreements --accept-source-agreements
+        run: winget install --id JRSoftware.InnoSetup.7 -e --version 7.1.0 --source winget --accept-package-agreements --accept-source-agreements
 
       - name: Build installer
         shell: pwsh
@@ -60,6 +60,10 @@ jobs:
             "/DPublishDir=$((Get-Location).Path)\artifacts\publish\${{ matrix.rid }}" `
             "/DArchitecture=${{ matrix.architecture }}" `
             installer\MediaForge.iss
+
+      - name: Verify installer install and uninstall
+        shell: pwsh
+        run: ./scripts/installer-smoke-test.ps1 -InstallerPath "artifacts/installer/MediaForge-Setup-${{ matrix.architecture }}.exe"
 
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
