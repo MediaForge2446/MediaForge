@@ -62,7 +62,7 @@ public sealed class PendingChangesState
         lock (_sync)
         {
             _changes.Clear();
-            _changes.AddRange(changes);
+            _changes.AddRange(changes.Where(change => change.Id != Guid.Empty));
         }
 
         Changed?.Invoke(this, EventArgs.Empty);
