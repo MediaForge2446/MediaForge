@@ -1,3 +1,4 @@
+using MediaForge.Core.Enums;
 using MediaForge.Core.Interfaces;
 using MediaForge.Core.Models;
 using MediaForge.Services;
@@ -14,6 +15,7 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
     private readonly ISettingsService _settingsService;
     private readonly IToolManager _toolManager;
     private readonly IAppPersistenceService _persistenceService;
+    private readonly StagingHistory _stagingHistory = new();
     private readonly CancellationTokenSource _lifetimeCts = new();
     private readonly SemaphoreSlim _saveGate = new(1, 1);
 
@@ -37,16 +39,16 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
     public MainViewModel()
     {
         _fileSystemService = new FileSystemService();
-        _downloadService = new DownloadService();
         _loggingService = new LoggingService();
-        _commitService = new CommitService(_fileSystemService, _downloadService, _loggingService);
         _settingsService = new SettingsService();
         _toolManager = new ToolManager();
+        _downloadService = new DownloadService(new YtDlpPathProvider(_toolManager.ToolsDirectory));
+        _commitService = new CommitService(_fileSystemService, _downloadService, _loggingService);
         _persistenceService = new AppPersistenceService();
 
         Library = new LibraryViewModel(State.Library, this);
-        Explorer = new ExplorerViewModel(_fileSystemService, State.PendingChanges, State.Library, this);
-        PendingChanges = new PendingChangesViewModel(State.PendingChanges, _commitService, this);
+        Explorer = new ExplorerViewModel(_fileSystemService, State.PendingChanges, State.Library, _stagingHistory, this);
+        PendingChanges = new PendingChangesViewModel(State.PendingChanges, _commitService, _stagingHistory, this);
         Settings = new SettingsViewModel(_settingsService, _toolManager, this);
 
         State.Changed += OnStateChanged;
@@ -73,6 +75,12 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
 
             State.Library.Restore(snapshot.RootFolders);
             State.PendingChanges.Replace(snapshot.PendingChanges);
+            _stagingHistory.Clear();
+            foreach (var change in snapshot.PendingChanges.Where(change => change.Status == ChangeStatus.Pending))
+            {
+                _stagingHistory.Record(change);
+            }
+
             Interlocked.Exchange(ref _changeVersion, 0);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -168,11 +176,7 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
             disposableTools.Dispose();
         }
 
-        if (_persistenceService is IDisposable disposablePersistence)
-        {
-            disposablePersistence.Dispose();
-        }
-
+        _persistenceService.Dispose();
         _saveGate.Dispose();
         _lifetimeCts.Dispose();
     }
