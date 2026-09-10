@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using MediaForge.ViewModels;
 
 namespace MediaForge.Views;
