@@ -48,7 +48,7 @@ try {
 
     & (Join-Path $repoRoot 'scripts\smoke-test.ps1') -PublishDirectory $publishDirectory
 
-    $installerPath = Join-Path $installerDirectory "MediaForge-Setup-$architecture.exe"
+    $installerPath = Join-Path $installerDirectory 'Setup.exe'
     if (-not (Test-Path -LiteralPath $installerPath -PathType Leaf)) {
         throw "Installer output was not created: $installerPath"
     }

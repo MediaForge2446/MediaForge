@@ -16,12 +16,31 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
+
+      - name: Verify .NET and repository paths
+        shell: pwsh
+        run: |
+          dotnet --info
+          $root = (Get-Location).Path
+          foreach ($path in @(
+            'MediaForge.sln',
+            'src\MediaForge.Core\MediaForge.Core.csproj',
+            'src\MediaForge\MediaForge.csproj',
+            'tests\MediaForge.Core.Tests\MediaForge.Core.Tests.csproj',
+            'tests\MediaForge.IntegrationTests\MediaForge.IntegrationTests.csproj',
+            'installer\MediaForge.iss'
+          )) {
+            $fullPath = Join-Path $root $path
+            if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+              throw "Required repository file is missing: $fullPath"
+            }
+          }
 
       - name: Restore
         run: dotnet restore MediaForge.sln
@@ -43,6 +62,14 @@ jobs:
         shell: pwsh
         run: winget install --id JRSoftware.InnoSetup.7 -e --version 7.1.0 --source winget --accept-package-agreements --accept-source-agreements
 
+      - name: Verify Inno Setup path
+        shell: pwsh
+        run: |
+          $iscc = Join-Path ${env:ProgramFiles} 'Inno Setup 7\ISCC.exe'
+          if (-not (Test-Path -LiteralPath $iscc -PathType Leaf)) {
+            throw "Inno Setup compiler was not found: $iscc"
+          }
+
       - name: Build installer
         shell: pwsh
         run: |
@@ -55,13 +82,21 @@ jobs:
             throw "Inno Setup compilation failed with exit code $LASTEXITCODE."
           }
 
+      - name: Verify installer
+        shell: pwsh
+        run: |
+          $installer = Join-Path (Get-Location) 'artifacts\installer\Setup.exe'
+          if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) {
+            throw "Setup.exe was not created: $installer"
+          }
+
       - name: Verify installer install and uninstall
         shell: pwsh
-        run: ./scripts/installer-smoke-test.ps1 -InstallerPath "artifacts/installer/MediaForge-Setup-x64compatible.exe"
+        run: ./scripts/installer-smoke-test.ps1 -InstallerPath "artifacts/installer/Setup.exe"
 
       - name: Upload Setup artifact
         uses: actions/upload-artifact@v4
         with:
           name: MediaForge-Setup-win-x64
-          path: artifacts/installer/MediaForge-Setup-x64compatible.exe
+          path: artifacts/installer/Setup.exe
           if-no-files-found: error

@@ -26,10 +26,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
@@ -59,17 +59,21 @@ jobs:
           & "${env:ProgramFiles}\Inno Setup 7\ISCC.exe" `
             "/DPublishDir=$((Get-Location).Path)\artifacts\publish\${{ matrix.rid }}" `
             "/DArchitecture=${{ matrix.architecture }}" `
+            "/DAppVersion=1.0.0" `
             installer\MediaForge.iss
+          if ($LASTEXITCODE -ne 0) {
+            throw "Inno Setup compilation failed with exit code $LASTEXITCODE."
+          }
 
       - name: Verify installer install and uninstall
         shell: pwsh
-        run: ./scripts/installer-smoke-test.ps1 -InstallerPath "artifacts/installer/MediaForge-Setup-${{ matrix.architecture }}.exe"
+        run: ./scripts/installer-smoke-test.ps1 -InstallerPath "artifacts/installer/Setup.exe"
 
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
           name: MediaForge-${{ matrix.rid }}
-          path: artifacts/installer/MediaForge-Setup-${{ matrix.architecture }}.exe
+          path: artifacts/installer/Setup.exe
           if-no-files-found: error
 
   release:
