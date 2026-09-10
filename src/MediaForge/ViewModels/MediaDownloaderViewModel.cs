@@ -31,6 +31,15 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
 
     public bool IsPlaylist => Items.Count > 1;
 
+    public string MediaTypeLabel => Items.Count switch
+    {
+        0 => "Ready to detect",
+        1 => "Single media item",
+        _ => "Playlist detected"
+    };
+
+    public string SelectedSummary => $"{SelectedCount} of {Items.Count} selected";
+
     public bool IsResolving
     {
         get => _isResolving;
@@ -80,7 +89,8 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
             }
 
             OnPropertyChanged(nameof(IsPlaylist));
-            OnPropertyChanged(nameof(SelectedCount));
+            OnPropertyChanged(nameof(MediaTypeLabel));
+            OnPropertyChanged(nameof(SelectedSummary));
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -123,6 +133,7 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
         }
 
         OnPropertyChanged(nameof(SelectedCount));
+        OnPropertyChanged(nameof(SelectedSummary));
     }
 
     public void SetAllFormat(MediaFormat format)
@@ -164,6 +175,7 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
             {
                 Items[index] = replacement;
                 OnPropertyChanged(nameof(SelectedCount));
+                OnPropertyChanged(nameof(SelectedSummary));
                 return;
             }
         }
