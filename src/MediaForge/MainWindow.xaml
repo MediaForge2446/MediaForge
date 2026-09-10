@@ -2,7 +2,9 @@
     x:Class="MediaForge.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="MediaForge">
+    Title="MediaForge"
+    Loaded="OnLoaded"
+    Closed="OnClosed">
     <Grid>
         <NavigationView
             x:Name="RootNavigation"
