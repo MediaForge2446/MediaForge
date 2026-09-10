@@ -28,6 +28,7 @@ public sealed partial class MainWindow : Window
             var pageType = tag switch
             {
                 "Library" => typeof(LibraryPage),
+                "Explorer" => typeof(ExplorerPage),
                 "Downloads" => typeof(DownloadsPage),
                 _ => null
             };
@@ -45,9 +46,15 @@ public sealed partial class MainWindow : Window
 
     private void OnContentFrameNavigated(object sender, Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
-        if (ContentFrame.Content is LibraryPage libraryPage)
+        switch (ContentFrame.Content)
         {
-            libraryPage.ViewModel = ViewModel.Library;
+            case LibraryPage libraryPage:
+                libraryPage.ViewModel = ViewModel.Library;
+                break;
+            case ExplorerPage explorerPage:
+                explorerPage.ViewModel = ViewModel.Explorer;
+                explorerPage.PendingViewModel = ViewModel.PendingChanges;
+                break;
         }
     }
 }
