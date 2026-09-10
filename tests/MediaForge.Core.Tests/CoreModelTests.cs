@@ -19,6 +19,28 @@ public sealed class CoreModelTests
     }
 
     [Fact]
+    public void MediaItem_PreservesResolvedMetadata()
+    {
+        var thumbnail = new Uri("https://example.com/cover.jpg");
+        var item = new MediaItem
+        {
+            Id = "video-id",
+            SourceUrl = "https://www.youtube.com/watch?v=video-id",
+            Title = "Song Title",
+            Artist = "Artist",
+            ThumbnailUrl = thumbnail,
+            Duration = TimeSpan.FromMinutes(3),
+            PlaylistTitle = "Playlist"
+        };
+
+        Assert.Equal("Song Title", item.Title);
+        Assert.Equal("Artist", item.Artist);
+        Assert.Equal(thumbnail, item.ThumbnailUrl);
+        Assert.Equal(TimeSpan.FromMinutes(3), item.Duration);
+        Assert.Equal("Playlist", item.PlaylistTitle);
+    }
+
+    [Fact]
     public void FileItem_DefaultsToSynced()
     {
         var item = new FileItem

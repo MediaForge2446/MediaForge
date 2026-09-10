@@ -14,6 +14,10 @@ public sealed record MediaItem
 
     public Uri? ThumbnailUrl { get; init; }
 
+    public TimeSpan? Duration { get; init; }
+
+    public string? PlaylistTitle { get; init; }
+
     public MediaFormat Format { get; init; } = MediaFormat.Mp3;
 
     public bool IsSelected { get; init; } = true;
