@@ -85,9 +85,4 @@ public sealed class PendingChangesViewModel : ViewModelBase
     {
         Refresh();
     }
-
-    private void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-    }
 }
