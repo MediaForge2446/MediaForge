@@ -10,11 +10,13 @@ namespace MediaForge.Views;
 
 public sealed partial class MediaDownloaderDialog : ContentDialog
 {
+    private readonly MainViewModel _main;
+
     public MediaDownloaderViewModel ViewModel { get; }
 
     public MediaDownloaderDialog(MainViewModel main, string targetFolderPath)
     {
-        ArgumentNullException.ThrowIfNull(main);
+        _main = main ?? throw new ArgumentNullException(nameof(main));
 
         ViewModel = new MediaDownloaderViewModel(
             new MediaResolverService(),
@@ -36,7 +38,7 @@ public sealed partial class MediaDownloaderDialog : ContentDialog
         }
         catch (Exception exception)
         {
-            ViewModel.ReportError(exception);
+            _main.ReportError(exception);
         }
     }
 
@@ -137,7 +139,7 @@ public sealed partial class MediaDownloaderDialog : ContentDialog
         catch (Exception exception)
         {
             args.Cancel = true;
-            ViewModel.ReportError(exception);
+            _main.ReportError(exception);
         }
     }
 
@@ -159,10 +161,5 @@ public sealed partial class MediaDownloaderDialog : ContentDialog
         PlaylistActionsPanel.Visibility = ViewModel.IsPlaylist ? Visibility.Visible : Visibility.Collapsed;
         PrimaryButtonText = ViewModel.SelectedCount > 0 ? $"Add {ViewModel.SelectedCount} to changes" : "Add to changes";
         IsPrimaryButtonEnabled = ViewModel.SelectedCount > 0 && !ViewModel.IsResolving;
-    }
-
-    public void ReportError(Exception exception)
-    {
-        ViewModel.GetType();
     }
 }
