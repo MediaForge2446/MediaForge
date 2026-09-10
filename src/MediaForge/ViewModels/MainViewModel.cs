@@ -1,4 +1,5 @@
 using MediaForge.Core.Interfaces;
+using MediaForge.Core.Models;
 using MediaForge.Services;
 using MediaForge.State;
 
@@ -12,6 +13,13 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
     private readonly ICommitService _commitService;
     private readonly ISettingsService _settingsService;
     private readonly IToolManager _toolManager;
+    private readonly IAppPersistenceService _persistenceService;
+    private readonly CancellationTokenSource _lifetimeCts = new();
+    private readonly SemaphoreSlim _saveGate = new(1, 1);
+
+    private string? _lastError;
+    private int _changeVersion;
+    private bool _disposed;
 
     public AppState State { get; } = new();
     public LibraryViewModel Library { get; }
@@ -19,7 +27,6 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
     public PendingChangesViewModel PendingChanges { get; }
     public SettingsViewModel Settings { get; }
 
-    private string? _lastError;
     public string? LastError
     {
         get => _lastError;
@@ -34,11 +41,15 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
         _commitService = new CommitService(_fileSystemService, _downloadService, _loggingService);
         _settingsService = new SettingsService();
         _toolManager = new ToolManager();
+        _persistenceService = new AppPersistenceService();
 
         Library = new LibraryViewModel(State.Library, this);
         Explorer = new ExplorerViewModel(_fileSystemService, State.PendingChanges, State.Library, this);
         PendingChanges = new PendingChangesViewModel(State.PendingChanges, _commitService, this);
         Settings = new SettingsViewModel(_settingsService, _toolManager, this);
+
+        State.Changed += OnStateChanged;
+        _ = RestoreStateAsync(_lifetimeCts.Token);
     }
 
     public void ReportError(Exception exception)
@@ -48,12 +59,109 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
         _loggingService.Error("A UI operation failed.", exception);
     }
 
+    private async Task RestoreStateAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var snapshot = await _persistenceService.LoadAsync(cancellationToken).ConfigureAwait(true);
+            if (snapshot is null)
+            {
+                return;
+            }
+
+            State.Library.Restore(snapshot.RootFolders);
+            State.PendingChanges.Replace(snapshot.PendingChanges);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            ReportError(exception);
+        }
+    }
+
+    private void OnStateChanged(object? sender, EventArgs e)
+    {
+        Interlocked.Increment(ref _changeVersion);
+        _ = PersistSoonAsync(_lifetimeCts.Token);
+    }
+
+    private async Task PersistSoonAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
+            var version = Volatile.Read(ref _changeVersion);
+            await PersistSnapshotAsync(cancellationToken).ConfigureAwait(false);
+
+            if (version != Volatile.Read(ref _changeVersion))
+            {
+                _ = PersistSoonAsync(cancellationToken);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            ReportError(exception);
+        }
+    }
+
+    private async Task PersistSnapshotAsync(CancellationToken cancellationToken)
+    {
+        await _saveGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var snapshot = new AppStateSnapshot
+            {
+                SchemaVersion = 1,
+                RootFolders = State.Library.RootFolders,
+                PendingChanges = State.PendingChanges.Changes,
+                SavedAtUtc = DateTimeOffset.UtcNow
+            };
+
+            await _persistenceService.SaveAsync(snapshot, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _saveGate.Release();
+        }
+    }
+
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        State.Changed -= OnStateChanged;
+        _lifetimeCts.Cancel();
+
+        try
+        {
+            PersistSnapshotAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        catch (Exception exception)
+        {
+            _loggingService.Error("Failed to persist application state during shutdown.", exception);
+        }
+
         Settings.Dispose();
         if (_toolManager is IDisposable disposableTools)
         {
             disposableTools.Dispose();
         }
+
+        if (_persistenceService is IDisposable disposablePersistence)
+        {
+            disposablePersistence.Dispose();
+        }
+
+        _saveGate.Dispose();
+        _lifetimeCts.Dispose();
     }
 }
