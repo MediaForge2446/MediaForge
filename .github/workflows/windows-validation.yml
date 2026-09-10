@@ -1,0 +1,40 @@
+name: Windows Validation
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Windows x64
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore MediaForge.sln
+
+      - name: Build
+        run: dotnet build MediaForge.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test MediaForge.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+
+      - name: Publish self-contained x64
+        run: dotnet publish src/MediaForge/MediaForge.csproj --configuration Release --runtime win-x64 --self-contained true --publish-profile win-x64 --no-restore
+
+      - name: Smoke test published app
+        shell: pwsh
+        run: ./scripts/smoke-test.ps1 -PublishDirectory "artifacts/publish/win-x64"
