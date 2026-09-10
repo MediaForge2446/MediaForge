@@ -7,6 +7,7 @@
         <converters:ChangeStatusToBrushConverter x:Key="ChangeStatusBrushConverter" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <converters:FailedStatusToVisibilityConverter x:Key="FailedStatusToVisibilityConverter" />
+        <converters:PendingStatusEnabledConverter x:Key="PendingStatusEnabledConverter" />
     </Page.Resources>
 
     <Grid Padding="24" RowSpacing="16">
@@ -23,6 +24,7 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <ComboBox x:Name="RootFolderPicker"
@@ -32,7 +34,8 @@
                       SelectionChanged="OnRootFolderChanged" />
             <Button Grid.Column="1" Content="New folder" Click="OnNewFolderClick" />
             <Button Grid.Column="2" Content="Rename" Click="OnRenameClick" />
-            <Button Grid.Column="3" Content="Delete" Click="OnDeleteClick" />
+            <Button Grid.Column="3" Content="Move" Click="OnMoveClick" />
+            <Button Grid.Column="4" Content="Delete" Click="OnDeleteClick" />
         </Grid>
 
         <Grid Grid.Row="1" ColumnSpacing="8">
