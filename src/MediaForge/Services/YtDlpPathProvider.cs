@@ -16,7 +16,10 @@ public sealed class YtDlpPathProvider
     {
         ToolsDirectory = Path.GetFullPath(
             string.IsNullOrWhiteSpace(toolsDirectory)
-                ? Path.Combine(AppContext.BaseDirectory, "Tools")
+                ? Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "MediaForge",
+                    "Tools")
                 : toolsDirectory);
     }
 
