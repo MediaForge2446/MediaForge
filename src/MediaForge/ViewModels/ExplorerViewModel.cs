@@ -10,9 +10,11 @@ public sealed class ExplorerViewModel : ViewModelBase
 {
     private readonly IFileSystemService _fileSystem;
     private readonly PendingChangesState _pendingChanges;
+    private readonly LibraryState _library;
     private readonly MainViewModel _main;
 
     public ObservableCollection<FileItem> Items { get; } = new();
+    public ObservableCollection<MediaFolder> RootFolders { get; } = new();
 
     private string? _currentPath;
     public string? CurrentPath
@@ -24,11 +26,17 @@ public sealed class ExplorerViewModel : ViewModelBase
     public ExplorerViewModel(
         IFileSystemService fileSystem,
         PendingChangesState pendingChanges,
+        LibraryState library,
         MainViewModel main)
     {
         _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         _pendingChanges = pendingChanges ?? throw new ArgumentNullException(nameof(pendingChanges));
+        _library = library ?? throw new ArgumentNullException(nameof(library));
         _main = main ?? throw new ArgumentNullException(nameof(main));
+
+        RefreshRootFolders();
+        _library.Changed += OnLibraryChanged;
+        _pendingChanges.Changed += OnPendingChangesChanged;
     }
 
     public void OpenFolder(string path)
@@ -46,10 +54,7 @@ public sealed class ExplorerViewModel : ViewModelBase
             Items.Clear();
             foreach (var item in items)
             {
-                Items.Add(item with
-                {
-                    Status = GetStatus(item.FullPath)
-                });
+                Items.Add(item with { Status = GetStatus(item.FullPath) });
             }
 
             CurrentPath = fullPath;
@@ -96,7 +101,6 @@ public sealed class ExplorerViewModel : ViewModelBase
         try
         {
             ArgumentNullException.ThrowIfNull(item);
-            EnsurePendingTargetAvailable(item.FullPath, allowExisting: true);
 
             _pendingChanges.Add(new PendingChange
             {
@@ -154,26 +158,36 @@ public sealed class ExplorerViewModel : ViewModelBase
 
     public void Refresh()
     {
+        RefreshRootFolders();
         if (!string.IsNullOrWhiteSpace(CurrentPath))
         {
             OpenFolder(CurrentPath);
         }
     }
 
+    private void RefreshRootFolders()
+    {
+        RootFolders.Clear();
+        foreach (var folder in _library.RootFolders)
+        {
+            RootFolders.Add(folder);
+        }
+    }
+
     private ChangeStatus GetStatus(string path)
     {
-        var pending = _pendingChanges.Changes
-            .Where(change => change.Status != ChangeStatus.Synced)
-            .FirstOrDefault(change => string.Equals(change.SourcePath, path, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(change.TargetPath, path, StringComparison.OrdinalIgnoreCase));
+        var pending = _pendingChanges.Changes.FirstOrDefault(change =>
+            change.Status != ChangeStatus.Synced &&
+            (string.Equals(change.SourcePath, path, StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(change.TargetPath, path, StringComparison.OrdinalIgnoreCase)));
 
         return pending?.Status ?? ChangeStatus.Synced;
     }
 
-    private void EnsurePendingTargetAvailable(string path, bool allowExisting = false)
+    private void EnsurePendingTargetAvailable(string path)
     {
         var normalized = Path.GetFullPath(path);
-        if (!allowExisting && (_fileSystem.FileExists(normalized) || _fileSystem.DirectoryExists(normalized)))
+        if (_fileSystem.FileExists(normalized) || _fileSystem.DirectoryExists(normalized))
         {
             throw new IOException($"The path already exists: {normalized}");
         }
@@ -183,6 +197,16 @@ public sealed class ExplorerViewModel : ViewModelBase
                 string.Equals(change.TargetPath, normalized, StringComparison.OrdinalIgnoreCase)))
         {
             throw new IOException("A pending change already targets this path.");
+        }
+    }
+
+    private void OnLibraryChanged(object? sender, EventArgs e) => RefreshRootFolders();
+
+    private void OnPendingChangesChanged(object? sender, EventArgs e)
+    {
+        if (!string.IsNullOrWhiteSpace(CurrentPath))
+        {
+            OpenFolder(CurrentPath);
         }
     }
 }
