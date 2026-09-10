@@ -16,15 +16,41 @@ public sealed partial class MainWindow : Window
         RootNavigation.SelectedItem = RootNavigation.MenuItems[0];
     }
 
-    private void OnNavigationSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        if (args.SelectedItemContainer?.Tag is not string tag)
-        {
-            return;
-        }
-
         try
         {
+            await ViewModel.Settings.StartBackgroundMaintenanceAsync();
+        }
+        catch (Exception exception)
+        {
+            ViewModel.ReportError(exception);
+        }
+    }
+
+    private void OnClosed(object sender, WindowEventArgs args)
+    {
+        ViewModel.Dispose();
+    }
+
+    private void OnNavigationSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    {
+        try
+        {
+            if (args.IsSettingsSelected)
+            {
+                if (ContentFrame.CurrentSourcePageType != typeof(SettingsPage))
+                {
+                    ContentFrame.Navigate(typeof(SettingsPage));
+                }
+                return;
+            }
+
+            if (args.SelectedItemContainer?.Tag is not string tag)
+            {
+                return;
+            }
+
             var pageType = tag switch
             {
                 "Library" => typeof(LibraryPage),
