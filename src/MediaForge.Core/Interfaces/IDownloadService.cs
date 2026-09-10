@@ -6,6 +6,6 @@ public interface IDownloadService
 {
     Task<string> DownloadAsync(
         DownloadTask task,
-        IProgress<double>? progress = null,
+        IProgress<DownloadProgress>? progress = null,
         CancellationToken cancellationToken = default);
 }

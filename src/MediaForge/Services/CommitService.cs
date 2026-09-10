@@ -22,24 +22,52 @@ public sealed class CommitService : ICommitService
 
     public async Task<IReadOnlyList<PendingChange>> CommitAsync(
         IReadOnlyList<PendingChange> changes,
+        IProgress<CommitProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(changes);
 
-        var results = new List<PendingChange>(changes.Count);
+        var activeChanges = changes
+            .Where(change => change.Status == ChangeStatus.Pending)
+            .ToArray();
 
-        foreach (var change in changes)
+        if (activeChanges.Length == 0)
+        {
+            return changes.ToArray();
+        }
+
+        var resultMap = changes.ToDictionary(change => change.Id);
+        var completedCount = 0;
+
+        foreach (var change in activeChanges)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
-                await ApplyAsync(change, cancellationToken).ConfigureAwait(false);
-                results.Add(change with
+                await ApplyAsync(
+                    change,
+                    activeChanges.Length,
+                    completedCount,
+                    progress,
+                    cancellationToken).ConfigureAwait(false);
+
+                resultMap[change.Id] = change with
                 {
                     Status = ChangeStatus.Synced,
                     ErrorMessage = null
+                };
+
+                completedCount++;
+                progress?.Report(new CommitProgress
+                {
+                    ChangeId = change.Id,
+                    Progress = 1d,
+                    CompletedCount = completedCount,
+                    TotalCount = activeChanges.Length,
+                    Message = "Saved successfully"
                 });
+
                 _logging.Info($"Committed change {change.Id} ({change.Type}).");
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -48,19 +76,37 @@ public sealed class CommitService : ICommitService
             }
             catch (Exception exception)
             {
-                results.Add(change with
+                resultMap[change.Id] = change with
                 {
                     Status = ChangeStatus.Failed,
                     ErrorMessage = exception.Message
+                };
+
+                progress?.Report(new CommitProgress
+                {
+                    ChangeId = change.Id,
+                    Progress = 0d,
+                    CompletedCount = completedCount,
+                    TotalCount = activeChanges.Length,
+                    Message = "Save failed",
+                    Error = exception
                 });
+
                 _logging.Error($"Failed to commit change {change.Id} ({change.Type}).", exception);
             }
         }
 
-        return results;
+        return changes
+            .Select(change => resultMap.TryGetValue(change.Id, out var result) ? result : change)
+            .ToArray();
     }
 
-    private async Task ApplyAsync(PendingChange change, CancellationToken cancellationToken)
+    private async Task ApplyAsync(
+        PendingChange change,
+        int totalCount,
+        int completedCount,
+        IProgress<CommitProgress>? progress,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(change.SourcePath))
         {
@@ -70,11 +116,15 @@ public sealed class CommitService : ICommitService
         switch (change.Type)
         {
             case ChangeType.CreateFolder:
-                _fileSystem.CreateDirectory(change.SourcePath);
+                await Task.Run(
+                    () => _fileSystem.CreateDirectory(change.SourcePath),
+                    cancellationToken).ConfigureAwait(false);
                 break;
 
             case ChangeType.Delete:
-                _fileSystem.Delete(change.SourcePath);
+                await Task.Run(
+                    () => _fileSystem.Delete(change.SourcePath),
+                    cancellationToken).ConfigureAwait(false);
                 break;
 
             case ChangeType.Rename:
@@ -84,7 +134,9 @@ public sealed class CommitService : ICommitService
                     throw new InvalidOperationException("A target path is required.");
                 }
 
-                _fileSystem.Move(change.SourcePath, change.TargetPath);
+                await Task.Run(
+                    () => _fileSystem.Move(change.SourcePath, change.TargetPath),
+                    cancellationToken).ConfigureAwait(false);
                 break;
 
             case ChangeType.Download:
@@ -101,7 +153,26 @@ public sealed class CommitService : ICommitService
                     Format = GetFormat(change.TargetPath)
                 };
 
-                await _downloadService.DownloadAsync(downloadTask, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var downloadProgress = new Progress<DownloadProgress>(state =>
+                {
+                    var normalized = Math.Clamp(state.Progress, 0d, 1d);
+                    progress?.Report(new CommitProgress
+                    {
+                        ChangeId = change.Id,
+                        Progress = normalized,
+                        CompletedCount = completedCount,
+                        TotalCount = totalCount,
+                        Message = state.Message,
+                        IsRetrying = state.IsRetrying,
+                        RetryAttempt = state.Attempt,
+                        Error = state.Error
+                    });
+                });
+
+                await _downloadService.DownloadAsync(
+                    downloadTask,
+                    downloadProgress,
+                    cancellationToken).ConfigureAwait(false);
                 break;
 
             default:
@@ -109,10 +180,8 @@ public sealed class CommitService : ICommitService
         }
     }
 
-    private static MediaFormat GetFormat(string targetPath)
-    {
-        return string.Equals(Path.GetExtension(targetPath), ".mp4", StringComparison.OrdinalIgnoreCase)
+    private static MediaFormat GetFormat(string targetPath) =>
+        string.Equals(Path.GetExtension(targetPath), ".mp4", StringComparison.OrdinalIgnoreCase)
             ? MediaFormat.Mp4
             : MediaFormat.Mp3;
-    }
 }
