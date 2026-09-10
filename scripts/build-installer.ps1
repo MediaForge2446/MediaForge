@@ -12,7 +12,7 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $profile = if ($RuntimeIdentifier -eq 'win-arm64') { 'win-arm64' } else { 'win-x64' }
-$architecture = if ($RuntimeIdentifier -eq 'win-arm64') { 'arm64' } else { 'x64' }
+$architecture = if ($RuntimeIdentifier -eq 'win-arm64') { 'arm64' } else { 'x64compatible' }
 $publishDirectory = Join-Path $repoRoot "artifacts\publish\$RuntimeIdentifier"
 $installerDirectory = Join-Path $repoRoot 'artifacts\installer'
 $projectPath = Join-Path $repoRoot 'src\MediaForge\MediaForge.csproj'
