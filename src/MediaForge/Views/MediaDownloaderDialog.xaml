@@ -30,8 +30,7 @@
             <Button Grid.Column="1"
                     VerticalAlignment="Bottom"
                     Content="Detect"
-                    Click="OnDetectClick"
-                    IsEnabled="{Binding ViewModel.CanResolve}" />
+                    Click="OnDetectClick" />
         </Grid>
 
         <Grid Grid.Row="1" Margin="0,18,0,12">
@@ -40,23 +39,21 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel Spacing="2">
-                <TextBlock Text="{Binding ViewModel.MediaTypeLabel}"
-                           FontSize="16"
-                           FontWeight="SemiBold" />
-                <TextBlock Text="{Binding ViewModel.SelectedSummary}"
-                           Opacity="0.68" />
+                <TextBlock x:Name="MediaTypeText" FontSize="16" FontWeight="SemiBold" />
+                <TextBlock x:Name="SelectedSummaryText" Opacity="0.68" />
             </StackPanel>
-            <ProgressRing Grid.Column="1"
+            <ProgressRing x:Name="ResolveProgressRing"
+                          Grid.Column="1"
                           Width="24"
                           Height="24"
-                          IsActive="{Binding ViewModel.IsResolving}"
-                          Visibility="{Binding ViewModel.IsResolving, Converter={StaticResource BoolToVisibilityConverter}}" />
+                          IsActive="False" />
         </Grid>
 
-        <StackPanel Grid.Row="2"
+        <StackPanel x:Name="PlaylistActionsPanel"
+                    Grid.Row="2"
                     Orientation="Horizontal"
                     Spacing="8"
-                    Visibility="{Binding ViewModel.IsPlaylist, Converter={StaticResource BoolToVisibilityConverter}}">
+                    Visibility="Collapsed">
             <Button Content="Select all" Click="OnSelectAllClick" />
             <Button Content="Deselect all" Click="OnDeselectAllClick" />
             <Button Content="MP3 for all" Click="OnMp3AllClick" />
@@ -109,10 +106,8 @@
 
                             <ComboBox Grid.Column="2"
                                       Header="Format"
-                                      SelectedValue="{Binding Format, Mode=TwoWay}"
-                                      SelectedValuePath="Tag"
                                       SelectionChanged="OnFormatChanged">
-                                <ComboBoxItem Content="MP3" Tag="Mp3" />
+                                <ComboBoxItem Content="MP3" Tag="Mp3" IsSelected="True" />
                                 <ComboBoxItem Content="MP4" Tag="Mp4" />
                             </ComboBox>
                         </Grid>
@@ -125,21 +120,10 @@
                 Padding="12"
                 CornerRadius="8"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="Changes are staged only. Nothing is downloaded until Save Changes."
-                           VerticalAlignment="Center"
-                           Opacity="0.72"
-                           TextWrapping="Wrap" />
-                <TextBlock Grid.Column="1"
-                           Margin="16,0,0,0"
-                           Text="{Binding ViewModel.SelectedSummary}"
-                           VerticalAlignment="Center"
-                           FontWeight="SemiBold" />
-            </Grid>
+            <TextBlock Text="Changes are staged only. Nothing is downloaded until Save Changes."
+                       VerticalAlignment="Center"
+                       Opacity="0.72"
+                       TextWrapping="Wrap" />
         </Border>
     </Grid>
 </ContentDialog>
