@@ -85,19 +85,39 @@ public sealed class PendingChangesViewModel : ViewModelBase
                 return false;
             }
 
-            if (!_history.Remove(changeId, out _))
+            if (!_history.Remove(changeId, out var removed) || removed is null)
             {
                 return false;
             }
 
             if (!_state.Remove(changeId))
             {
+                _history.Restore(removed);
                 return false;
             }
 
             OnPropertyChanged(nameof(CanSave));
             OnPropertyChanged(nameof(CanCancel));
             return true;
+        }
+        catch (Exception exception)
+        {
+            _main.ReportError(exception);
+            return false;
+        }
+    }
+
+    public bool UndoLast()
+    {
+        try
+        {
+            if (IsSaving)
+            {
+                return false;
+            }
+
+            var last = _history.Snapshot.LastOrDefault(change => change.Status == ChangeStatus.Pending);
+            return last is not null && Undo(last.Id);
         }
         catch (Exception exception)
         {
