@@ -13,11 +13,11 @@ public sealed class MediaDownloaderViewModelTests
     {
         var root = Path.Combine(Path.GetTempPath(), "MediaForge-DownloaderTests", Guid.NewGuid().ToString("N"));
         var pending = new PendingChangesState();
-        var main = new MainViewModelTestDouble();
+        var reported = new List<Exception>();
         var viewModel = new MediaDownloaderViewModel(
             new FakeResolver(),
             pending,
-            main.ViewModel,
+            reported.Add,
             () => root);
 
         viewModel.Items.Add(new MediaItem
@@ -36,16 +36,12 @@ public sealed class MediaDownloaderViewModelTests
         Assert.Equal(ChangeType.Download, change.Type);
         Assert.Equal(Path.Combine(root, "Test Song.mp3"), change.TargetPath);
         Assert.False(Directory.Exists(root));
+        Assert.Empty(reported);
     }
 
     private sealed class FakeResolver : IMediaResolver
     {
         public Task<IReadOnlyList<MediaItem>> ResolveAsync(string url, CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<MediaItem>>(Array.Empty<MediaItem>());
-    }
-
-    private sealed class MainViewModelTestDouble
-    {
-        public MainViewModel ViewModel => throw new NotSupportedException();
     }
 }
