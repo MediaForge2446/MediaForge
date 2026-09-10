@@ -3,11 +3,13 @@ using MediaForge.Core.Interfaces;
 using MediaForge.Core.Models;
 using YoutubeDLSharp;
 using YoutubeDLSharp.Options;
+using YtDlpProgress = YoutubeDLSharp.DownloadProgress;
 
 namespace MediaForge.Services;
 
 public sealed class DownloadService : IDownloadService
 {
+    private const int MaxAttempts = 3;
     private readonly YtDlpPathProvider _paths;
 
     public DownloadService(YtDlpPathProvider? paths = null)
@@ -17,7 +19,7 @@ public sealed class DownloadService : IDownloadService
 
     public async Task<string> DownloadAsync(
         DownloadTask task,
-        IProgress<double>? progress = null,
+        IProgress<MediaForge.Core.Models.DownloadProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(task);
@@ -53,6 +55,102 @@ public sealed class DownloadService : IDownloadService
             throw new IOException($"The destination file already exists: {targetPath}");
         }
 
+        Exception? lastException = null;
+
+        for (var attempt = 1; attempt <= MaxAttempts; attempt++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                progress?.Report(new MediaForge.Core.Models.DownloadProgress
+                {
+                    DownloadId = task.Id,
+                    Progress = 0d,
+                    Attempt = attempt,
+                    MaxAttempts = MaxAttempts,
+                    Message = attempt == 1 ? "Starting download" : $"Retrying download (attempt {attempt} of {MaxAttempts})",
+                    IsRetrying = attempt > 1,
+                    Error = lastException
+                });
+
+                var producedPath = await RunYtDlpAsync(
+                    task,
+                    sourceUri,
+                    targetDirectory,
+                    targetFileName,
+                    attempt,
+                    progress,
+                    cancellationToken).ConfigureAwait(false);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!File.Exists(producedPath))
+                {
+                    throw new FileNotFoundException(
+                        "yt-dlp completed without producing the expected output file.",
+                        targetPath);
+                }
+
+                if (!string.Equals(producedPath, targetPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    MoveProducedFile(producedPath, targetPath);
+                }
+
+                progress?.Report(new MediaForge.Core.Models.DownloadProgress
+                {
+                    DownloadId = task.Id,
+                    Progress = 1d,
+                    Attempt = attempt,
+                    MaxAttempts = MaxAttempts,
+                    Message = "Download completed"
+                });
+
+                return targetPath;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                lastException = exception;
+                progress?.Report(new MediaForge.Core.Models.DownloadProgress
+                {
+                    DownloadId = task.Id,
+                    Progress = 0d,
+                    Attempt = attempt,
+                    MaxAttempts = MaxAttempts,
+                    Message = attempt < MaxAttempts
+                        ? $"Download failed. Retrying in {RetryDelay(attempt).TotalSeconds:0} seconds."
+                        : "Download failed",
+                    IsRetrying = attempt < MaxAttempts,
+                    Error = exception
+                });
+
+                if (attempt == MaxAttempts)
+                {
+                    throw new InvalidOperationException(
+                        $"Download failed after {MaxAttempts} attempts: {exception.Message}",
+                        exception);
+                }
+
+                await Task.Delay(RetryDelay(attempt), cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        throw new InvalidOperationException("Download failed unexpectedly.", lastException);
+    }
+
+    private async Task<string> RunYtDlpAsync(
+        DownloadTask task,
+        Uri sourceUri,
+        string targetDirectory,
+        string targetFileName,
+        int attempt,
+        IProgress<MediaForge.Core.Models.DownloadProgress>? progress,
+        CancellationToken cancellationToken)
+    {
         var ytdl = new YoutubeDL
         {
             YoutubeDLPath = _paths.YoutubeDLPath,
@@ -61,12 +159,17 @@ public sealed class DownloadService : IDownloadService
             OutputFileTemplate = BuildOutputTemplate(task.Format, targetFileName)
         };
 
-        var downloadProgress = new Progress<DownloadProgress>(state =>
+        var ytDlpProgress = new Progress<YtDlpProgress>(state =>
         {
-            if (state.Progress >= 0 && state.Progress <= 1)
+            var normalized = Math.Clamp(state.Progress, 0d, 1d);
+            progress?.Report(new MediaForge.Core.Models.DownloadProgress
             {
-                progress?.Report(state.Progress);
-            }
+                DownloadId = task.Id,
+                Progress = normalized,
+                Attempt = attempt,
+                MaxAttempts = MaxAttempts,
+                Message = state.Progress >= 1d ? "Processing media" : "Downloading"
+            });
         });
 
         var result = task.Format switch
@@ -74,12 +177,12 @@ public sealed class DownloadService : IDownloadService
             MediaFormat.Mp3 => await ytdl.RunAudioDownload(
                 sourceUri.ToString(),
                 AudioConversionFormat.Mp3,
-                progress: downloadProgress,
+                progress: ytDlpProgress,
                 ct: cancellationToken).ConfigureAwait(false),
 
             MediaFormat.Mp4 => await ytdl.RunVideoDownload(
                 sourceUri.ToString(),
-                progress: downloadProgress,
+                progress: ytDlpProgress,
                 ct: cancellationToken,
                 overrideOptions: new OptionSet
                 {
@@ -99,8 +202,6 @@ public sealed class DownloadService : IDownloadService
             throw new InvalidOperationException(details);
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
-
         var producedPath = result.Data;
         if (string.IsNullOrWhiteSpace(producedPath) || !File.Exists(producedPath))
         {
@@ -109,18 +210,16 @@ public sealed class DownloadService : IDownloadService
 
         if (string.IsNullOrWhiteSpace(producedPath) || !File.Exists(producedPath))
         {
-            throw new FileNotFoundException("yt-dlp completed without producing the expected output file.", targetPath);
+            throw new FileNotFoundException(
+                "yt-dlp completed without producing the expected output file.",
+                Path.Combine(targetDirectory, targetFileName));
         }
 
-        producedPath = Path.GetFullPath(producedPath);
-        if (!string.Equals(producedPath, targetPath, StringComparison.OrdinalIgnoreCase))
-        {
-            MoveProducedFile(producedPath, targetPath);
-        }
-
-        progress?.Report(1d);
-        return targetPath;
+        return Path.GetFullPath(producedPath);
     }
+
+    private static TimeSpan RetryDelay(int attempt) =>
+        TimeSpan.FromSeconds(Math.Min(30, Math.Pow(2, attempt)));
 
     private static string BuildOutputTemplate(MediaFormat format, string targetFileName)
     {
@@ -137,9 +236,14 @@ public sealed class DownloadService : IDownloadService
         var extension = Path.GetExtension(targetFileName);
 
         return Directory.EnumerateFiles(directory, $"{expectedName}.*", SearchOption.TopDirectoryOnly)
-            .Where(path => !path.EndsWith(".part", StringComparison.OrdinalIgnoreCase))
+            .Where(path =>
+                !path.EndsWith(".part", StringComparison.OrdinalIgnoreCase) &&
+                !path.EndsWith(".ytdl", StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(File.GetLastWriteTimeUtc)
-            .FirstOrDefault(path => string.Equals(Path.GetExtension(path), extension, StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(path => string.Equals(
+                Path.GetExtension(path),
+                extension,
+                StringComparison.OrdinalIgnoreCase));
     }
 
     private static void MoveProducedFile(string sourcePath, string targetPath)
