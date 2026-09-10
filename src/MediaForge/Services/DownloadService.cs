@@ -1,17 +1,19 @@
+using MediaForge.Core.Enums;
 using MediaForge.Core.Interfaces;
 using MediaForge.Core.Models;
+using YoutubeDLSharp;
+using YoutubeDLSharp.Options;
 
 namespace MediaForge.Services;
 
-public sealed class DownloadService : IDownloadService, IDisposable
+public sealed class DownloadService : IDownloadService
 {
-    private readonly HttpClient _httpClient;
+    private readonly YtDlpPathProvider _paths;
+    private readonly object _sync = new();
 
-    public DownloadService(HttpClient? httpClient = null)
+    public DownloadService(YtDlpPathProvider? paths = null)
     {
-        _httpClient = httpClient ?? new HttpClient();
-        _httpClient.Timeout = TimeSpan.FromMinutes(30);
-        _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("MediaForge/1.0");
+        _paths = paths ?? new YtDlpPathProvider();
     }
 
     public async Task<string> DownloadAsync(
@@ -23,84 +25,135 @@ public sealed class DownloadService : IDownloadService, IDisposable
         ArgumentException.ThrowIfNullOrWhiteSpace(task.SourceUrl);
         ArgumentException.ThrowIfNullOrWhiteSpace(task.TargetPath);
 
-        if (!Uri.TryCreate(task.SourceUrl, UriKind.Absolute, out var sourceUri) ||
+        if (!Uri.TryCreate(task.SourceUrl.Trim(), UriKind.Absolute, out var sourceUri) ||
             (sourceUri.Scheme != Uri.UriSchemeHttp && sourceUri.Scheme != Uri.UriSchemeHttps))
         {
             throw new ArgumentException("The source URL must be a valid HTTP or HTTPS URL.", nameof(task));
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
+        _paths.EnsureReady();
+
         var targetPath = Path.GetFullPath(task.TargetPath);
         var targetDirectory = Path.GetDirectoryName(targetPath);
-        if (!string.IsNullOrWhiteSpace(targetDirectory))
+        if (string.IsNullOrWhiteSpace(targetDirectory))
         {
-            Directory.CreateDirectory(targetDirectory);
+            throw new InvalidOperationException("The target path must include a destination directory.");
         }
 
-        var temporaryPath = $"{targetPath}.{Guid.NewGuid():N}.download";
+        Directory.CreateDirectory(targetDirectory);
 
-        try
+        var targetFileName = Path.GetFileName(targetPath);
+        if (string.IsNullOrWhiteSpace(targetFileName))
         {
-            using var response = await _httpClient.GetAsync(
-                sourceUri,
-                HttpCompletionOption.ResponseHeadersRead,
-                cancellationToken).ConfigureAwait(false);
+            throw new InvalidOperationException("The target path must include a file name.");
+        }
 
-            response.EnsureSuccessStatusCode();
+        if (File.Exists(targetPath))
+        {
+            throw new IOException($"The destination file already exists: {targetPath}");
+        }
 
-            var totalBytes = response.Content.Headers.ContentLength;
-            await using var source = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-            await using var destination = new FileStream(
-                temporaryPath,
-                FileMode.CreateNew,
-                FileAccess.Write,
-                FileShare.None,
-                bufferSize: 128 * 1024,
-                options: FileOptions.Asynchronous | FileOptions.SequentialScan);
+        var ytdl = new YoutubeDL
+        {
+            YoutubeDLPath = _paths.YoutubeDLPath,
+            FFmpegPath = _paths.FFmpegPath,
+            OutputFolder = targetDirectory,
+            OutputFileTemplate = BuildOutputTemplate(task.Format, targetFileName)
+        };
 
-            var buffer = new byte[128 * 1024];
-            long totalRead = 0;
-            int read;
-
-            while ((read = await source.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) > 0)
+        var downloadProgress = new Progress<DownloadProgress>(state =>
+        {
+            if (state.Progress >= 0 && state.Progress <= 1)
             {
-                await destination.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
-                totalRead += read;
+                progress?.Report(state.Progress);
+            }
+        });
 
-                if (totalBytes is > 0)
+        var result = task.Format switch
+        {
+            MediaFormat.Mp3 => await ytdl.RunAudioDownload(
+                sourceUri.ToString(),
+                AudioConversionFormat.Mp3,
+                progress: downloadProgress,
+                ct: cancellationToken).ConfigureAwait(false),
+
+            MediaFormat.Mp4 => await ytdl.RunVideoDownload(
+                sourceUri.ToString(),
+                progress: downloadProgress,
+                ct: cancellationToken,
+                overrideOptions: new OptionSet
                 {
-                    progress?.Report((double)totalRead / totalBytes.Value);
-                }
-            }
+                    Format = "bestvideo+bestaudio/best",
+                    MergeOutputFormat = "mp4",
+                    NoPlaylist = true
+                }).ConfigureAwait(false),
 
-            await destination.FlushAsync(cancellationToken).ConfigureAwait(false);
-            File.Move(temporaryPath, targetPath);
-            progress?.Report(1d);
+            _ => throw new ArgumentOutOfRangeException(nameof(task.Format), task.Format, "Unsupported media format.")
+        };
 
-            return targetPath;
-        }
-        catch
+        if (!result.Success)
         {
-            TryDelete(temporaryPath);
-            throw;
+            var details = result.ErrorOutput is { Length: > 0 }
+                ? string.Join(Environment.NewLine, result.ErrorOutput)
+                : "yt-dlp reported an unknown download failure.";
+
+            throw new InvalidOperationException(details);
         }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var producedPath = result.Data;
+        if (string.IsNullOrWhiteSpace(producedPath) || !File.Exists(producedPath))
+        {
+            producedPath = FindProducedFile(targetDirectory, targetFileName);
+        }
+
+        if (string.IsNullOrWhiteSpace(producedPath) || !File.Exists(producedPath))
+        {
+            throw new FileNotFoundException("yt-dlp completed without producing the expected output file.", targetPath);
+        }
+
+        producedPath = Path.GetFullPath(producedPath);
+        if (!string.Equals(producedPath, targetPath, StringComparison.OrdinalIgnoreCase))
+        {
+            MoveProducedFile(producedPath, targetPath);
+        }
+
+        progress?.Report(1d);
+        return targetPath;
     }
 
-    public void Dispose()
+    private static string BuildOutputTemplate(MediaFormat format, string targetFileName)
     {
-        _httpClient.Dispose();
+        var extension = Path.GetExtension(targetFileName);
+        var stem = targetFileName[..^extension.Length];
+        return format == MediaFormat.Mp4
+            ? $"{stem}.%(ext)s"
+            : $"{stem}.mp3";
     }
 
-    private static void TryDelete(string path)
+    private static string? FindProducedFile(string directory, string targetFileName)
     {
-        try
+        var expectedName = Path.GetFileNameWithoutExtension(targetFileName);
+        var extension = Path.GetExtension(targetFileName);
+
+        return Directory.EnumerateFiles(directory, $"{expectedName}.*", SearchOption.TopDirectoryOnly)
+            .Where(path => !path.EndsWith(".part", StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(File.GetLastWriteTimeUtc)
+            .FirstOrDefault(path => string.Equals(Path.GetExtension(path), extension, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static void MoveProducedFile(string sourcePath, string targetPath)
+    {
+        lock (typeof(DownloadService))
         {
-            if (File.Exists(path))
+            if (File.Exists(targetPath))
             {
-                File.Delete(path);
+                throw new IOException($"The destination file already exists: {targetPath}");
             }
-        }
-        catch
-        {
+
+            File.Move(sourcePath, targetPath);
         }
     }
 }
