@@ -22,7 +22,12 @@ public sealed partial class LibraryPage : Page
             picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.ComputerFolder;
             picker.FileTypeFilter.Add("*");
 
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.Current is App app ? GetMainWindow(app) : null!);
+            if (App.Current is not App app || app.MainWindow is null)
+            {
+                return;
+            }
+
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(app.MainWindow);
             WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
 
             var folder = await picker.PickSingleFolderAsync();
@@ -33,7 +38,6 @@ public sealed partial class LibraryPage : Page
         }
         catch (Exception)
         {
-            // UI event failures are isolated from the shell.
         }
     }
 
@@ -54,13 +58,5 @@ public sealed partial class LibraryPage : Page
         catch (Exception)
         {
         }
-    }
-
-    private static Window GetMainWindow(App app)
-    {
-        return app.GetType()
-                  .GetField("_window", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-                  ?.GetValue(app) as Window
-               ?? throw new InvalidOperationException("Application window is not available.");
     }
 }
