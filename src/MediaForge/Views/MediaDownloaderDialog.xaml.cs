@@ -14,15 +14,16 @@ public sealed partial class MediaDownloaderDialog : ContentDialog
 
     public MediaDownloaderViewModel ViewModel { get; }
 
-    public MediaDownloaderDialog(MainViewModel main, string targetFolderPath)
+    public MediaDownloaderDialog(MainViewModel main, Func<string?> targetFolderProvider)
     {
         _main = main ?? throw new ArgumentNullException(nameof(main));
+        ArgumentNullException.ThrowIfNull(targetFolderProvider);
 
         ViewModel = new MediaDownloaderViewModel(
             new MediaResolverService(),
             main.State.PendingChanges,
             main,
-            targetFolderPath);
+            targetFolderProvider);
 
         InitializeComponent();
         DataContext = this;
@@ -58,15 +59,8 @@ public sealed partial class MediaDownloaderDialog : ContentDialog
         ViewModel.SourceUrl = UrlTextBox.Text;
     }
 
-    private void OnSelectAllClick(object sender, RoutedEventArgs e)
-    {
-        ViewModel.SelectAll();
-    }
-
-    private void OnDeselectAllClick(object sender, RoutedEventArgs e)
-    {
-        ViewModel.SelectAll(false);
-    }
+    private void OnSelectAllClick(object sender, RoutedEventArgs e) => ViewModel.SelectAll();
+    private void OnDeselectAllClick(object sender, RoutedEventArgs e) => ViewModel.SelectAll(false);
 
     private void OnMp3AllClick(object sender, RoutedEventArgs e)
     {
@@ -82,12 +76,10 @@ public sealed partial class MediaDownloaderDialog : ContentDialog
 
     private void OnItemSelectionChanged(object sender, RoutedEventArgs e)
     {
-        if (sender is not CheckBox checkBox || checkBox.DataContext is not MediaItem item)
+        if (sender is CheckBox checkBox && checkBox.DataContext is MediaItem item)
         {
-            return;
+            ViewModel.ToggleSelection(item, checkBox.IsChecked == true);
         }
-
-        ViewModel.ToggleSelection(item, checkBox.IsChecked == true);
     }
 
     private void OnTitleLostFocus(object sender, RoutedEventArgs e)
@@ -113,22 +105,20 @@ public sealed partial class MediaDownloaderDialog : ContentDialog
             sender is not ComboBox comboBox ||
             comboBox.DataContext is not MediaItem item ||
             e.AddedItems[0] is not ComboBoxItem option ||
-            option.Tag is not string tag)
+            option.Tag is not string tag ||
+            !Enum.TryParse<MediaFormat>(tag, true, out var format))
         {
             return;
         }
 
-        if (Enum.TryParse<MediaFormat>(tag, ignoreCase: true, out var format))
-        {
-            ViewModel.SetFormat(item, format);
-        }
+        ViewModel.SetFormat(item, format);
     }
 
     private void OnPrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
     {
         try
         {
-            if (ViewModel.SelectedCount == 0)
+            if (ViewModel.SelectedCount == 0 || string.IsNullOrWhiteSpace(ViewModel.TargetFolderPath))
             {
                 args.Cancel = true;
                 return;
@@ -148,10 +138,7 @@ public sealed partial class MediaDownloaderDialog : ContentDialog
         ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
     }
 
-    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        UpdateUiState();
-    }
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e) => UpdateUiState();
 
     private void UpdateUiState()
     {
@@ -160,6 +147,6 @@ public sealed partial class MediaDownloaderDialog : ContentDialog
         ResolveProgressRing.IsActive = ViewModel.IsResolving;
         PlaylistActionsPanel.Visibility = ViewModel.IsPlaylist ? Visibility.Visible : Visibility.Collapsed;
         PrimaryButtonText = ViewModel.SelectedCount > 0 ? $"Add {ViewModel.SelectedCount} to changes" : "Add to changes";
-        IsPrimaryButtonEnabled = ViewModel.SelectedCount > 0 && !ViewModel.IsResolving;
+        IsPrimaryButtonEnabled = ViewModel.SelectedCount > 0 && !ViewModel.IsResolving && !string.IsNullOrWhiteSpace(ViewModel.TargetFolderPath);
     }
 }

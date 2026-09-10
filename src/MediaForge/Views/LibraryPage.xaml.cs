@@ -48,15 +48,20 @@ public sealed partial class LibraryPage : Page
     {
         try
         {
-            var targetFolder = ViewModel.SelectedRootFolder?.Path
-                ?? Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+            if (App.Current is not App app || app.MainWindow is null)
+            {
+                return;
+            }
 
-            var dialog = new MediaDownloaderDialog(ViewModel.Main, targetFolder)
+            var dialog = new MediaDownloaderDialog(
+                ViewModel.Main,
+                () => ViewModel.Main.Explorer.CurrentPath ?? ViewModel.SelectedRootFolder?.Path)
             {
                 XamlRoot = XamlRoot
             };
 
             await dialog.ShowAsync();
+            ViewModel.Main.Explorer.Refresh();
         }
         catch (Exception exception)
         {

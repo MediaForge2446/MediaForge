@@ -11,6 +11,7 @@ public sealed class ExplorerViewModel : ViewModelBase
     private readonly IFileSystemService _fileSystem;
     private readonly PendingChangesState _pendingChanges;
     private readonly LibraryState _library;
+    private readonly IStagingHistory _history;
     private readonly MainViewModel _main;
 
     public ObservableCollection<FileItem> Items { get; } = new();
@@ -27,11 +28,13 @@ public sealed class ExplorerViewModel : ViewModelBase
         IFileSystemService fileSystem,
         PendingChangesState pendingChanges,
         LibraryState library,
+        IStagingHistory history,
         MainViewModel main)
     {
         _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         _pendingChanges = pendingChanges ?? throw new ArgumentNullException(nameof(pendingChanges));
         _library = library ?? throw new ArgumentNullException(nameof(library));
+        _history = history ?? throw new ArgumentNullException(nameof(history));
         _main = main ?? throw new ArgumentNullException(nameof(main));
 
         RefreshRootFolders();
@@ -80,8 +83,7 @@ public sealed class ExplorerViewModel : ViewModelBase
 
             var path = Path.Combine(CurrentPath, safeName);
             EnsurePendingTargetAvailable(path);
-
-            _pendingChanges.Add(new PendingChange
+            AddPendingChange(new PendingChange
             {
                 Id = Guid.NewGuid(),
                 Type = ChangeType.CreateFolder,
@@ -101,8 +103,7 @@ public sealed class ExplorerViewModel : ViewModelBase
         try
         {
             ArgumentNullException.ThrowIfNull(item);
-
-            _pendingChanges.Add(new PendingChange
+            AddPendingChange(new PendingChange
             {
                 Id = Guid.NewGuid(),
                 Type = ChangeType.Delete,
@@ -139,11 +140,44 @@ public sealed class ExplorerViewModel : ViewModelBase
             }
 
             EnsurePendingTargetAvailable(targetPath);
-
-            _pendingChanges.Add(new PendingChange
+            AddPendingChange(new PendingChange
             {
                 Id = Guid.NewGuid(),
                 Type = ChangeType.Rename,
+                Status = ChangeStatus.Pending,
+                SourcePath = item.FullPath,
+                TargetPath = targetPath,
+                CreatedAtUtc = DateTimeOffset.UtcNow
+            });
+        }
+        catch (Exception exception)
+        {
+            _main.ReportError(exception);
+        }
+    }
+
+    public void Move(FileItem item, string targetFolderPath)
+    {
+        try
+        {
+            ArgumentNullException.ThrowIfNull(item);
+            ArgumentException.ThrowIfNullOrWhiteSpace(targetFolderPath);
+
+            var destinationFolder = Path.GetFullPath(targetFolderPath);
+            if (!_fileSystem.DirectoryExists(destinationFolder) &&
+                !_pendingChanges.Changes.Any(change =>
+                    change.Type == ChangeType.CreateFolder &&
+                    string.Equals(change.SourcePath, destinationFolder, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new DirectoryNotFoundException($"Destination directory not found: {destinationFolder}");
+            }
+
+            var targetPath = Path.Combine(destinationFolder, item.Name);
+            EnsurePendingTargetAvailable(targetPath);
+            AddPendingChange(new PendingChange
+            {
+                Id = Guid.NewGuid(),
+                Type = ChangeType.Move,
                 Status = ChangeStatus.Pending,
                 SourcePath = item.FullPath,
                 TargetPath = targetPath,
@@ -163,6 +197,12 @@ public sealed class ExplorerViewModel : ViewModelBase
         {
             OpenFolder(CurrentPath);
         }
+    }
+
+    private void AddPendingChange(PendingChange change)
+    {
+        _history.Record(change);
+        _pendingChanges.Add(change);
     }
 
     private void RefreshRootFolders()

@@ -10,8 +10,8 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
 {
     private readonly IMediaResolver _resolver;
     private readonly PendingChangesState _pendingChanges;
-    private readonly MainViewModel _main;
-    private readonly string _targetFolderPath;
+    private readonly Action<Exception> _reportError;
+    private readonly Func<string?> _targetFolderProvider;
     private string _sourceUrl = string.Empty;
     private bool _isResolving;
 
@@ -30,15 +30,14 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
     }
 
     public bool IsPlaylist => Items.Count > 1;
-
     public string MediaTypeLabel => Items.Count switch
     {
         0 => "Ready to detect",
         1 => "Single media item",
         _ => "Playlist detected"
     };
-
     public string SelectedSummary => $"{SelectedCount} of {Items.Count} selected";
+    public string? TargetFolderPath => _targetFolderProvider();
 
     public bool IsResolving
     {
@@ -53,22 +52,27 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
     }
 
     public bool CanResolve => !IsResolving && !string.IsNullOrWhiteSpace(SourceUrl);
-
     public int SelectedCount => Items.Count(item => item.IsSelected);
 
     public MediaDownloaderViewModel(
         IMediaResolver resolver,
         PendingChangesState pendingChanges,
         MainViewModel main,
-        string targetFolderPath)
+        Func<string?> targetFolderProvider)
+        : this(resolver, pendingChanges, main?.ReportError ?? throw new ArgumentNullException(nameof(main)), targetFolderProvider)
+    {
+    }
+
+    public MediaDownloaderViewModel(
+        IMediaResolver resolver,
+        PendingChangesState pendingChanges,
+        Action<Exception> reportError,
+        Func<string?> targetFolderProvider)
     {
         _resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
         _pendingChanges = pendingChanges ?? throw new ArgumentNullException(nameof(pendingChanges));
-        _main = main ?? throw new ArgumentNullException(nameof(main));
-        _targetFolderPath = Path.GetFullPath(
-            string.IsNullOrWhiteSpace(targetFolderPath)
-                ? Environment.GetFolderPath(Environment.SpecialFolder.MyMusic)
-                : targetFolderPath);
+        _reportError = reportError ?? throw new ArgumentNullException(nameof(reportError));
+        _targetFolderProvider = targetFolderProvider ?? throw new ArgumentNullException(nameof(targetFolderProvider));
     }
 
     public async Task ResolveAsync(CancellationToken cancellationToken = default)
@@ -94,11 +98,11 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            _main.ReportError(new InvalidOperationException("Media detection was canceled."));
+            _reportError(new InvalidOperationException("Media detection was canceled."));
         }
         catch (Exception exception)
         {
-            _main.ReportError(exception);
+            _reportError(exception);
         }
         finally
         {
@@ -146,12 +150,19 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
 
     public int AddSelectedToPendingChanges()
     {
+        var targetFolder = _targetFolderProvider();
+        if (string.IsNullOrWhiteSpace(targetFolder))
+        {
+            throw new InvalidOperationException("Open a library folder before adding media.");
+        }
+
+        var normalizedTarget = Path.GetFullPath(targetFolder);
         var selectedItems = Items.Where(item => item.IsSelected).ToArray();
         foreach (var item in selectedItems)
         {
             var safeTitle = SanitizeFileName(string.IsNullOrWhiteSpace(item.Title) ? "Media item" : item.Title.Trim());
             var extension = item.Format == MediaFormat.Mp4 ? ".mp4" : ".mp3";
-            var targetPath = CreateUniquePendingPath(Path.Combine(_targetFolderPath, safeTitle + extension));
+            var targetPath = CreateUniquePendingPath(Path.Combine(normalizedTarget, safeTitle + extension));
 
             _pendingChanges.Add(new PendingChange
             {

@@ -8,6 +8,8 @@ public interface IToolManager
 
     IReadOnlyList<ToolStatus> Status { get; }
 
+    string ToolsDirectory { get; }
+
     Task<IReadOnlyList<ToolStatus>> CheckForUpdatesAsync(CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<ToolStatus>> UpdateAllAsync(IProgress<double>? progress = null, CancellationToken cancellationToken = default);
