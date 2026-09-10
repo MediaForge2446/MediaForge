@@ -14,9 +14,10 @@ public sealed partial class MainWindow : Window
         InitializeComponent();
         ContentFrame.Navigated += OnContentFrameNavigated;
         RootNavigation.SelectedItem = RootNavigation.MenuItems[0];
+        _ = StartBackgroundMaintenanceAsync();
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e)
+    private async Task StartBackgroundMaintenanceAsync()
     {
         try
         {
@@ -30,6 +31,7 @@ public sealed partial class MainWindow : Window
 
     private void OnClosed(object sender, WindowEventArgs args)
     {
+        ContentFrame.Navigated -= OnContentFrameNavigated;
         ViewModel.Dispose();
     }
 
