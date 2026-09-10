@@ -38,3 +38,30 @@ jobs:
       - name: Smoke test published app
         shell: pwsh
         run: ./scripts/smoke-test.ps1 -PublishDirectory "artifacts/publish/win-x64"
+
+      - name: Install Inno Setup 7.1.0
+        shell: pwsh
+        run: winget install --id JRSoftware.InnoSetup.7 -e --version 7.1.0 --source winget --accept-package-agreements --accept-source-agreements
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          & "${env:ProgramFiles}\Inno Setup 7\ISCC.exe" `
+            "/DPublishDir=$((Get-Location).Path)\artifacts\publish\win-x64" `
+            "/DArchitecture=x64compatible" `
+            "/DAppVersion=1.0.0" `
+            installer\MediaForge.iss
+          if ($LASTEXITCODE -ne 0) {
+            throw "Inno Setup compilation failed with exit code $LASTEXITCODE."
+          }
+
+      - name: Verify installer install and uninstall
+        shell: pwsh
+        run: ./scripts/installer-smoke-test.ps1 -InstallerPath "artifacts/installer/MediaForge-Setup-x64compatible.exe"
+
+      - name: Upload Setup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaForge-Setup-win-x64
+          path: artifacts/installer/MediaForge-Setup-x64compatible.exe
+          if-no-files-found: error
