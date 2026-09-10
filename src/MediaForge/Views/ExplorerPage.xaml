@@ -86,7 +86,10 @@
             </ListView.ItemTemplate>
         </ListView>
 
-        <Border Grid.Row="3" Padding="16" CornerRadius="12" BorderThickness="1">
+        <Border Grid.Row="3"
+                Padding="16"
+                CornerRadius="12"
+                BorderThickness="1">
             <Grid RowSpacing="12">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -99,10 +102,14 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <StackPanel Spacing="2">
+                    <StackPanel Spacing="4">
                         <TextBlock Text="Pending changes" FontSize="18" FontWeight="SemiBold" />
                         <TextBlock Text="Changes are applied to disk only when you save."
                                    Opacity="0.65" />
+                        <ProgressBar Margin="0,8,0,0"
+                                     Maximum="1"
+                                     Value="{Binding PendingViewModel.OverallProgress}"
+                                     Visibility="{Binding PendingViewModel.IsSaving, Converter={StaticResource BoolToVisibilityConverter}}" />
                     </StackPanel>
                     <Button Grid.Column="1"
                             Content="Save changes"
@@ -112,16 +119,21 @@
 
                 <ListView Grid.Row="1"
                           ItemsSource="{Binding PendingViewModel.Changes}"
-                          MaxHeight="190"
+                          MaxHeight="230"
                           SelectionMode="None">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <Grid Padding="8" ColumnSpacing="10">
+                            <Grid Padding="8" ColumnSpacing="10" RowSpacing="4">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="12" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
+
                                 <Ellipse Width="9"
                                          Height="9"
                                          VerticalAlignment="Center"
@@ -134,9 +146,18 @@
                                     <TextBlock Text="{Binding TargetPath}"
                                                Opacity="0.6"
                                                TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Text="{Binding ErrorMessage}"
+                                    <TextBlock Text="{Binding StatusText}"
                                                Foreground="{Binding Status, Converter={StaticResource ChangeStatusBrushConverter}}"
                                                TextTrimming="CharacterEllipsis" />
+                                    <ProgressBar Grid.Row="1"
+                                                 Maximum="1"
+                                                 Value="{Binding Progress}"
+                                                 Visibility="{Binding ShowProgress, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    <TextBlock Grid.Row="1"
+                                               Text="{Binding ErrorMessage}"
+                                               Foreground="{StaticResource FailedStatusBrush}"
+                                               TextWrapping="Wrap"
+                                               Visibility="{Binding Status, Converter={StaticResource FailedStatusToVisibilityConverter}}" />
                                 </StackPanel>
                             </Grid>
                         </DataTemplate>
