@@ -30,16 +30,13 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
     }
 
     public bool IsPlaylist => Items.Count > 1;
-
     public string MediaTypeLabel => Items.Count switch
     {
         0 => "Ready to detect",
         1 => "Single media item",
         _ => "Playlist detected"
     };
-
     public string SelectedSummary => $"{SelectedCount} of {Items.Count} selected";
-
     public string? TargetFolderPath => _targetFolderProvider();
 
     public bool IsResolving
@@ -55,7 +52,6 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
     }
 
     public bool CanResolve => !IsResolving && !string.IsNullOrWhiteSpace(SourceUrl);
-
     public int SelectedCount => Items.Count(item => item.IsSelected);
 
     public MediaDownloaderViewModel(
@@ -152,8 +148,6 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
         }
 
         var normalizedTarget = Path.GetFullPath(targetFolder);
-        Directory.CreateDirectory(normalizedTarget);
-
         var selectedItems = Items.Where(item => item.IsSelected).ToArray();
         foreach (var item in selectedItems)
         {
