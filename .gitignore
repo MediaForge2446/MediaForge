@@ -27,6 +27,13 @@ packages/
 AppPackages/
 AppxPackages/
 
+# Runtime media tools and staging
+src/MediaForge/Tools/*.exe
+src/MediaForge/Tools/*.backup
+src/MediaForge/Tools/*.tmp
+src/MediaForge/Tools/*.version
+src/MediaForge/Tools/.staging/
+
 # Logs
 *.log
 
