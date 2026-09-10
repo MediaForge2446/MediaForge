@@ -39,7 +39,7 @@ Name: "{autoprograms}\MediaForge"; Filename: "{app}\{#AppExeName}"; WorkingDir: 
 Name: "{autodesktop}\MediaForge"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\{#AppExeName}"; Tasks: desktopicon
 
 [Tasks]
-Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: unchecked
+Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"
 
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "Launch MediaForge"; Flags: nowait postinstall skipifsilent
