@@ -1,44 +1,29 @@
+using System.Diagnostics;
 using MediaForge.Core.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace MediaForge.Services;
 
 public sealed class LoggingService : ILoggingService
 {
-    private readonly ILogger<LoggingService> _logger;
-
-    public LoggingService(ILogger<LoggingService> logger)
-    {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     public void Info(string message)
     {
-        if (string.IsNullOrWhiteSpace(message))
-        {
-            return;
-        }
-
-        _logger.LogInformation("{Message}", message);
+        Write("INFO", message);
     }
 
     public void Warning(string message)
     {
-        if (string.IsNullOrWhiteSpace(message))
-        {
-            return;
-        }
-
-        _logger.LogWarning("{Message}", message);
+        Write("WARN", message);
     }
 
     public void Error(string message, Exception? exception = null)
     {
-        if (string.IsNullOrWhiteSpace(message))
-        {
-            message = "An unexpected error occurred.";
-        }
+        var suffix = exception is null ? string.Empty : $" | {exception.GetType().Name}: {exception.Message}";
+        Write("ERROR", $"{message}{suffix}");
+    }
 
-        _logger.LogError(exception, "{Message}", message);
+    private static void Write(string level, string message)
+    {
+        var safeMessage = string.IsNullOrWhiteSpace(message) ? "No message supplied." : message;
+        Trace.WriteLine($"[{DateTimeOffset.UtcNow:O}] [{level}] {safeMessage}");
     }
 }
