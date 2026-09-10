@@ -8,6 +8,7 @@
 # Build output
 [Bb]in/
 [Oo]bj/
+artifacts/
 
 # Test results
 TestResults/
