@@ -1,0 +1,18 @@
+<Page
+    x:Class="MediaForge.Views.DownloadsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Padding="32">
+        <StackPanel Spacing="8">
+            <TextBlock Text="Downloads" Style="{StaticResource PageTitleTextStyle}" />
+            <TextBlock Text="Queued and completed media downloads will appear here."
+                       Style="{StaticResource PageSubtitleTextStyle}" />
+            <InfoBar Margin="0,24,0,0"
+                     IsOpen="True"
+                     IsClosable="False"
+                     Severity="Informational"
+                     Title="Ready"
+                     Message="Your download queue is ready for media items." />
+        </StackPanel>
+    </Grid>
+</Page>
