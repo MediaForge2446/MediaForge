@@ -18,8 +18,10 @@ public sealed partial class LibraryPage : Page
     {
         try
         {
-            var picker = new Windows.Storage.Pickers.FolderPicker();
-            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.ComputerFolder;
+            var picker = new Windows.Storage.Pickers.FolderPicker
+            {
+                SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.ComputerFolder
+            };
             picker.FileTypeFilter.Add("*");
 
             if (App.Current is not App app || app.MainWindow is null)
@@ -36,8 +38,9 @@ public sealed partial class LibraryPage : Page
                 ViewModel.AddRootFolder(folder.Path, folder.Name);
             }
         }
-        catch (Exception)
+        catch (Exception exception)
         {
+            ViewModel.Main.ReportError(exception);
         }
     }
 
@@ -45,18 +48,19 @@ public sealed partial class LibraryPage : Page
     {
         try
         {
-            var dialog = new ContentDialog
+            var targetFolder = ViewModel.SelectedRootFolder?.Path
+                ?? Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+
+            var dialog = new MediaDownloaderDialog(ViewModel.Main, targetFolder)
             {
-                Title = "Add media",
-                Content = new TextBlock { Text = "Media downloader dialog will open here." },
-                CloseButtonText = "Close",
                 XamlRoot = XamlRoot
             };
 
             await dialog.ShowAsync();
         }
-        catch (Exception)
+        catch (Exception exception)
         {
+            ViewModel.Main.ReportError(exception);
         }
     }
 }

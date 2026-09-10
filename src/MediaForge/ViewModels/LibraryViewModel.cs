@@ -8,8 +8,17 @@ public sealed class LibraryViewModel : ViewModelBase
 {
     private readonly LibraryState _state;
     private readonly MainViewModel _main;
+    private MediaFolder? _selectedRootFolder;
 
     public ObservableCollection<MediaFolder> RootFolders { get; } = new();
+
+    public MediaFolder? SelectedRootFolder
+    {
+        get => _selectedRootFolder;
+        set => SetProperty(ref _selectedRootFolder, value);
+    }
+
+    public MainViewModel Main => _main;
 
     public LibraryViewModel(LibraryState state, MainViewModel main)
     {
@@ -21,11 +30,14 @@ public sealed class LibraryViewModel : ViewModelBase
 
     public void Refresh()
     {
+        var selectedId = SelectedRootFolder?.Id;
         RootFolders.Clear();
         foreach (var folder in _state.RootFolders)
         {
             RootFolders.Add(folder);
         }
+
+        SelectedRootFolder = RootFolders.FirstOrDefault(folder => folder.Id == selectedId);
     }
 
     public void AddRootFolder(string path, string displayName)
