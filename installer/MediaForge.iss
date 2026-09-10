@@ -7,6 +7,10 @@
   #error "PublishDir must be supplied to ISCC."
 #endif
 
+#ifndef Architecture
+  #error "Architecture must be supplied to ISCC."
+#endif
+
 [Setup]
 AppId={{D6D01C3B-9BB4-4DD6-8F8F-9A5A3D4E7E52}
 AppName={#AppName}
@@ -24,7 +28,6 @@ ArchitecturesInstallIn64BitMode={#Architecture}
 ArchitecturesAllowed={#Architecture}
 PrivilegesRequired=lowest
 UninstallDisplayIcon={app}\{#AppExeName}
-SetupIconFile=..\src\MediaForge\Assets\AppIcon.ico
 
 [Files]
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
