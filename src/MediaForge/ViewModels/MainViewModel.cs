@@ -19,6 +19,7 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
 
     private string? _lastError;
     private int _changeVersion;
+    private bool _isRestoring;
     private bool _disposed;
 
     public AppState State { get; } = new();
@@ -61,6 +62,7 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
 
     private async Task RestoreStateAsync(CancellationToken cancellationToken)
     {
+        _isRestoring = true;
         try
         {
             var snapshot = await _persistenceService.LoadAsync(cancellationToken).ConfigureAwait(true);
@@ -71,6 +73,7 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
 
             State.Library.Restore(snapshot.RootFolders);
             State.PendingChanges.Replace(snapshot.PendingChanges);
+            Interlocked.Exchange(ref _changeVersion, 0);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -79,10 +82,19 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
         {
             ReportError(exception);
         }
+        finally
+        {
+            _isRestoring = false;
+        }
     }
 
     private void OnStateChanged(object? sender, EventArgs e)
     {
+        if (_isRestoring || _disposed)
+        {
+            return;
+        }
+
         Interlocked.Increment(ref _changeVersion);
         _ = PersistSoonAsync(_lifetimeCts.Token);
     }
