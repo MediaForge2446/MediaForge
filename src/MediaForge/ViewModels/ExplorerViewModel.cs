@@ -11,6 +11,7 @@ public sealed class ExplorerViewModel : ViewModelBase
     private readonly IFileSystemService _fileSystem;
     private readonly PendingChangesState _pendingChanges;
     private readonly LibraryState _library;
+    private readonly IStagingHistory _history;
     private readonly MainViewModel _main;
 
     public ObservableCollection<FileItem> Items { get; } = new();
@@ -23,15 +24,19 @@ public sealed class ExplorerViewModel : ViewModelBase
         private set => SetProperty(ref _currentPath, value);
     }
 
+    public bool CanUndo => _history.Snapshot.Count > 0;
+
     public ExplorerViewModel(
         IFileSystemService fileSystem,
         PendingChangesState pendingChanges,
         LibraryState library,
+        IStagingHistory history,
         MainViewModel main)
     {
         _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         _pendingChanges = pendingChanges ?? throw new ArgumentNullException(nameof(pendingChanges));
         _library = library ?? throw new ArgumentNullException(nameof(library));
+        _history = history ?? throw new ArgumentNullException(nameof(history));
         _main = main ?? throw new ArgumentNullException(nameof(main));
 
         RefreshRootFolders();
@@ -73,15 +78,12 @@ public sealed class ExplorerViewModel : ViewModelBase
             ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
             var safeName = name.Trim();
-            if (safeName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-            {
-                throw new ArgumentException("The folder name contains invalid characters.", nameof(name));
-            }
+            ValidateFileName(safeName, nameof(name));
 
             var path = Path.Combine(CurrentPath, safeName);
             EnsurePendingTargetAvailable(path);
 
-            _pendingChanges.Add(new PendingChange
+            AddPending(new PendingChange
             {
                 Id = Guid.NewGuid(),
                 Type = ChangeType.CreateFolder,
@@ -102,7 +104,14 @@ public sealed class ExplorerViewModel : ViewModelBase
         {
             ArgumentNullException.ThrowIfNull(item);
 
-            _pendingChanges.Add(new PendingChange
+            if (_pendingChanges.Changes.Any(change =>
+                    change.Status == ChangeStatus.Pending &&
+                    string.Equals(change.SourcePath, item.FullPath, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new InvalidOperationException("This item already has a pending change.");
+            }
+
+            AddPending(new PendingChange
             {
                 Id = Guid.NewGuid(),
                 Type = ChangeType.Delete,
@@ -125,10 +134,7 @@ public sealed class ExplorerViewModel : ViewModelBase
             ArgumentException.ThrowIfNullOrWhiteSpace(newName);
 
             var trimmedName = newName.Trim();
-            if (trimmedName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-            {
-                throw new ArgumentException("The name contains invalid characters.", nameof(newName));
-            }
+            ValidateFileName(trimmedName, nameof(newName));
 
             var parent = Path.GetDirectoryName(item.FullPath)
                 ?? throw new InvalidOperationException("Unable to determine the parent directory.");
@@ -140,7 +146,7 @@ public sealed class ExplorerViewModel : ViewModelBase
 
             EnsurePendingTargetAvailable(targetPath);
 
-            _pendingChanges.Add(new PendingChange
+            AddPending(new PendingChange
             {
                 Id = Guid.NewGuid(),
                 Type = ChangeType.Rename,
@@ -156,6 +162,70 @@ public sealed class ExplorerViewModel : ViewModelBase
         }
     }
 
+    public bool Undo(Guid changeId)
+    {
+        try
+        {
+            if (!_history.Remove(changeId, out var removed) || removed is null)
+            {
+                return false;
+            }
+
+            if (!_pendingChanges.Remove(removed.Id))
+            {
+                _history.Restore(removed);
+                return false;
+            }
+
+            Refresh();
+            OnPropertyChanged(nameof(CanUndo));
+            return true;
+        }
+        catch (Exception exception)
+        {
+            _main.ReportError(exception);
+            return false;
+        }
+    }
+
+    public bool UndoLast()
+    {
+        try
+        {
+            var last = _history.Snapshot.LastOrDefault();
+            return last is not null && Undo(last.Id);
+        }
+        catch (Exception exception)
+        {
+            _main.ReportError(exception);
+            return false;
+        }
+    }
+
+    public void CancelAllPendingChanges()
+    {
+        try
+        {
+            var pending = _pendingChanges.Changes
+                .Where(change => change.Status == ChangeStatus.Pending)
+                .Select(change => change.Id)
+                .ToArray();
+
+            foreach (var changeId in pending)
+            {
+                _pendingChanges.Remove(changeId);
+                _history.Remove(changeId, out _);
+            }
+
+            Refresh();
+            OnPropertyChanged(nameof(CanUndo));
+        }
+        catch (Exception exception)
+        {
+            _main.ReportError(exception);
+        }
+    }
+
     public void Refresh()
     {
         RefreshRootFolders();
@@ -163,6 +233,15 @@ public sealed class ExplorerViewModel : ViewModelBase
         {
             OpenFolder(CurrentPath);
         }
+
+        OnPropertyChanged(nameof(CanUndo));
+    }
+
+    private void AddPending(PendingChange change)
+    {
+        _pendingChanges.Add(change);
+        _history.Record(change);
+        OnPropertyChanged(nameof(CanUndo));
     }
 
     private void RefreshRootFolders()
@@ -197,6 +276,14 @@ public sealed class ExplorerViewModel : ViewModelBase
                 string.Equals(change.TargetPath, normalized, StringComparison.OrdinalIgnoreCase)))
         {
             throw new IOException("A pending change already targets this path.");
+        }
+    }
+
+    private static void ValidateFileName(string value, string parameterName)
+    {
+        if (value.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+        {
+            throw new ArgumentException("The name contains invalid characters.", parameterName);
         }
     }
 
