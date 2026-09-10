@@ -10,7 +10,7 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
 {
     private readonly IMediaResolver _resolver;
     private readonly PendingChangesState _pendingChanges;
-    private readonly MainViewModel _main;
+    private readonly Action<Exception> _reportError;
     private readonly Func<string?> _targetFolderProvider;
     private string _sourceUrl = string.Empty;
     private bool _isResolving;
@@ -59,10 +59,19 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
         PendingChangesState pendingChanges,
         MainViewModel main,
         Func<string?> targetFolderProvider)
+        : this(resolver, pendingChanges, main?.ReportError ?? throw new ArgumentNullException(nameof(main)), targetFolderProvider)
+    {
+    }
+
+    public MediaDownloaderViewModel(
+        IMediaResolver resolver,
+        PendingChangesState pendingChanges,
+        Action<Exception> reportError,
+        Func<string?> targetFolderProvider)
     {
         _resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
         _pendingChanges = pendingChanges ?? throw new ArgumentNullException(nameof(pendingChanges));
-        _main = main ?? throw new ArgumentNullException(nameof(main));
+        _reportError = reportError ?? throw new ArgumentNullException(nameof(reportError));
         _targetFolderProvider = targetFolderProvider ?? throw new ArgumentNullException(nameof(targetFolderProvider));
     }
 
@@ -89,11 +98,11 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            _main.ReportError(new InvalidOperationException("Media detection was canceled."));
+            _reportError(new InvalidOperationException("Media detection was canceled."));
         }
         catch (Exception exception)
         {
-            _main.ReportError(exception);
+            _reportError(exception);
         }
         finally
         {
