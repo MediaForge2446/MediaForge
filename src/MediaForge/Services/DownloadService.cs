@@ -9,7 +9,6 @@ namespace MediaForge.Services;
 public sealed class DownloadService : IDownloadService
 {
     private readonly YtDlpPathProvider _paths;
-    private readonly object _sync = new();
 
     public DownloadService(YtDlpPathProvider? paths = null)
     {
@@ -85,8 +84,7 @@ public sealed class DownloadService : IDownloadService
                 overrideOptions: new OptionSet
                 {
                     Format = "bestvideo+bestaudio/best",
-                    MergeOutputFormat = "mp4",
-                    NoPlaylist = true
+                    MergeOutputFormat = DownloadMergeFormat.Mp4
                 }).ConfigureAwait(false),
 
             _ => throw new ArgumentOutOfRangeException(nameof(task.Format), task.Format, "Unsupported media format.")
@@ -146,14 +144,11 @@ public sealed class DownloadService : IDownloadService
 
     private static void MoveProducedFile(string sourcePath, string targetPath)
     {
-        lock (typeof(DownloadService))
+        if (File.Exists(targetPath))
         {
-            if (File.Exists(targetPath))
-            {
-                throw new IOException($"The destination file already exists: {targetPath}");
-            }
-
-            File.Move(sourcePath, targetPath);
+            throw new IOException($"The destination file already exists: {targetPath}");
         }
+
+        File.Move(sourcePath, targetPath);
     }
 }
