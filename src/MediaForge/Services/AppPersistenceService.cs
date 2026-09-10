@@ -6,7 +6,7 @@ using MediaForge.Core.Models;
 
 namespace MediaForge.Services;
 
-public sealed class AppPersistenceService : IAppPersistenceService
+public sealed class AppPersistenceService : IAppPersistenceService, IDisposable
 {
     private const int CurrentSchemaVersion = 1;
     private const string FileName = "state.json";
@@ -30,9 +30,7 @@ public sealed class AppPersistenceService : IAppPersistenceService
     {
         _directory = Path.GetFullPath(
             string.IsNullOrWhiteSpace(directory)
-                ? Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "MediaForge")
+                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MediaForge")
                 : directory);
 
         _statePath = Path.Combine(_directory, FileName);
@@ -48,31 +46,20 @@ public sealed class AppPersistenceService : IAppPersistenceService
         {
             Directory.CreateDirectory(_directory);
 
-            var candidates = new[]
+            var current = await TryReadSnapshotAsync(_statePath, verifyHash: true, cancellationToken).ConfigureAwait(false);
+            if (IsSupportedSnapshot(current))
             {
-                _statePath,
-                _backupPath
-            };
-
-            foreach (var candidate in candidates)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var snapshot = await TryReadSnapshotAsync(candidate, cancellationToken).ConfigureAwait(false);
-                if (snapshot is null || snapshot.SchemaVersion != CurrentSchemaVersion)
-                {
-                    continue;
-                }
-
-                if (!string.Equals(candidate, _statePath, StringComparison.OrdinalIgnoreCase))
-                {
-                    await RestoreBackupAsync(candidate, cancellationToken).ConfigureAwait(false);
-                }
-
-                return Sanitize(snapshot);
+                return Sanitize(current!);
             }
 
-            return null;
+            var backup = await TryReadSnapshotAsync(_backupPath, verifyHash: false, cancellationToken).ConfigureAwait(false);
+            if (!IsSupportedSnapshot(backup))
+            {
+                return null;
+            }
+
+            await RestoreBackupAsync(cancellationToken).ConfigureAwait(false);
+            return Sanitize(backup!);
         }
         finally
         {
@@ -101,16 +88,7 @@ public sealed class AppPersistenceService : IAppPersistenceService
 
             await WriteBytesAsync(_tempPath, bytes, cancellationToken).ConfigureAwait(false);
             await WriteTextAsync(_hashPath + TempSuffix, hash, cancellationToken).ConfigureAwait(false);
-
-            if (File.Exists(_statePath))
-            {
-                ReplaceWithBackup(_tempPath, _statePath, _backupPath);
-            }
-            else
-            {
-                File.Move(_tempPath, _statePath);
-            }
-
+            ReplaceWithBackup(_tempPath, _statePath, _backupPath);
             ReplaceHashFile(_hashPath + TempSuffix, _hashPath);
         }
         finally
@@ -121,9 +99,7 @@ public sealed class AppPersistenceService : IAppPersistenceService
         }
     }
 
-    private async Task<AppStateSnapshot?> TryReadSnapshotAsync(
-        string path,
-        CancellationToken cancellationToken)
+    private async Task<AppStateSnapshot?> TryReadSnapshotAsync(string path, bool verifyHash, CancellationToken cancellationToken)
     {
         if (!File.Exists(path))
         {
@@ -133,12 +109,7 @@ public sealed class AppPersistenceService : IAppPersistenceService
         try
         {
             var bytes = await File.ReadAllBytesAsync(path, cancellationToken).ConfigureAwait(false);
-            if (bytes.Length == 0)
-            {
-                return null;
-            }
-
-            if (string.Equals(path, _statePath, StringComparison.OrdinalIgnoreCase) && !await VerifyHashAsync(bytes, cancellationToken).ConfigureAwait(false))
+            if (bytes.Length == 0 || (verifyHash && !await VerifyHashAsync(bytes, cancellationToken).ConfigureAwait(false)))
             {
                 return null;
             }
@@ -159,6 +130,9 @@ public sealed class AppPersistenceService : IAppPersistenceService
         }
     }
 
+    private static bool IsSupportedSnapshot(AppStateSnapshot? snapshot) =>
+        snapshot is not null && snapshot.SchemaVersion == CurrentSchemaVersion;
+
     private async Task<bool> VerifyHashAsync(byte[] bytes, CancellationToken cancellationToken)
     {
         if (!File.Exists(_hashPath))
@@ -173,18 +147,13 @@ public sealed class AppPersistenceService : IAppPersistenceService
         }
 
         var actual = Convert.ToHexString(SHA256.HashData(bytes));
-        return string.Equals(expected, actual, StringComparison.OrdinalIgnoreCase);
+        return CryptographicOperations.FixedTimeEquals(Convert.FromHexString(expected), Convert.FromHexString(actual));
     }
 
-    private async Task RestoreBackupAsync(string backupPath, CancellationToken cancellationToken)
+    private async Task RestoreBackupAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (File.Exists(_statePath))
-        {
-            TryDelete(_statePath);
-        }
-
-        File.Copy(backupPath, _statePath, overwrite: true);
+        File.Copy(_backupPath, _statePath, overwrite: true);
         var bytes = await File.ReadAllBytesAsync(_statePath, cancellationToken).ConfigureAwait(false);
         await WriteTextAsync(_hashPath, Convert.ToHexString(SHA256.HashData(bytes)), cancellationToken).ConfigureAwait(false);
     }
@@ -203,37 +172,26 @@ public sealed class AppPersistenceService : IAppPersistenceService
             .Select(group => group.Last())
             .ToArray();
 
-        return snapshot with
-        {
-            RootFolders = folders,
-            PendingChanges = changes
-        };
+        return snapshot with { RootFolders = folders, PendingChanges = changes };
     }
 
     private static async Task WriteBytesAsync(string path, byte[] bytes, CancellationToken cancellationToken)
     {
-        await using var stream = new FileStream(
-            path,
-            FileMode.CreateNew,
-            FileAccess.Write,
-            FileShare.None,
-            128 * 1024,
-            FileOptions.Asynchronous | FileOptions.WriteThrough);
-
+        await using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 128 * 1024, FileOptions.Asynchronous | FileOptions.WriteThrough);
         await stream.WriteAsync(bytes, cancellationToken).ConfigureAwait(false);
         await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task WriteTextAsync(string path, string text, CancellationToken cancellationToken)
-    {
-        var bytes = Encoding.UTF8.GetBytes(text);
-        await WriteBytesAsync(path, bytes, cancellationToken).ConfigureAwait(false);
-    }
+    private static Task WriteTextAsync(string path, string text, CancellationToken cancellationToken) =>
+        WriteBytesAsync(path, Encoding.UTF8.GetBytes(text), cancellationToken);
 
     private static void ReplaceWithBackup(string sourcePath, string destinationPath, string backupPath)
     {
         TryDelete(backupPath);
-        File.Move(destinationPath, backupPath);
+        if (File.Exists(destinationPath))
+        {
+            File.Move(destinationPath, backupPath);
+        }
 
         try
         {
