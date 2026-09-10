@@ -11,7 +11,7 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
     private readonly IMediaResolver _resolver;
     private readonly PendingChangesState _pendingChanges;
     private readonly MainViewModel _main;
-    private readonly string _targetFolderPath;
+    private readonly Func<string?> _targetFolderProvider;
     private string _sourceUrl = string.Empty;
     private bool _isResolving;
 
@@ -40,6 +40,8 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
 
     public string SelectedSummary => $"{SelectedCount} of {Items.Count} selected";
 
+    public string? TargetFolderPath => _targetFolderProvider();
+
     public bool IsResolving
     {
         get => _isResolving;
@@ -60,15 +62,12 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
         IMediaResolver resolver,
         PendingChangesState pendingChanges,
         MainViewModel main,
-        string targetFolderPath)
+        Func<string?> targetFolderProvider)
     {
         _resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
         _pendingChanges = pendingChanges ?? throw new ArgumentNullException(nameof(pendingChanges));
         _main = main ?? throw new ArgumentNullException(nameof(main));
-        _targetFolderPath = Path.GetFullPath(
-            string.IsNullOrWhiteSpace(targetFolderPath)
-                ? Environment.GetFolderPath(Environment.SpecialFolder.MyMusic)
-                : targetFolderPath);
+        _targetFolderProvider = targetFolderProvider ?? throw new ArgumentNullException(nameof(targetFolderProvider));
     }
 
     public async Task ResolveAsync(CancellationToken cancellationToken = default)
@@ -146,12 +145,21 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
 
     public int AddSelectedToPendingChanges()
     {
+        var targetFolder = _targetFolderProvider();
+        if (string.IsNullOrWhiteSpace(targetFolder))
+        {
+            throw new InvalidOperationException("Open a library folder before adding media.");
+        }
+
+        var normalizedTarget = Path.GetFullPath(targetFolder);
+        Directory.CreateDirectory(normalizedTarget);
+
         var selectedItems = Items.Where(item => item.IsSelected).ToArray();
         foreach (var item in selectedItems)
         {
             var safeTitle = SanitizeFileName(string.IsNullOrWhiteSpace(item.Title) ? "Media item" : item.Title.Trim());
             var extension = item.Format == MediaFormat.Mp4 ? ".mp4" : ".mp3";
-            var targetPath = CreateUniquePendingPath(Path.Combine(_targetFolderPath, safeTitle + extension));
+            var targetPath = CreateUniquePendingPath(Path.Combine(normalizedTarget, safeTitle + extension));
 
             _pendingChanges.Add(new PendingChange
             {
