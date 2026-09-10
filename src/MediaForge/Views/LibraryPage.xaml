@@ -25,6 +25,7 @@
 
         <ListView Grid.Row="2"
                   ItemsSource="{Binding ViewModel.RootFolders}"
+                  SelectedItem="{Binding ViewModel.SelectedRootFolder, Mode=TwoWay}"
                   SelectionMode="Single">
             <ListView.ItemTemplate>
                 <DataTemplate>
