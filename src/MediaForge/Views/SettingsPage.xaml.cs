@@ -7,6 +7,18 @@ public sealed partial class SettingsPage : Page
 {
     public SettingsViewModel ViewModel { get; }
 
+    public SettingsPage()
+    {
+        if (App.Current is not App app || app.MainWindow is not MainWindow window)
+        {
+            throw new InvalidOperationException("The application window is not initialized.");
+        }
+
+        ViewModel = window.ViewModel.Settings;
+        InitializeComponent();
+        DataContext = this;
+    }
+
     public SettingsPage(SettingsViewModel viewModel)
     {
         ViewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
