@@ -2,7 +2,6 @@
     x:Class="MediaForge.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:system="using:System"
     Title="MediaForge">
     <Grid>
         <NavigationView
@@ -15,6 +14,11 @@
                 <NavigationViewItem Content="Library" Tag="Library">
                     <NavigationViewItem.Icon>
                         <SymbolIcon Symbol="Library" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Explorer" Tag="Explorer">
+                    <NavigationViewItem.Icon>
+                        <SymbolIcon Symbol="OpenWith" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem Content="Downloads" Tag="Downloads">
