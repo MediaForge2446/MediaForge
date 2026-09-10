@@ -57,7 +57,9 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
         _pendingChanges = pendingChanges ?? throw new ArgumentNullException(nameof(pendingChanges));
         _main = main ?? throw new ArgumentNullException(nameof(main));
         _targetFolderPath = Path.GetFullPath(
-            string.IsNullOrWhiteSpace(targetFolderPath) ? Environment.GetFolderPath(Environment.SpecialFolder.MyMusic) : targetFolderPath);
+            string.IsNullOrWhiteSpace(targetFolderPath)
+                ? Environment.GetFolderPath(Environment.SpecialFolder.MyMusic)
+                : targetFolderPath);
     }
 
     public async Task ResolveAsync(CancellationToken cancellationToken = default)
@@ -70,7 +72,7 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
         try
         {
             IsResolving = true;
-            var items = await _resolver.ResolveAsync(SourceUrl, cancellationToken).ConfigureAwait(true);
+            var items = await _resolver.ResolveAsync(SourceUrl.Trim(), cancellationToken).ConfigureAwait(true);
             Items.Clear();
             foreach (var item in items)
             {
@@ -156,18 +158,14 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
 
     private void ReplaceItem(MediaItem replacement)
     {
-        var index = Items.IndexOf(replacement);
-        if (index < 0)
+        for (var index = 0; index < Items.Count; index++)
         {
-            index = Items
-                .Select((item, currentIndex) => (item, currentIndex))
-                .FirstOrDefault(result => result.item.Id == replacement.Id).currentIndex;
-        }
-
-        if (index >= 0 && index < Items.Count)
-        {
-            Items[index] = replacement;
-            OnPropertyChanged(nameof(SelectedCount));
+            if (Items[index].Id == replacement.Id)
+            {
+                Items[index] = replacement;
+                OnPropertyChanged(nameof(SelectedCount));
+                return;
+            }
         }
     }
 
@@ -179,7 +177,8 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
         var counter = 2;
 
         while (File.Exists(candidate) || Directory.Exists(candidate) ||
-               _pendingChanges.Changes.Any(change => string.Equals(change.TargetPath, candidate, StringComparison.OrdinalIgnoreCase)))
+               _pendingChanges.Changes.Any(change =>
+                   string.Equals(change.TargetPath, candidate, StringComparison.OrdinalIgnoreCase)))
         {
             candidate = $"{basePath} ({counter}){extension}";
             counter++;
