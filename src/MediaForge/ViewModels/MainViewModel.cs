@@ -29,6 +29,7 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
     public ExplorerViewModel Explorer { get; }
     public PendingChangesViewModel PendingChanges { get; }
     public SettingsViewModel Settings { get; }
+    public int PendingCount => State.PendingChanges.PendingCount;
 
     public string? LastError
     {
@@ -104,6 +105,7 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
         finally
         {
             _isRestoring = false;
+            OnPropertyChanged(nameof(PendingCount));
         }
     }
 
@@ -114,6 +116,7 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
             return;
         }
 
+        OnPropertyChanged(nameof(PendingCount));
         Interlocked.Increment(ref _changeVersion);
         _ = PersistSoonAsync(_lifetimeCts.Token);
     }
