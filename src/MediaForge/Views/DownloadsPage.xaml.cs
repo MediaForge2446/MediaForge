@@ -6,7 +6,17 @@ namespace MediaForge.Views;
 
 public sealed partial class DownloadsPage : Page
 {
-    public PendingChangesViewModel ViewModel { get; set; } = null!;
+    private PendingChangesViewModel? _viewModel;
+
+    public PendingChangesViewModel ViewModel
+    {
+        get => _viewModel ?? throw new InvalidOperationException("Downloads view model is not initialized.");
+        set
+        {
+            _viewModel = value ?? throw new ArgumentNullException(nameof(value));
+            DataContext = this;
+        }
+    }
 
     public DownloadsPage()
     {
