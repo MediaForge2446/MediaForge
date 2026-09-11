@@ -15,11 +15,11 @@ public sealed class MediaDownloaderViewModelTests
         var pending = new PendingChangesState();
         var history = new StagingHistory();
         var reported = new List<Exception>();
+        using var main = new MainViewModel();
         var viewModel = new MediaDownloaderViewModel(
             new FakeResolver(),
             pending,
-            history,
-            reported.Add,
+            main,
             () => root);
 
         viewModel.Items.Add(new MediaItem
@@ -38,9 +38,8 @@ public sealed class MediaDownloaderViewModelTests
         Assert.Equal(ChangeType.Download, change.Type);
         Assert.Equal(Path.Combine(root, "Test Song.mp3"), change.TargetPath);
         Assert.False(Directory.Exists(root));
-        Assert.Empty(reported);
 
-        Assert.True(history.TryGetLastPending(out var stagedChange));
+        Assert.True(main.State.StagingHistory.TryGetLastPending(out var stagedChange));
         Assert.NotNull(stagedChange);
         Assert.Equal(change.Id, stagedChange!.Id);
     }
