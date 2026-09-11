@@ -4,63 +4,95 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="MediaForge"
     Closed="OnClosed">
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <NavigationView
-            x:Name="RootNavigation"
-            IsBackButtonVisible="Collapsed"
-            IsSettingsVisible="True"
-            IsPaneToggleButtonVisible="True"
-            PaneDisplayMode="LeftCompact"
-            SelectionChanged="OnNavigationSelectionChanged">
-            <NavigationView.Header>
-                <Grid Margin="4,8,20,8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="MediaForge" FontSize="24" FontWeight="SemiBold" />
-                        <TextBlock Text="Library &amp; Downloads" Style="{StaticResource CaptionTextStyle}" />
-                    </StackPanel>
-                    <TextBlock Grid.Column="1"
-                               Text="{Binding PendingCountText}"
-                               VerticalAlignment="Center"
-                               Opacity="0.65" />
-                </Grid>
-            </NavigationView.Header>
+    <Window.SystemBackdrop>
+        <MicaBackdrop Kind="Base" />
+    </Window.SystemBackdrop>
 
-            <NavigationView.MenuItems>
-                <NavigationViewItem Content="Library" Tag="Library">
-                    <NavigationViewItem.Icon>
-                        <SymbolIcon Symbol="Library" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-                <NavigationViewItem Content="Explorer" Tag="Explorer">
-                    <NavigationViewItem.Icon>
-                        <SymbolIcon Symbol="OpenWith" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-                <NavigationViewItem Content="Downloads" Tag="Downloads">
-                    <NavigationViewItem.Icon>
-                        <SymbolIcon Symbol="Download" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-            </NavigationView.MenuItems>
-
-            <NavigationView.PaneFooter>
-                <StackPanel Spacing="6" Padding="10,8,10,12">
-                    <InfoBar IsOpen="{Binding HasError}"
-                             Severity="Error"
-                             Title="Operation failed"
-                             Message="{Binding LastError}"
-                             IsClosable="False" />
-                    <Button Content="Clear message"
-                            Click="OnClearErrorClick"
-                            IsEnabled="{Binding HasError}" />
+    <NavigationView
+        x:Name="RootNavigation"
+        IsBackButtonVisible="Collapsed"
+        IsSettingsVisible="True"
+        IsPaneToggleButtonVisible="True"
+        PaneDisplayMode="LeftCompact"
+        SelectionChanged="OnNavigationSelectionChanged">
+        <NavigationView.Header>
+            <Grid Margin="8,10,24,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Border Width="40"
+                        Height="40"
+                        CornerRadius="12"
+                        Background="{StaticResource AccentSurfaceBrush}">
+                    <FontIcon Glyph="&#xE7C5;"
+                              FontSize="20"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center" />
+                </Border>
+                <StackPanel Grid.Column="1"
+                            Margin="12,0,0,0"
+                            Spacing="2"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="MediaForge"
+                               FontSize="22"
+                               FontWeight="SemiBold" />
+                    <TextBlock Text="Library &amp; Downloads"
+                               Style="{StaticResource CaptionTextStyle}" />
                 </StackPanel>
-            </NavigationView.PaneFooter>
+                <Border Grid.Column="2"
+                        MinHeight="32"
+                        Padding="12,6"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <TextBlock Text="{Binding PendingCountText}"
+                               VerticalAlignment="Center"
+                               FontWeight="SemiBold" />
+                </Border>
+            </Grid>
+        </NavigationView.Header>
 
-            <Frame x:Name="ContentFrame" />
-        </NavigationView>
-    </Grid>
+        <NavigationView.MenuItems>
+            <NavigationViewItem Content="Library" Tag="Library">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Library" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Explorer" Tag="Explorer">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="OpenWith" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Downloads" Tag="Downloads">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Download" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+        </NavigationView.MenuItems>
+
+        <NavigationView.PaneFooter>
+            <StackPanel Spacing="8" Padding="10,8,10,14">
+                <InfoBar IsOpen="{Binding HasError}"
+                         Severity="Error"
+                         Title="Operation failed"
+                         Message="{Binding LastError}"
+                         IsClosable="False" />
+                <Button Content="Clear message"
+                        Style="{StaticResource ToolbarButtonStyle}"
+                        Click="OnClearErrorClick"
+                        IsEnabled="{Binding HasError}" />
+            </StackPanel>
+        </NavigationView.PaneFooter>
+
+        <Frame x:Name="ContentFrame">
+            <Frame.ContentTransitions>
+                <TransitionCollection>
+                    <NavigationThemeTransition />
+                </TransitionCollection>
+            </Frame.ContentTransitions>
+        </Frame>
+    </NavigationView>
 </Window>
