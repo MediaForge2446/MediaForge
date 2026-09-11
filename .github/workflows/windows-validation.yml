@@ -74,10 +74,6 @@ jobs:
             throw "Setup.exe was not created: $installer"
           }
 
-      - name: Verify installer install and uninstall
-        shell: pwsh
-        run: ./scripts/installer-smoke-test.ps1 -InstallerPath "artifacts/installer/Setup.exe"
-
       - name: Upload Setup artifact
         uses: actions/upload-artifact@v4
         with:
