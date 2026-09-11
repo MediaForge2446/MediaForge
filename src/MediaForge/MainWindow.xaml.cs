@@ -14,7 +14,7 @@ public sealed partial class MainWindow : Window
         try
         {
             InitializeComponent();
-            DataContext = this;
+            RootNavigation.DataContext = ViewModel;
             ContentFrame.Navigated += OnContentFrameNavigated;
             RootNavigation.SelectedItem = RootNavigation.MenuItems[0];
             _ = StartBackgroundMaintenanceAsync();
@@ -50,10 +50,7 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void OnClosed(object sender, WindowEventArgs args)
-    {
-        ViewModel.Dispose();
-    }
+    private void OnClosed(object sender, WindowEventArgs args) => ViewModel.Dispose();
 
     private void OnClearErrorClick(object sender, RoutedEventArgs e) => ViewModel.ClearError();
 
