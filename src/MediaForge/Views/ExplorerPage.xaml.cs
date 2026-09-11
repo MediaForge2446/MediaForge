@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using MediaForge.Core.Enums;
 using MediaForge.Core.Models;
 using MediaForge.ViewModels;
 
@@ -19,49 +20,57 @@ public sealed partial class ExplorerPage : Page
 
     private void OnRootFolderChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (RootFolderPicker.SelectedItem is MediaFolder folder)
+        try
         {
-            ViewModel.OpenFolder(folder.Path);
+            if (RootFolderPicker.SelectedItem is MediaFolder folder)
+            {
+                ViewModel.OpenFolder(folder.Path);
+            }
+        }
+        catch (Exception exception)
+        {
+            Report(exception);
         }
     }
 
     private void OnItemClick(object sender, ItemClickEventArgs e)
     {
-        if (e.ClickedItem is not FileItem item || item.Kind != MediaForge.Core.Enums.FileItemKind.Folder)
+        try
         {
-            return;
+            if (e.ClickedItem is FileItem item && item.Kind == FileItemKind.Folder)
+            {
+                ViewModel.OpenFolder(item.FullPath);
+            }
         }
-
-        ViewModel.OpenFolder(item.FullPath);
+        catch (Exception exception)
+        {
+            Report(exception);
+        }
     }
 
     private async void OnNewFolderClick(object sender, RoutedEventArgs e)
     {
         try
         {
+            var textBox = new TextBox { PlaceholderText = "Folder name", MinWidth = 340 };
             var dialog = new ContentDialog
             {
                 Title = "New folder",
                 PrimaryButtonText = "Create",
                 CloseButtonText = "Cancel",
                 DefaultButton = ContentDialogButton.Primary,
-                Content = new TextBox { PlaceholderText = "Folder name", MinWidth = 320 },
+                Content = textBox,
                 XamlRoot = XamlRoot
             };
 
-            if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.Content is TextBox textBox)
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
             {
                 ViewModel.CreateFolder(textBox.Text);
-                ViewModel.Refresh();
             }
         }
         catch (Exception exception)
         {
-            ViewModel?.GetType();
-            if (App.Current is App app && app.MainWindow is MainWindow window)
-            {
-                window.ViewModel.ReportError(exception);
-            }
+            Report(exception);
         }
     }
 
@@ -74,10 +83,10 @@ public sealed partial class ExplorerPage : Page
                 return;
             }
 
-            var textBox = new TextBox { Text = item.Name, MinWidth = 320 };
+            var textBox = new TextBox { Text = item.Name, MinWidth = 340 };
             var dialog = new ContentDialog
             {
-                Title = "Rename",
+                Title = "Rename item",
                 PrimaryButtonText = "Rename",
                 CloseButtonText = "Cancel",
                 DefaultButton = ContentDialogButton.Primary,
@@ -92,53 +101,171 @@ public sealed partial class ExplorerPage : Page
         }
         catch (Exception exception)
         {
-            if (App.Current is App app && app.MainWindow is MainWindow window)
-            {
-                window.ViewModel.ReportError(exception);
-            }
+            Report(exception);
         }
     }
 
-    private void OnDeleteClick(object sender, RoutedEventArgs e)
+    private async void OnMoveClick(object sender, RoutedEventArgs e)
     {
         try
         {
-            if (ExplorerList.SelectedItem is FileItem item)
+            if (ExplorerList.SelectedItem is not FileItem item)
+            {
+                return;
+            }
+
+            if (App.Current is not App app || app.MainWindow is null)
+            {
+                return;
+            }
+
+            var picker = new Windows.Storage.Pickers.FolderPicker
+            {
+                SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.ComputerFolder
+            };
+            picker.FileTypeFilter.Add("*");
+
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(app.MainWindow);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+            var destination = await picker.PickSingleFolderAsync();
+            if (destination is not null)
+            {
+                ViewModel.Move(item, destination.Path);
+            }
+        }
+        catch (Exception exception)
+        {
+            Report(exception);
+        }
+    }
+
+    private async void OnDeleteClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (ExplorerList.SelectedItem is not FileItem item)
+            {
+                return;
+            }
+
+            var dialog = new ContentDialog
+            {
+                Title = "Stage deletion?",
+                Content = $"{item.Name} will be marked for deletion. Nothing is removed until Save Changes.",
+                PrimaryButtonText = "Stage delete",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = XamlRoot
+            };
+
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
             {
                 ViewModel.Delete(item);
             }
         }
         catch (Exception exception)
         {
-            if (App.Current is App app && app.MainWindow is MainWindow window)
-            {
-                window.ViewModel.ReportError(exception);
-            }
+            Report(exception);
         }
     }
 
     private void OnBackClick(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(ViewModel.CurrentPath))
+        try
         {
-            return;
-        }
+            if (string.IsNullOrWhiteSpace(ViewModel.CurrentPath))
+            {
+                return;
+            }
 
-        var parent = System.IO.Directory.GetParent(ViewModel.CurrentPath);
-        if (parent is not null)
+            var parent = Directory.GetParent(ViewModel.CurrentPath);
+            if (parent is not null)
+            {
+                ViewModel.OpenFolder(parent.FullName);
+            }
+        }
+        catch (Exception exception)
         {
-            ViewModel.OpenFolder(parent.FullName);
+            Report(exception);
         }
     }
 
-    private void OnRefreshClick(object sender, RoutedEventArgs e)
+    private void OnRefreshClick(object sender, RoutedEventArgs e) => ViewModel.Refresh();
+
+    private void OnUndoChangeClick(object sender, RoutedEventArgs e)
     {
-        ViewModel.Refresh();
+        try
+        {
+            if (sender is Button { Tag: Guid changeId })
+            {
+                PendingViewModel.Undo(changeId);
+                ViewModel.Refresh();
+            }
+        }
+        catch (Exception exception)
+        {
+            Report(exception);
+        }
+    }
+
+    private void OnUndoLastClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            PendingViewModel.UndoLast();
+            ViewModel.Refresh();
+        }
+        catch (Exception exception)
+        {
+            Report(exception);
+        }
+    }
+
+    private async void OnCancelAllClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var dialog = new ContentDialog
+            {
+                Title = "Cancel staged changes?",
+                Content = "All pending changes will be removed from the staging list. Your files on disk will not be touched.",
+                PrimaryButtonText = "Cancel changes",
+                CloseButtonText = "Keep changes",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = XamlRoot
+            };
+
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
+                PendingViewModel.CancelAll();
+                ViewModel.Refresh();
+            }
+        }
+        catch (Exception exception)
+        {
+            Report(exception);
+        }
     }
 
     private async void OnSaveChangesClick(object sender, RoutedEventArgs e)
     {
-        await PendingViewModel.SaveChangesAsync();
-        ViewModel.Refresh();
+        try
+        {
+            await PendingViewModel.SaveChangesAsync();
+            ViewModel.Refresh();
+        }
+        catch (Exception exception)
+        {
+            Report(exception);
+        }
+    }
+
+    private void Report(Exception exception)
+    {
+        if (App.Current is App app && app.MainWindow is MainWindow window)
+        {
+            window.ViewModel.ReportError(exception);
+        }
     }
 }
