@@ -1,6 +1,5 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
 using MediaForge.Core.Enums;
 using MediaForge.Core.Models;
 using MediaForge.ViewModels;
@@ -9,8 +8,28 @@ namespace MediaForge.Views;
 
 public sealed partial class ExplorerPage : Page
 {
-    public ExplorerViewModel ViewModel { get; set; } = null!;
-    public PendingChangesViewModel PendingViewModel { get; set; } = null!;
+    private ExplorerViewModel? _viewModel;
+    private PendingChangesViewModel? _pendingViewModel;
+
+    public ExplorerViewModel ViewModel
+    {
+        get => _viewModel ?? throw new InvalidOperationException("Explorer view model is not initialized.");
+        set
+        {
+            _viewModel = value ?? throw new ArgumentNullException(nameof(value));
+            DataContext = this;
+        }
+    }
+
+    public PendingChangesViewModel PendingViewModel
+    {
+        get => _pendingViewModel ?? throw new InvalidOperationException("Pending changes view model is not initialized.");
+        set
+        {
+            _pendingViewModel = value ?? throw new ArgumentNullException(nameof(value));
+            DataContext = this;
+        }
+    }
 
     public ExplorerPage()
     {
@@ -197,7 +216,7 @@ public sealed partial class ExplorerPage : Page
     {
         try
         {
-            if (sender is Button { Tag: Guid changeId })
+            if (sender is Button button && button.Tag is Guid changeId)
             {
                 PendingViewModel.Undo(changeId);
                 ViewModel.Refresh();
