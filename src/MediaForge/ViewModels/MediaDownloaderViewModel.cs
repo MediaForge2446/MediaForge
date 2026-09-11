@@ -59,7 +59,7 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
         PendingChangesState pendingChanges,
         MainViewModel main,
         Func<string?> targetFolderProvider)
-        : this(resolver, pendingChanges, main?.ReportError ?? throw new ArgumentNullException(nameof(main)), targetFolderProvider)
+        : this(resolver, pendingChanges, CreateErrorReporter(main), targetFolderProvider)
     {
     }
 
@@ -208,6 +208,16 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
         }
 
         return candidate;
+    }
+
+    private static Action<Exception> CreateErrorReporter(MainViewModel? main)
+    {
+        if (main is null)
+        {
+            throw new ArgumentNullException(nameof(main));
+        }
+
+        return main.ReportError;
     }
 
     private static string SanitizeFileName(string value)

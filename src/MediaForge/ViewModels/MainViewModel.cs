@@ -176,7 +176,11 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
             disposableTools.Dispose();
         }
 
-        _persistenceService.Dispose();
+        if (_persistenceService is IDisposable disposablePersistence)
+        {
+            disposablePersistence.Dispose();
+        }
+
         _saveGate.Dispose();
         _lifetimeCts.Dispose();
     }
