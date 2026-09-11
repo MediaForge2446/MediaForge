@@ -15,7 +15,7 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
     private readonly ISettingsService _settingsService;
     private readonly IToolManager _toolManager;
     private readonly IAppPersistenceService _persistenceService;
-    private readonly StagingHistory _stagingHistory = new();
+    private readonly StagingHistory _stagingHistory;
     private readonly CancellationTokenSource _lifetimeCts = new();
     private readonly SemaphoreSlim _saveGate = new(1, 1);
 
@@ -29,12 +29,22 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
     public ExplorerViewModel Explorer { get; }
     public PendingChangesViewModel PendingChanges { get; }
     public SettingsViewModel Settings { get; }
+    public int PendingCount => State.PendingChanges.PendingCount;
+    public string PendingCountText => $"{PendingCount} pending";
 
     public string? LastError
     {
         get => _lastError;
-        private set => SetProperty(ref _lastError, value);
+        private set
+        {
+            if (SetProperty(ref _lastError, value))
+            {
+                OnPropertyChanged(nameof(HasError));
+            }
+        }
     }
+
+    public bool HasError => !string.IsNullOrWhiteSpace(LastError);
 
     public MainViewModel()
     {
@@ -45,6 +55,7 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
         _downloadService = new DownloadService(new YtDlpPathProvider(_toolManager.ToolsDirectory));
         _commitService = new CommitService(_fileSystemService, _downloadService, _loggingService);
         _persistenceService = new AppPersistenceService();
+        _stagingHistory = State.StagingHistory;
 
         Library = new LibraryViewModel(State.Library, this);
         Explorer = new ExplorerViewModel(_fileSystemService, State.PendingChanges, State.Library, _stagingHistory, this);
@@ -61,6 +72,8 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
         LastError = exception.Message;
         _loggingService.Error("A UI operation failed.", exception);
     }
+
+    public void ClearError() => LastError = null;
 
     private async Task RestoreStateAsync(CancellationToken cancellationToken)
     {
@@ -93,6 +106,8 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
         finally
         {
             _isRestoring = false;
+            OnPropertyChanged(nameof(PendingCount));
+            OnPropertyChanged(nameof(PendingCountText));
         }
     }
 
@@ -103,6 +118,8 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
             return;
         }
 
+        OnPropertyChanged(nameof(PendingCount));
+        OnPropertyChanged(nameof(PendingCountText));
         Interlocked.Increment(ref _changeVersion);
         _ = PersistSoonAsync(_lifetimeCts.Token);
     }

@@ -11,6 +11,8 @@ namespace MediaForge.Views;
 public sealed partial class MediaDownloaderDialog : ContentDialog
 {
     private readonly MainViewModel _main;
+    private CancellationTokenSource? _resolveCts;
+    private bool _disposed;
 
     public MediaDownloaderViewModel ViewModel { get; }
 
@@ -22,7 +24,8 @@ public sealed partial class MediaDownloaderDialog : ContentDialog
         ViewModel = new MediaDownloaderViewModel(
             new MediaResolverService(),
             main.State.PendingChanges,
-            main,
+            main.State.StagingHistory,
+            main.ReportError,
             targetFolderProvider);
 
         InitializeComponent();
@@ -31,17 +34,7 @@ public sealed partial class MediaDownloaderDialog : ContentDialog
         UpdateUiState();
     }
 
-    private async void OnDetectClick(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            await ViewModel.ResolveAsync();
-        }
-        catch (Exception exception)
-        {
-            _main.ReportError(exception);
-        }
-    }
+    private async void OnDetectClick(object sender, RoutedEventArgs e) => await ResolveNowAsync();
 
     private async void OnUrlKeyDown(object sender, KeyRoutedEventArgs e)
     {
@@ -51,12 +44,13 @@ public sealed partial class MediaDownloaderDialog : ContentDialog
         }
 
         e.Handled = true;
-        await ViewModel.ResolveAsync();
+        await ResolveNowAsync();
     }
 
     private void OnUrlTextChanged(object sender, TextChangedEventArgs e)
     {
         ViewModel.SourceUrl = UrlTextBox.Text;
+        ScheduleAutoResolve();
     }
 
     private void OnSelectAllClick(object sender, RoutedEventArgs e) => ViewModel.SelectAll();
@@ -118,9 +112,17 @@ public sealed partial class MediaDownloaderDialog : ContentDialog
     {
         try
         {
-            if (ViewModel.SelectedCount == 0 || string.IsNullOrWhiteSpace(ViewModel.TargetFolderPath))
+            if (ViewModel.SelectedCount == 0)
             {
                 args.Cancel = true;
+                _main.ReportError(new InvalidOperationException("Select at least one media item."));
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(ViewModel.TargetFolderPath))
+            {
+                args.Cancel = true;
+                _main.ReportError(new InvalidOperationException("Open a library folder before adding media."));
                 return;
             }
 
@@ -135,10 +137,85 @@ public sealed partial class MediaDownloaderDialog : ContentDialog
 
     private void OnSecondaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
     {
-        ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+        DisposeResources();
     }
 
     private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e) => UpdateUiState();
+
+    private async Task ResolveNowAsync()
+    {
+        CancelPendingResolve();
+        _resolveCts = new CancellationTokenSource();
+        var cancellationToken = _resolveCts.Token;
+        try
+        {
+            await ViewModel.ResolveAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            _main.ReportError(exception);
+        }
+    }
+
+    private void ScheduleAutoResolve()
+    {
+        CancelPendingResolve();
+        if (!ViewModel.CanResolve)
+        {
+            return;
+        }
+
+        _resolveCts = new CancellationTokenSource();
+        var cancellationToken = _resolveCts.Token;
+        _ = AutoResolveAsync(cancellationToken);
+    }
+
+    private async Task AutoResolveAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(450, cancellationToken);
+            if (ViewModel.CanResolve && !ViewModel.IsResolving)
+            {
+                await ViewModel.ResolveAsync(cancellationToken);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            _main.ReportError(exception);
+        }
+    }
+
+    private void CancelPendingResolve()
+    {
+        try
+        {
+            _resolveCts?.Cancel();
+            _resolveCts?.Dispose();
+            _resolveCts = null;
+        }
+        catch
+        {
+        }
+    }
+
+    private void DisposeResources()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        CancelPendingResolve();
+        ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+    }
 
     private void UpdateUiState()
     {
@@ -147,6 +224,6 @@ public sealed partial class MediaDownloaderDialog : ContentDialog
         ResolveProgressRing.IsActive = ViewModel.IsResolving;
         PlaylistActionsPanel.Visibility = ViewModel.IsPlaylist ? Visibility.Visible : Visibility.Collapsed;
         PrimaryButtonText = ViewModel.SelectedCount > 0 ? $"Add {ViewModel.SelectedCount} to changes" : "Add to changes";
-        IsPrimaryButtonEnabled = ViewModel.SelectedCount > 0 && !ViewModel.IsResolving && !string.IsNullOrWhiteSpace(ViewModel.TargetFolderPath);
+        IsPrimaryButtonEnabled = ViewModel.SelectedCount > 0 && !ViewModel.IsResolving && ViewModel.CanResolve || ViewModel.SelectedCount > 0 && !ViewModel.IsResolving;
     }
 }

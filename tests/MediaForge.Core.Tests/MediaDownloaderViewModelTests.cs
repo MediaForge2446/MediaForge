@@ -13,10 +13,12 @@ public sealed class MediaDownloaderViewModelTests
     {
         var root = Path.Combine(Path.GetTempPath(), "MediaForge-DownloaderTests", Guid.NewGuid().ToString("N"));
         var pending = new PendingChangesState();
+        var history = new StagingHistory();
         var reported = new List<Exception>();
         var viewModel = new MediaDownloaderViewModel(
             new FakeResolver(),
             pending,
+            history,
             reported.Add,
             () => root);
 
@@ -37,6 +39,10 @@ public sealed class MediaDownloaderViewModelTests
         Assert.Equal(Path.Combine(root, "Test Song.mp3"), change.TargetPath);
         Assert.False(Directory.Exists(root));
         Assert.Empty(reported);
+
+        Assert.True(history.TryGetLastPending(out var stagedChange));
+        Assert.NotNull(stagedChange);
+        Assert.Equal(change.Id, stagedChange!.Id);
     }
 
     private sealed class FakeResolver : IMediaResolver

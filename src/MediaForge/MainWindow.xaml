@@ -4,13 +4,31 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="MediaForge"
     Closed="OnClosed">
-    <Grid>
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <NavigationView
             x:Name="RootNavigation"
             IsBackButtonVisible="Collapsed"
             IsSettingsVisible="True"
-            SelectionChanged="OnNavigationSelectionChanged"
-            PaneDisplayMode="LeftCompact">
+            IsPaneToggleButtonVisible="True"
+            PaneDisplayMode="LeftCompact"
+            SelectionChanged="OnNavigationSelectionChanged">
+            <NavigationView.Header>
+                <Grid Margin="4,8,20,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="MediaForge" FontSize="24" FontWeight="SemiBold" />
+                        <TextBlock Text="Library &amp; Downloads" Style="{StaticResource CaptionTextStyle}" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding PendingCountText}"
+                               VerticalAlignment="Center"
+                               Opacity="0.65" />
+                </Grid>
+            </NavigationView.Header>
+
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="Library" Tag="Library">
                     <NavigationViewItem.Icon>
@@ -28,6 +46,20 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.MenuItems>
+
+            <NavigationView.PaneFooter>
+                <StackPanel Spacing="6" Padding="10,8,10,12">
+                    <InfoBar IsOpen="{Binding HasError}"
+                             Severity="Error"
+                             Title="Operation failed"
+                             Message="{Binding LastError}"
+                             IsClosable="False" />
+                    <Button Content="Clear message"
+                            Click="OnClearErrorClick"
+                            IsEnabled="{Binding HasError}" />
+                </StackPanel>
+            </NavigationView.PaneFooter>
+
             <Frame x:Name="ContentFrame" />
         </NavigationView>
     </Grid>

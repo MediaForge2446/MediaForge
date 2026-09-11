@@ -8,6 +8,8 @@ public sealed class AppState
 
     public PendingChangesState PendingChanges { get; } = new();
 
+    public StagingHistory StagingHistory { get; } = new();
+
     public event EventHandler? Changed;
 
     public AppState()

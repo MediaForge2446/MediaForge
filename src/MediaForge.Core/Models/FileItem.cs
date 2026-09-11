@@ -15,4 +15,6 @@ public sealed record FileItem
     public DateTimeOffset LastModifiedUtc { get; init; }
 
     public ChangeStatus Status { get; init; } = ChangeStatus.Synced;
+
+    public string Glyph => Kind == FileItemKind.Folder ? "\uE8B7" : "\uE8A5";
 }

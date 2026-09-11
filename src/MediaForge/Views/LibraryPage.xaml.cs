@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using MediaForge.Core.Models;
 using MediaForge.ViewModels;
 
 namespace MediaForge.Views;
@@ -36,6 +37,7 @@ public sealed partial class LibraryPage : Page
             if (folder is not null)
             {
                 ViewModel.AddRootFolder(folder.Path, folder.Name);
+                ViewModel.Refresh();
             }
         }
         catch (Exception exception)
@@ -48,11 +50,6 @@ public sealed partial class LibraryPage : Page
     {
         try
         {
-            if (App.Current is not App app || app.MainWindow is null)
-            {
-                return;
-            }
-
             var dialog = new MediaDownloaderDialog(
                 ViewModel.Main,
                 () => ViewModel.Main.Explorer.CurrentPath ?? ViewModel.SelectedRootFolder?.Path)
@@ -62,6 +59,28 @@ public sealed partial class LibraryPage : Page
 
             await dialog.ShowAsync();
             ViewModel.Main.Explorer.Refresh();
+        }
+        catch (Exception exception)
+        {
+            ViewModel.Main.ReportError(exception);
+        }
+    }
+
+    private void OnFolderItemClick(object sender, ItemClickEventArgs e)
+    {
+        try
+        {
+            if (e.ClickedItem is not MediaFolder folder)
+            {
+                return;
+            }
+
+            ViewModel.SelectedRootFolder = folder;
+            ViewModel.Main.Explorer.OpenFolder(folder.Path);
+            if (App.Current is App app && app.MainWindow is MainWindow window)
+            {
+                window.NavigateToExplorer();
+            }
         }
         catch (Exception exception)
         {

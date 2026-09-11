@@ -1,106 +1,91 @@
 <Page
     x:Class="MediaForge.Views.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:converters="using:MediaForge.Converters">
-    <Page.Resources>
-        <converters:ToolStatusToBrushConverter x:Key="ToolStatusBrushConverter" />
-    </Page.Resources>
-
-    <ScrollViewer>
-        <StackPanel Padding="32" Spacing="24" MaxWidth="900">
-            <StackPanel Spacing="6">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Padding="32" Spacing="20" MaxWidth="980">
+            <StackPanel Spacing="5">
                 <TextBlock Text="Settings" Style="{StaticResource PageTitleTextStyle}" />
-                <TextBlock Text="Keep MediaForge ready without managing download tools yourself."
+                <TextBlock Text="Keep downloads reliable with automatic media-tool maintenance."
                            Style="{StaticResource PageSubtitleTextStyle}" />
             </StackPanel>
 
-            <Border Padding="20"
-                    CornerRadius="14"
-                    BorderThickness="1"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
-                <StackPanel Spacing="14">
-                    <TextBlock Text="Updates" FontSize="20" FontWeight="SemiBold" />
-                    <ToggleSwitch Header="Automatic tool updates"
+            <Border Style="{StaticResource CardBorderStyle}" Padding="20">
+                <Grid ColumnSpacing="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Background maintenance" Style="{StaticResource SectionTitleTextStyle}" />
+                        <TextBlock Text="MediaForge can check and update yt-dlp and FFmpeg without blocking the interface."
+                                   Style="{StaticResource CaptionTextStyle}" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1"
+                                  Header="Automatic tool updates"
                                   OffContent="Off"
                                   OnContent="On"
                                   IsOn="{Binding ViewModel.AutomaticToolUpdates, Mode=TwoWay}" />
-                    <TextBlock Text="MediaForge can check for and install current yt-dlp and FFmpeg builds in the background."
-                               TextWrapping="Wrap"
-                               Opacity="0.68" />
-                </StackPanel>
+                </Grid>
             </Border>
 
-            <Border Padding="20"
-                    CornerRadius="14"
-                    BorderThickness="1"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
-                <StackPanel Spacing="14">
-                    <Grid>
+            <Border Style="{StaticResource CardBorderStyle}" Padding="20">
+                <StackPanel Spacing="16">
+                    <Grid ColumnSpacing="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <StackPanel Spacing="3">
-                            <TextBlock Text="Media tools" FontSize="20" FontWeight="SemiBold" />
-                            <TextBlock Text="Required for physical downloads and conversion."
-                                       Opacity="0.68" />
+                            <TextBlock Text="Media tools" Style="{StaticResource SectionTitleTextStyle}" />
+                            <TextBlock Text="These tools are stored per-user and updated safely with checksum verification."
+                                       Style="{StaticResource CaptionTextStyle}" />
                         </StackPanel>
-                        <Button Grid.Column="1"
-                                Margin="8,0"
-                                Content="Check for updates"
-                                Click="OnCheckUpdatesClick"
-                                IsEnabled="{Binding ViewModel.CanUpdate}" />
-                        <Button Grid.Column="2"
-                                Content="Update all"
-                                Click="OnUpdateAllClick"
-                                IsEnabled="{Binding ViewModel.CanUpdate}" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                            <Button Content="Check for updates" Click="OnCheckUpdatesClick" IsEnabled="{Binding ViewModel.CanUpdate}" />
+                            <Button Content="Update all" Click="OnUpdateAllClick" IsEnabled="{Binding ViewModel.CanUpdate}" Style="{StaticResource PrimaryToolbarButtonStyle}" />
+                        </StackPanel>
                     </Grid>
 
-                    <ProgressBar Maximum="1"
-                                 Value="{Binding ViewModel.Progress}"
-                                 Visibility="{Binding ViewModel.IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <ProgressBar Maximum="1" Value="{Binding ViewModel.Progress}" />
 
-                    <ListView ItemsSource="{Binding ViewModel.Tools}"
-                              SelectionMode="None">
-                        <ListView.ItemTemplate>
+                    <ItemsRepeater ItemsSource="{Binding ViewModel.Tools}">
+                        <ItemsRepeater.Layout>
+                            <StackLayout Spacing="10" />
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="10" ColumnSpacing="12">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="14" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="180" />
-                                    </Grid.ColumnDefinitions>
-                                    <Ellipse Width="10"
-                                             Height="10"
-                                             VerticalAlignment="Center"
-                                             Fill="{Binding Converter={StaticResource ToolStatusBrushConverter}}" />
-                                    <StackPanel Grid.Column="1" Spacing="2">
-                                        <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="SemiBold" />
-                                        <TextBlock Text="{Binding ErrorMessage}"
-                                                   Foreground="{StaticResource FailedStatusBrush}"
-                                                   TextWrapping="Wrap" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="2" HorizontalAlignment="Right" Spacing="2">
-                                        <TextBlock Text="{Binding InstalledVersion}"
-                                                   HorizontalAlignment="Right" />
-                                        <TextBlock Text="{Binding LatestVersion, TargetNullValue=Unknown}"
-                                                   Opacity="0.6"
-                                                   HorizontalAlignment="Right" />
-                                    </StackPanel>
-                                </Grid>
+                                <Border Padding="14" CornerRadius="12" BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="12" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="•" FontSize="16" VerticalAlignment="Center" Opacity="0.65" />
+                                        <StackPanel Grid.Column="1" Spacing="3">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource FailedStatusBrush}" TextWrapping="Wrap" />
+                                            <TextBlock Text="Ready for downloads" Style="{StaticResource CaptionTextStyle}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" HorizontalAlignment="Right" Spacing="2">
+                                            <TextBlock Text="{Binding InstalledVersion}" HorizontalAlignment="Right" />
+                                            <TextBlock Text="Latest" Style="{StaticResource CaptionTextStyle}" HorizontalAlignment="Right" />
+                                            <TextBlock Text="{Binding LatestVersion}" HorizontalAlignment="Right" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
                             </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
                 </StackPanel>
             </Border>
 
-            <TextBlock Text="{Binding ViewModel.StatusMessage}"
-                       Opacity="0.7"
-                       TextWrapping="Wrap" />
+            <InfoBar IsOpen="True" Severity="Informational" Title="Changes apply safely"
+                     Message="Library edits and downloads stay staged until Save Changes is pressed in Explorer."
+                     IsClosable="False" />
+
+            <TextBlock Text="{Binding ViewModel.StatusMessage}" Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
         </StackPanel>
     </ScrollViewer>
 </Page>
