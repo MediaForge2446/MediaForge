@@ -11,16 +11,25 @@ public sealed partial class MainWindow : Window
 
     public MainWindow()
     {
-        InitializeComponent();
-        ContentFrame.Navigated += OnContentFrameNavigated;
-        RootNavigation.SelectedItem = RootNavigation.MenuItems[0];
+        try
+        {
+            InitializeComponent();
+            ContentFrame.Navigated += OnContentFrameNavigated;
+            RootNavigation.SelectedItem = RootNavigation.MenuItems[0];
+            _ = StartBackgroundMaintenanceAsync();
+        }
+        catch
+        {
+            ViewModel.Dispose();
+            throw;
+        }
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e)
+    private async Task StartBackgroundMaintenanceAsync()
     {
         try
         {
-            await ViewModel.Settings.StartBackgroundMaintenanceAsync();
+            await ViewModel.Settings.StartBackgroundMaintenanceAsync().ConfigureAwait(false);
         }
         catch (Exception exception)
         {

@@ -216,9 +216,4 @@ public sealed class MediaDownloaderViewModel : ViewModelBase
         var sanitized = new string(value.Select(character => invalid.Contains(character) ? '_' : character).ToArray());
         return string.IsNullOrWhiteSpace(sanitized) ? "Media item" : sanitized;
     }
-
-    private void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-    }
 }
