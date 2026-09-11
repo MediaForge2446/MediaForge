@@ -27,10 +27,10 @@
                         <TextBlock Text="MediaForge" FontSize="24" FontWeight="SemiBold" />
                         <TextBlock Text="Library &amp; Downloads" Style="{StaticResource CaptionTextStyle}" />
                     </StackPanel>
-                    <TextBlock Grid.Column="1"
-                               Text="{Binding ViewModel.PendingCount, StringFormat='{}{0} pending'}"
-                               VerticalAlignment="Center"
-                               Opacity="0.65" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding ViewModel.PendingCount}" FontWeight="SemiBold" />
+                        <TextBlock Text="pending" Opacity="0.65" />
+                    </StackPanel>
                 </Grid>
             </NavigationView.Header>
 
