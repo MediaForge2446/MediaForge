@@ -105,6 +105,9 @@ public sealed partial class MainWindow : Window
                 explorerPage.ViewModel = ViewModel.Explorer;
                 explorerPage.PendingViewModel = ViewModel.PendingChanges;
                 break;
+            case DownloadsPage downloadsPage:
+                downloadsPage.ViewModel = ViewModel.PendingChanges;
+                break;
         }
     }
 }
