@@ -25,6 +25,7 @@ public sealed class PendingChangesViewModel : ViewModelBase
             {
                 OnPropertyChanged(nameof(CanSave));
                 OnPropertyChanged(nameof(CanCancel));
+                OnPropertyChanged(nameof(CanUndo));
             }
         }
     }
@@ -36,8 +37,10 @@ public sealed class PendingChangesViewModel : ViewModelBase
         private set => SetProperty(ref _overallProgress, Math.Clamp(value, 0d, 1d));
     }
 
-    public bool CanSave => !IsSaving && Changes.Any(change => change.Status == ChangeStatus.Pending);
-    public bool CanCancel => !IsSaving && Changes.Any(change => change.Status == ChangeStatus.Pending);
+    public int PendingCount => Changes.Count(change => change.Status == ChangeStatus.Pending);
+    public bool CanSave => !IsSaving && PendingCount > 0;
+    public bool CanCancel => !IsSaving && PendingCount > 0;
+    public bool CanUndo => !IsSaving && PendingCount > 0;
 
     public PendingChangesViewModel(
         PendingChangesState state,
@@ -72,8 +75,10 @@ public sealed class PendingChangesViewModel : ViewModelBase
             }
         }
 
+        OnPropertyChanged(nameof(PendingCount));
         OnPropertyChanged(nameof(CanSave));
         OnPropertyChanged(nameof(CanCancel));
+        OnPropertyChanged(nameof(CanUndo));
     }
 
     public bool Undo(Guid changeId)
