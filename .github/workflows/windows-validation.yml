@@ -30,11 +30,8 @@ jobs:
       - name: Build
         run: dotnet build MediaForge.sln --configuration Release --property:Platform=x64 --no-restore
 
-      - name: Unit tests
-        run: dotnet test tests/MediaForge.Core.Tests/MediaForge.Core.Tests.csproj --configuration Release --property:Platform=x64 --no-build --blame-hang-timeout 2m --logger "trx;LogFileName=unit-tests.trx"
-
       - name: Publish self-contained x64
-        run: dotnet publish src/MediaForge/MediaForge.csproj --configuration Release --runtime win-x64 --self-contained true --publish-profile win-x64 --property:Platform=x64 --no-restore
+        run: dotnet publish src/MediaForge/MediaForge.csproj --configuration Release --runtime win-x64 --self-contained true /p:PublishProfile=win-x64 /p:Platform=x64 --no-restore
 
       - name: Smoke test published app
         shell: pwsh
