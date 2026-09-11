@@ -29,6 +29,8 @@ public sealed class CommitService : ICommitService
 
         var activeChanges = changes
             .Where(change => change.Status == ChangeStatus.Pending)
+            .OrderBy(GetOperationPriority)
+            .ThenBy(change => change.CreatedAtUtc)
             .ToArray();
 
         if (activeChanges.Length == 0)
@@ -121,12 +123,6 @@ public sealed class CommitService : ICommitService
                     cancellationToken).ConfigureAwait(false);
                 break;
 
-            case ChangeType.Delete:
-                await Task.Run(
-                    () => _fileSystem.Delete(change.SourcePath),
-                    cancellationToken).ConfigureAwait(false);
-                break;
-
             case ChangeType.Rename:
             case ChangeType.Move:
                 if (string.IsNullOrWhiteSpace(change.TargetPath))
@@ -134,8 +130,22 @@ public sealed class CommitService : ICommitService
                     throw new InvalidOperationException("A target path is required.");
                 }
 
+                var targetDirectory = Path.GetDirectoryName(change.TargetPath);
+                if (string.IsNullOrWhiteSpace(targetDirectory))
+                {
+                    throw new InvalidOperationException("Unable to determine the destination directory.");
+                }
+
                 await Task.Run(
-                    () => _fileSystem.Move(change.SourcePath, change.TargetPath),
+                    () =>
+                    {
+                        if (!_fileSystem.DirectoryExists(targetDirectory))
+                        {
+                            throw new DirectoryNotFoundException($"Destination directory not found: {targetDirectory}");
+                        }
+
+                        _fileSystem.Move(change.SourcePath, change.TargetPath);
+                    },
                     cancellationToken).ConfigureAwait(false);
                 break;
 
@@ -175,10 +185,27 @@ public sealed class CommitService : ICommitService
                     cancellationToken).ConfigureAwait(false);
                 break;
 
+            case ChangeType.Delete:
+                await Task.Run(
+                    () => _fileSystem.Delete(change.SourcePath),
+                    cancellationToken).ConfigureAwait(false);
+                break;
+
             default:
                 throw new ArgumentOutOfRangeException(nameof(change), change.Type, "Unsupported change type.");
         }
     }
+
+    private static int GetOperationPriority(PendingChange change) =>
+        change.Type switch
+        {
+            ChangeType.CreateFolder => 0,
+            ChangeType.Rename => 1,
+            ChangeType.Move => 1,
+            ChangeType.Download => 2,
+            ChangeType.Delete => 3,
+            _ => 99
+        };
 
     private static MediaFormat GetFormat(string targetPath) =>
         string.Equals(Path.GetExtension(targetPath), ".mp4", StringComparison.OrdinalIgnoreCase)
