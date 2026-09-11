@@ -2,7 +2,7 @@
     x:Class="MediaForge.Views.ExplorerPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid Padding="28" RowSpacing="18" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid Padding="28" RowSpacing="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
