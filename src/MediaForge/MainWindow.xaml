@@ -5,11 +5,11 @@
     xmlns:converters="using:MediaForge.Converters"
     Title="MediaForge"
     Closed="OnClosed">
-    <Window.Resources>
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-    </Window.Resources>
-
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.Resources>
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        </Grid.Resources>
+
         <NavigationView
             x:Name="RootNavigation"
             IsBackButtonVisible="Collapsed"
