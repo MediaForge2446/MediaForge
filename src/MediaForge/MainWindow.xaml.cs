@@ -2,6 +2,7 @@ using MediaForge.ViewModels;
 using MediaForge.Views;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 
 namespace MediaForge;
 
@@ -13,6 +14,7 @@ public sealed partial class MainWindow : Window
     {
         try
         {
+            SystemBackdrop = new MicaBackdrop();
             InitializeComponent();
             RootNavigation.DataContext = ViewModel;
             ContentFrame.Navigated += OnContentFrameNavigated;
