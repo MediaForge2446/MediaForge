@@ -13,6 +13,10 @@
   #error "Architecture must be supplied to ISCC."
 #endif
 
+#ifndef VCRedistPath
+  #error "VCRedistPath must be supplied to ISCC."
+#endif
+
 [Setup]
 AppId={{D6D01C3B-9BB4-4DD6-8F8F-9A5A3D4E7E52}
 AppName={#AppName}
@@ -33,6 +37,7 @@ UninstallDisplayIcon={app}\{#AppExeName}
 
 [Files]
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#VCRedistPath}"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 [Icons]
 Name: "{autoprograms}\MediaForge"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\{#AppExeName}"
@@ -42,4 +47,5 @@ Name: "{autodesktop}\MediaForge"; Filename: "{app}\{#AppExeName}"; WorkingDir: "
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"
 
 [Run]
+Filename: "{tmp}\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing Microsoft Visual C++ Runtime..."; Flags: waituntilterminated runhidden
 Filename: "{app}\{#AppExeName}"; Description: "Launch MediaForge"; Flags: nowait postinstall skipifsilent
