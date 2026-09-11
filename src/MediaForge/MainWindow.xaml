@@ -5,7 +5,7 @@
     Title="MediaForge"
     Closed="OnClosed">
     <Window.SystemBackdrop>
-        <MicaBackdrop Kind="Base" />
+        <MicaBackdrop Kind="BaseAlt" />
     </Window.SystemBackdrop>
 
     <NavigationView
@@ -16,60 +16,37 @@
         PaneDisplayMode="LeftCompact"
         SelectionChanged="OnNavigationSelectionChanged">
         <NavigationView.Header>
-            <Grid Margin="8,10,24,10">
+            <Grid Margin="12,12,26,12" MinHeight="48">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Border Width="40"
-                        Height="40"
-                        CornerRadius="12"
-                        Background="{StaticResource AccentSurfaceBrush}">
-                    <FontIcon Glyph="&#xE7C5;"
-                              FontSize="20"
-                              HorizontalAlignment="Center"
-                              VerticalAlignment="Center" />
+                <Border Width="44" Height="44" CornerRadius="12" Background="{StaticResource AccentSurfaceBrush}">
+                    <FontIcon Glyph="&#xE7C5;" FontSize="21" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
-                <StackPanel Grid.Column="1"
-                            Margin="12,0,0,0"
-                            Spacing="2"
-                            VerticalAlignment="Center">
-                    <TextBlock Text="MediaForge"
-                               FontSize="22"
-                               FontWeight="SemiBold" />
-                    <TextBlock Text="Library &amp; Downloads"
-                               Style="{StaticResource CaptionTextStyle}" />
+                <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="1" VerticalAlignment="Center">
+                    <TextBlock Text="MediaForge" FontSize="23" FontWeight="SemiBold" />
+                    <TextBlock Text="Library · Explorer · Downloads" Style="{StaticResource CaptionTextStyle}" />
                 </StackPanel>
-                <Border Grid.Column="2"
-                        MinHeight="32"
-                        Padding="12,6"
-                        CornerRadius="16"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1">
-                    <TextBlock Text="{Binding PendingCountText}"
-                               VerticalAlignment="Center"
-                               FontWeight="SemiBold" />
+                <Border Grid.Column="2" MinHeight="34" Padding="13,6" CornerRadius="17" Background="{StaticResource ElevatedSurfaceBrush}" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="7">
+                        <Ellipse Width="8" Height="8" Fill="{StaticResource PendingStatusBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding PendingCountText}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
                 </Border>
             </Grid>
         </NavigationView.Header>
 
         <NavigationView.MenuItems>
             <NavigationViewItem Content="Library" Tag="Library">
-                <NavigationViewItem.Icon>
-                    <SymbolIcon Symbol="Library" />
-                </NavigationViewItem.Icon>
+                <NavigationViewItem.Icon><SymbolIcon Symbol="Library" /></NavigationViewItem.Icon>
             </NavigationViewItem>
             <NavigationViewItem Content="Explorer" Tag="Explorer">
-                <NavigationViewItem.Icon>
-                    <SymbolIcon Symbol="OpenWith" />
-                </NavigationViewItem.Icon>
+                <NavigationViewItem.Icon><SymbolIcon Symbol="OpenWith" /></NavigationViewItem.Icon>
             </NavigationViewItem>
             <NavigationViewItem Content="Downloads" Tag="Downloads">
-                <NavigationViewItem.Icon>
-                    <SymbolIcon Symbol="Download" />
-                </NavigationViewItem.Icon>
+                <NavigationViewItem.Icon><SymbolIcon Symbol="Download" /></NavigationViewItem.Icon>
             </NavigationViewItem>
         </NavigationView.MenuItems>
 
