@@ -11,7 +11,7 @@ public sealed class YtDlpPathProviderTests
         var localAppData = Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
         var expectedPrefix = Path.Combine(localAppData, "MediaForge", "Tools");
 
-        Assert.True(provider.ToolsDirectory.StartsWith(expectedPrefix, StringComparison.OrdinalIgnoreCase));
+        Assert.StartsWith(expectedPrefix, provider.ToolsDirectory, StringComparison.OrdinalIgnoreCase);
         Assert.EndsWith(".exe", provider.YoutubeDLPath, StringComparison.OrdinalIgnoreCase);
         Assert.EndsWith("ffmpeg.exe", provider.FFmpegPath, StringComparison.OrdinalIgnoreCase);
     }

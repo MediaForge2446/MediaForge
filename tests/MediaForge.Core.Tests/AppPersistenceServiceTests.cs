@@ -31,9 +31,9 @@ public sealed class AppPersistenceServiceTests
             await persistence.SaveAsync(snapshot);
             var loaded = await persistence.LoadAsync();
 
-            var result = Assert.NotNull(loaded);
-            var loadedFolder = Assert.Single(result.RootFolders);
-            var loadedChange = Assert.Single(result.PendingChanges);
+            Assert.NotNull(loaded);
+            var loadedFolder = Assert.Single(loaded!.RootFolders);
+            var loadedChange = Assert.Single(loaded.PendingChanges);
             Assert.Equal(folder.Path, loadedFolder.Path);
             Assert.Equal(change.Id, loadedChange.Id);
             Assert.Equal(change.SourcePath, loadedChange.SourcePath);
@@ -61,8 +61,8 @@ public sealed class AppPersistenceServiceTests
 
             var loaded = await persistence.LoadAsync();
 
-            var result = Assert.NotNull(loaded);
-            var restoredChange = Assert.Single(result.PendingChanges);
+            Assert.NotNull(loaded);
+            var restoredChange = Assert.Single(loaded!.PendingChanges);
             Assert.Equal(firstChange.Id, restoredChange.Id);
             Assert.Equal(firstChange.SourcePath, restoredChange.SourcePath);
             Assert.True(File.Exists(Path.Combine(directory, "state.json.sha256")));
@@ -86,8 +86,8 @@ public sealed class AppPersistenceServiceTests
             await persistence.SaveAsync(new AppStateSnapshot { PendingChanges = new[] { change } });
 
             var loaded = await persistence.LoadAsync();
-            var result = Assert.NotNull(loaded);
-            var loadedChange = Assert.Single(result.PendingChanges);
+            Assert.NotNull(loaded);
+            var loadedChange = Assert.Single(loaded!.PendingChanges);
             Assert.Equal(change.Id, loadedChange.Id);
             Assert.False(File.Exists(Path.Combine(directory, "state.json.tmp")));
         }
@@ -121,8 +121,9 @@ public sealed class AppPersistenceServiceTests
                 PendingChanges = new[] { change, duplicateChange }
             });
 
-            var loaded = Assert.NotNull(await persistence.LoadAsync());
-            Assert.Single(loaded.RootFolders);
+            var loaded = await persistence.LoadAsync();
+            Assert.NotNull(loaded);
+            Assert.Single(loaded!.RootFolders);
             var loadedChange = Assert.Single(loaded.PendingChanges);
             Assert.Equal("latest", loadedChange.ErrorMessage);
         }

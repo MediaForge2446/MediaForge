@@ -22,7 +22,7 @@ public sealed class MediaDownloaderViewModelTests
 
         viewModel.Items.Add(new MediaItem
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.NewGuid().ToString("N"),
             SourceUrl = "https://example.com/song",
             Title = "Test Song",
             Format = MediaFormat.Mp3,
