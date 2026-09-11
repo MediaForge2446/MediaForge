@@ -104,10 +104,19 @@
                                     <TextBlock Text="{Binding DisplaySize}" />
                                     <TextBlock Text="{Binding Kind}" Style="{StaticResource CaptionTextStyle}" />
                                 </StackPanel>
-                                <TextBlock Grid.Column="3"
-                                           Text="{Binding StatusLabel}"
-                                           Style="{StaticResource CaptionTextStyle}"
-                                           VerticalAlignment="Center" />
+                                <StackPanel Grid.Column="3"
+                                            Orientation="Horizontal"
+                                            Spacing="8"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Right">
+                                    <TextBlock Text="{Binding StatusLabel}"
+                                               Style="{StaticResource CaptionTextStyle}"
+                                               VerticalAlignment="Center" />
+                                    <Ellipse Width="10"
+                                             Height="10"
+                                             Fill="{Binding Status, Converter={StaticResource ChangeStatusToBrushConverter}}"
+                                             VerticalAlignment="Center" />
+                                </StackPanel>
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -157,7 +166,10 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="•" FontSize="16" VerticalAlignment="Center" Opacity="0.65" />
+                                <Ellipse Width="9"
+                                         Height="9"
+                                         Fill="{Binding Status, Converter={StaticResource ChangeStatusToBrushConverter}}"
+                                         VerticalAlignment="Center" />
                                 <TextBlock Grid.Column="1" Text="{Binding Type}" FontWeight="SemiBold" VerticalAlignment="Center" />
                                 <StackPanel Grid.Column="2" Spacing="2">
                                     <TextBlock Text="{Binding SourcePath}" TextTrimming="CharacterEllipsis" />

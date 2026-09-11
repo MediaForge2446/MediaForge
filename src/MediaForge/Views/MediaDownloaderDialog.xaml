@@ -137,7 +137,7 @@
 
                                 <ComboBox Grid.Column="2"
                                           Header="Format"
-                                          SelectedIndex="0"
+                                          SelectedIndex="{Binding Format, Mode=OneWay}"
                                           SelectionChanged="OnFormatChanged"
                                           VerticalAlignment="Center">
                                     <ComboBoxItem Content="MP3" Tag="Mp3" />

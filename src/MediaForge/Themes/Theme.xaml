@@ -2,10 +2,14 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <SolidColorBrush x:Key="StatusGreenBrush" Color="#2E8B57" />
+    <SolidColorBrush x:Key="StatusYellowBrush" Color="#D99A24" />
+    <SolidColorBrush x:Key="StatusRedBrush" Color="#D04A4A" />
+
     <SolidColorBrush x:Key="SyncedStatusBrush" Color="#2E8B57" />
-    <SolidColorBrush x:Key="PendingStatusBrush" Color="#D89B24" />
-    <SolidColorBrush x:Key="FailedStatusBrush" Color="#C94A4A" />
-    <SolidColorBrush x:Key="AccentSurfaceBrush" Color="#EEF6FF" />
+    <SolidColorBrush x:Key="PendingStatusBrush" Color="#D99A24" />
+    <SolidColorBrush x:Key="FailedStatusBrush" Color="#D04A4A" />
+    <SolidColorBrush x:Key="AccentSurfaceBrush" Color="#16243D" Opacity="0.92" />
 
     <LinearGradientBrush x:Key="PrimaryButtonGradientBrush" StartPoint="0,0" EndPoint="1,1">
         <GradientStop Color="#2563EB" Offset="0" />
@@ -48,6 +52,18 @@
         <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
     </Style>
 
+    <Style TargetType="Button">
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="MinHeight" Value="40" />
+        <Setter Property="MinWidth" Value="88" />
+        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
     <Style x:Key="ToolbarButtonStyle" TargetType="Button">
         <Setter Property="MinHeight" Value="40" />
         <Setter Property="MinWidth" Value="96" />
@@ -68,6 +84,20 @@
         <Setter Property="Width" Value="40" />
         <Setter Property="Height" Value="40" />
         <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+
+    <Style TargetType="ListView">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
+    </Style>
+
+    <Style TargetType="ListViewItem">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0,2" />
+        <Setter Property="MinHeight" Value="52" />
         <Setter Property="CornerRadius" Value="8" />
     </Style>
 </ResourceDictionary>
