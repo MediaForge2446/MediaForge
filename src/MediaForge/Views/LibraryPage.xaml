@@ -12,6 +12,10 @@
             </Grid.RowDefinitions>
 
             <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
                 <StackPanel Spacing="6">
                     <TextBlock Text="Library" Style="{StaticResource PageTitleTextStyle}" />
                     <TextBlock Text="Your media roots, organized for fast browsing and staged updates."
@@ -28,6 +32,11 @@
             </Grid>
 
             <Grid Grid.Row="1" ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="2*" />
+                </Grid.ColumnDefinitions>
                 <Border Style="{StaticResource CardBorderStyle}">
                     <StackPanel Spacing="4">
                         <TextBlock Text="{Binding ViewModel.RootFolders.Count}"
