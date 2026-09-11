@@ -20,6 +20,10 @@
         </Grid.RowDefinitions>
 
         <Grid ColumnSpacing="14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
             <StackPanel Spacing="4">
                 <TextBlock Text="Explorer" Style="{StaticResource PageTitleTextStyle}" />
                 <TextBlock Text="Browse and stage file operations without touching disk until you save."
@@ -60,6 +64,10 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
                     <TextBlock Text="{Binding ViewModel.CurrentFolderName}"
                                FontSize="16"
                                FontWeight="SemiBold"
@@ -139,6 +147,10 @@
                 </Grid.RowDefinitions>
 
                 <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
                     <StackPanel Spacing="3">
                         <TextBlock Text="Pending changes" Style="{StaticResource SectionTitleTextStyle}" />
                         <TextBlock Text="Review everything before it touches your files."
