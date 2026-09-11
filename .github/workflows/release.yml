@@ -19,9 +19,11 @@ jobs:
         include:
           - rid: win-x64
             profile: win-x64
+            platform: x64
             architecture: x64compatible
           - rid: win-arm64
             profile: win-arm64
+            platform: ARM64
             architecture: arm64
 
     steps:
@@ -37,13 +39,13 @@ jobs:
         run: dotnet restore MediaForge.sln
 
       - name: Build
-        run: dotnet build MediaForge.sln --configuration Release --no-restore
+        run: dotnet build MediaForge.sln --configuration Release --property:Platform=${{ matrix.platform }} --no-restore
 
       - name: Test
-        run: dotnet test MediaForge.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test MediaForge.sln --configuration Release --property:Platform=${{ matrix.platform }} --no-build --logger "trx;LogFileName=test-results.trx"
 
       - name: Publish self-contained app
-        run: dotnet publish src/MediaForge/MediaForge.csproj --configuration Release --runtime ${{ matrix.rid }} --self-contained true --publish-profile ${{ matrix.profile }} --no-restore
+        run: dotnet publish src/MediaForge/MediaForge.csproj --configuration Release --runtime ${{ matrix.rid }} --self-contained true --publish-profile ${{ matrix.profile }} --property:Platform=${{ matrix.platform }} --no-restore
 
       - name: Verify published application
         shell: pwsh
@@ -60,16 +62,27 @@ jobs:
             "/DPublishDir=$((Get-Location).Path)\artifacts\publish\${{ matrix.rid }}" `
             "/DArchitecture=${{ matrix.architecture }}" `
             installer\MediaForge.iss
+          if ($LASTEXITCODE -ne 0) {
+            throw "Inno Setup compilation failed with exit code $LASTEXITCODE."
+          }
+
+      - name: Verify installer
+        shell: pwsh
+        run: |
+          $installer = Join-Path (Get-Location) 'artifacts\installer\Setup.exe'
+          if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) {
+            throw "Setup.exe was not created: $installer"
+          }
 
       - name: Verify installer install and uninstall
         shell: pwsh
-        run: ./scripts/installer-smoke-test.ps1 -InstallerPath "artifacts/installer/MediaForge-Setup-${{ matrix.architecture }}.exe"
+        run: ./scripts/installer-smoke-test.ps1 -InstallerPath "artifacts/installer/Setup.exe"
 
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
           name: MediaForge-${{ matrix.rid }}
-          path: artifacts/installer/MediaForge-Setup-${{ matrix.architecture }}.exe
+          path: artifacts/installer/Setup.exe
           if-no-files-found: error
 
   release:

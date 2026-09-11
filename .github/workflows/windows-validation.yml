@@ -27,13 +27,13 @@ jobs:
         run: dotnet restore MediaForge.sln
 
       - name: Build
-        run: dotnet build MediaForge.sln --configuration Release --no-restore
+        run: dotnet build MediaForge.sln --configuration Release --property:Platform=x64 --no-restore
 
       - name: Test
-        run: dotnet test MediaForge.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test MediaForge.sln --configuration Release --property:Platform=x64 --no-build --logger "trx;LogFileName=test-results.trx"
 
       - name: Publish self-contained x64
-        run: dotnet publish src/MediaForge/MediaForge.csproj --configuration Release --runtime win-x64 --self-contained true --publish-profile win-x64 --no-restore
+        run: dotnet publish src/MediaForge/MediaForge.csproj --configuration Release --runtime win-x64 --self-contained true --publish-profile win-x64 --property:Platform=x64 --no-restore
 
       - name: Smoke test published app
         shell: pwsh
@@ -55,13 +55,21 @@ jobs:
             throw "Inno Setup compilation failed with exit code $LASTEXITCODE."
           }
 
+      - name: Verify installer
+        shell: pwsh
+        run: |
+          $installer = Join-Path (Get-Location) 'artifacts\installer\Setup.exe'
+          if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) {
+            throw "Setup.exe was not created: $installer"
+          }
+
       - name: Verify installer install and uninstall
         shell: pwsh
-        run: ./scripts/installer-smoke-test.ps1 -InstallerPath "artifacts/installer/MediaForge-Setup-x64compatible.exe"
+        run: ./scripts/installer-smoke-test.ps1 -InstallerPath "artifacts/installer/Setup.exe"
 
       - name: Upload Setup artifact
         uses: actions/upload-artifact@v4
         with:
           name: MediaForge-Setup-win-x64
-          path: artifacts/installer/MediaForge-Setup-x64compatible.exe
+          path: artifacts/installer/Setup.exe
           if-no-files-found: error
