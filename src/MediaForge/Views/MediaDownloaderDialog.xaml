@@ -51,6 +51,10 @@
                 CornerRadius="12"
                 Background="{StaticResource AccentSurfaceBrush}">
             <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
                 <StackPanel Spacing="3">
                     <TextBlock x:Name="MediaTypeText" FontSize="15" FontWeight="SemiBold" />
                     <TextBlock x:Name="SelectedSummaryText" Opacity="0.72" />
