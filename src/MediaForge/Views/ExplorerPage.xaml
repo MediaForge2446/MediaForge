@@ -9,7 +9,7 @@
         <converters:FailedStatusToVisibilityConverter x:Key="FailedStatusToVisibilityConverter" />
     </Page.Resources>
 
-    <Grid Padding="24" RowSpacing="16">
+    <Grid Padding="28" RowSpacing="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -17,81 +17,118 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid ColumnSpacing="12">
+        <Grid ColumnSpacing="14">
+            <StackPanel Spacing="4">
+                <TextBlock Text="Explorer" Style="{StaticResource PageTitleTextStyle}" />
+                <TextBlock Text="Browse and stage file operations without touching disk until you save."
+                           Style="{StaticResource PageSubtitleTextStyle}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Bottom">
+                <Button Style="{StaticResource ToolbarButtonStyle}" Content="New folder" Click="OnNewFolderClick" />
+                <Button Style="{StaticResource ToolbarButtonStyle}" Content="Rename" Click="OnRenameClick" />
+                <Button Style="{StaticResource ToolbarButtonStyle}" Content="Move" Click="OnMoveClick" />
+                <Button Style="{StaticResource ToolbarButtonStyle}" Content="Delete" Click="OnDeleteClick" />
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1" ColumnSpacing="10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-
             <ComboBox x:Name="RootFolderPicker"
                       ItemsSource="{Binding ViewModel.RootFolders}"
                       DisplayMemberPath="DisplayName"
-                      PlaceholderText="Select a library folder"
+                      PlaceholderText="Choose a library folder"
                       SelectionChanged="OnRootFolderChanged" />
-            <Button Grid.Column="1" Content="New folder" Click="OnNewFolderClick" />
-            <Button Grid.Column="2" Content="Rename" Click="OnRenameClick" />
-            <Button Grid.Column="3" Content="Delete" Click="OnDeleteClick" />
+            <Button Grid.Column="1" Style="{StaticResource SubtleIconButtonStyle}" Content="←" Click="OnBackClick" ToolTipService.ToolTip="Back" />
+            <Button Grid.Column="2" Style="{StaticResource SubtleIconButtonStyle}" Content="↻" Click="OnRefreshClick" ToolTipService.ToolTip="Refresh" />
         </Grid>
 
-        <Grid Grid.Row="1" ColumnSpacing="8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Button Content="←" Click="OnBackClick" />
-            <Button Grid.Column="1" Content="↻" Click="OnRefreshClick" />
-            <TextBox Grid.Column="2"
-                     Text="{Binding ViewModel.CurrentPath, Mode=OneWay}"
-                     IsReadOnly="True" />
-        </Grid>
+        <Border Grid.Row="2"
+                Padding="12"
+                CornerRadius="16"
+                BorderThickness="1"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+            <Grid RowSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid ColumnSpacing="10">
+                    <TextBlock Text="{Binding ViewModel.CurrentFolderName}"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding ViewModel.CurrentPath}"
+                               Style="{StaticResource CaptionTextStyle}"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" />
+                </Grid>
 
-        <ListView Grid.Row="2"
-                  x:Name="ExplorerList"
-                  ItemsSource="{Binding ViewModel.Items}"
-                  SelectionMode="Single"
-                  IsItemClickEnabled="True"
-                  ItemClick="OnItemClick">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Grid Padding="12" ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="28" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="120" />
-                            <ColumnDefinition Width="120" />
-                            <ColumnDefinition Width="14" />
-                        </Grid.ColumnDefinitions>
+                <ListView Grid.Row="1"
+                          x:Name="ExplorerList"
+                          ItemsSource="{Binding ViewModel.Items}"
+                          SelectionMode="Single"
+                          IsItemClickEnabled="True"
+                          ItemClick="OnItemClick">
+                    <ListView.Resources>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Padding" Value="0" />
+                        </Style>
+                    </ListView.Resources>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Padding="12" ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="36" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="120" />
+                                    <ColumnDefinition Width="120" />
+                                    <ColumnDefinition Width="14" />
+                                </Grid.ColumnDefinitions>
 
-                        <FontIcon Glyph="&#xE8B7;" FontSize="20" />
-                        <TextBlock Grid.Column="1"
-                                   Text="{Binding Name}"
-                                   VerticalAlignment="Center"
-                                   TextTrimming="CharacterEllipsis" />
-                        <TextBlock Grid.Column="2"
-                                   Text="{Binding Kind}"
-                                   Opacity="0.65"
-                                   VerticalAlignment="Center" />
-                        <TextBlock Grid.Column="3"
-                                   Text="{Binding SizeBytes}"
-                                   Opacity="0.65"
-                                   VerticalAlignment="Center" />
-                        <Ellipse Grid.Column="4"
-                                 Width="10"
-                                 Height="10"
-                                 VerticalAlignment="Center"
-                                 Fill="{Binding Status, Converter={StaticResource ChangeStatusBrushConverter}}" />
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+                                <FontIcon Glyph="{Binding Kind, Converter={StaticResource FileKindToGlyphConverter}}"
+                                          FontSize="20"
+                                          VerticalAlignment="Center" />
+                                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Name}"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding LastModifiedUtc}"
+                                               Style="{StaticResource CaptionTextStyle}" />
+                                </StackPanel>
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding Kind}"
+                                           Style="{StaticResource CaptionTextStyle}"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="3"
+                                           Text="{Binding SizeBytes}"
+                                           Style="{StaticResource CaptionTextStyle}"
+                                           VerticalAlignment="Center" />
+                                <Ellipse Grid.Column="4"
+                                         Width="9"
+                                         Height="9"
+                                         VerticalAlignment="Center"
+                                         Fill="{Binding Status, Converter={StaticResource ChangeStatusBrushConverter}}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+        </Border>
 
         <Border Grid.Row="3"
-                Padding="16"
-                CornerRadius="12"
-                BorderThickness="1">
+                Padding="18"
+                CornerRadius="16"
+                BorderThickness="1"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
             <Grid RowSpacing="12">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -100,54 +137,47 @@
                 </Grid.RowDefinitions>
 
                 <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="Pending changes" FontSize="18" FontWeight="SemiBold" />
-                        <TextBlock Text="Changes are applied to disk only when you save."
-                                   Opacity="0.65" />
-                        <ProgressBar Margin="0,8,0,0"
-                                     Maximum="1"
-                                     Value="{Binding PendingViewModel.OverallProgress}"
-                                     Visibility="{Binding PendingViewModel.IsSaving, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <StackPanel Spacing="3">
+                        <TextBlock Text="Pending changes" Style="{StaticResource SectionTitleTextStyle}" />
+                        <TextBlock Text="Nothing changes on disk until you press Save Changes."
+                                   Style="{StaticResource CaptionTextStyle}" />
                     </StackPanel>
-                    <Button Grid.Column="1"
-                            Content="Save changes"
-                            Click="OnSaveChangesClick"
-                            IsEnabled="{Binding PendingViewModel.CanSave}" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                        <Button Content="Undo last" Click="OnUndoLastClick" IsEnabled="{Binding PendingViewModel.CanUndo}" />
+                        <Button Content="Cancel all" Click="OnCancelAllClick" IsEnabled="{Binding PendingViewModel.CanCancel}" />
+                        <Button Content="Save Changes"
+                                Style="{StaticResource PrimaryToolbarButtonStyle}"
+                                Click="OnSaveChangesClick"
+                                IsEnabled="{Binding PendingViewModel.CanSave}" />
+                    </StackPanel>
                 </Grid>
 
-                <ListView Grid.Row="1"
+                <ProgressBar Grid.Row="1"
+                             Maximum="1"
+                             Value="{Binding PendingViewModel.OverallProgress}"
+                             Visibility="{Binding PendingViewModel.IsSaving, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                <ListView Grid.Row="2"
                           ItemsSource="{Binding PendingViewModel.Changes}"
-                          MaxHeight="230"
+                          MaxHeight="250"
                           SelectionMode="None">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <Grid Padding="8" ColumnSpacing="10" RowSpacing="4">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
+                            <Grid Padding="8" ColumnSpacing="10" RowSpacing="3">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="12" />
-                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="80" />
                                     <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-
                                 <Ellipse Width="9"
                                          Height="9"
                                          VerticalAlignment="Center"
                                          Fill="{Binding Status, Converter={StaticResource ChangeStatusBrushConverter}}" />
-                                <TextBlock Grid.Column="1"
-                                           Text="{Binding Type}"
-                                           FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1" Text="{Binding Type}" FontWeight="SemiBold" VerticalAlignment="Center" />
                                 <StackPanel Grid.Column="2" Spacing="2">
                                     <TextBlock Text="{Binding SourcePath}" TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Text="{Binding TargetPath}"
-                                               Opacity="0.6"
-                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding TargetPath}" Style="{StaticResource CaptionTextStyle}" TextTrimming="CharacterEllipsis" />
                                     <TextBlock Text="{Binding StatusText}"
                                                Foreground="{Binding Status, Converter={StaticResource ChangeStatusBrushConverter}}"
                                                TextTrimming="CharacterEllipsis" />
@@ -159,12 +189,21 @@
                                                TextWrapping="Wrap"
                                                Visibility="{Binding Status, Converter={StaticResource FailedStatusToVisibilityConverter}}" />
                                 </StackPanel>
+                                <Button Grid.Column="3"
+                                        Content="Undo"
+                                        Tag="{Binding Id}"
+                                        Click="OnUndoChangeClick"
+                                        IsEnabled="{Binding Status}">
+                                    <Button.Visibility>
+                                        <Binding Path="Status" Converter="{StaticResource PendingStatusVisibilityConverter}" />
+                                    </Button.Visibility>
+                                </Button>
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
 
-                <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="18">
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="16">
                     <TextBlock Text="● Synced" Foreground="{StaticResource SyncedStatusBrush}" />
                     <TextBlock Text="● Pending" Foreground="{StaticResource PendingStatusBrush}" />
                     <TextBlock Text="● Failed" Foreground="{StaticResource FailedStatusBrush}" />
