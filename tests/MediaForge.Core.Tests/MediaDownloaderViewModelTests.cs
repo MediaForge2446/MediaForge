@@ -39,7 +39,10 @@ public sealed class MediaDownloaderViewModelTests
         Assert.Equal(Path.Combine(root, "Test Song.mp3"), change.TargetPath);
         Assert.False(Directory.Exists(root));
         Assert.Empty(reported);
-        Assert.Single(history.GetPendingChanges());
+
+        Assert.True(history.TryGetLastPending(out var stagedChange));
+        Assert.NotNull(stagedChange);
+        Assert.Equal(change.Id, stagedChange!.Id);
     }
 
     private sealed class FakeResolver : IMediaResolver
