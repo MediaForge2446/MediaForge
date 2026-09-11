@@ -47,7 +47,7 @@
                 </Border>
                 <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
                     <StackPanel Spacing="4">
-                        <TextBlock Text="{Binding ViewModel.Main.State.PendingChanges.PendingCount}"
+                        <TextBlock Text="{Binding ViewModel.Main.PendingCount}"
                                    FontSize="28"
                                    FontWeight="SemiBold" />
                         <TextBlock Text="Pending changes" Style="{StaticResource CaptionTextStyle}" />
