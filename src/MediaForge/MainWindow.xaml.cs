@@ -1,7 +1,7 @@
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using MediaForge.ViewModels;
 using MediaForge.Views;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 
 namespace MediaForge;
 
@@ -14,6 +14,7 @@ public sealed partial class MainWindow : Window
         try
         {
             InitializeComponent();
+            DataContext = this;
             ContentFrame.Navigated += OnContentFrameNavigated;
             RootNavigation.SelectedItem = RootNavigation.MenuItems[0];
             _ = StartBackgroundMaintenanceAsync();
@@ -25,11 +26,23 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    public void NavigateToExplorer()
+    {
+        foreach (var item in RootNavigation.MenuItems.OfType<NavigationViewItem>())
+        {
+            if (string.Equals(item.Tag as string, "Explorer", StringComparison.Ordinal))
+            {
+                RootNavigation.SelectedItem = item;
+                return;
+            }
+        }
+    }
+
     private async Task StartBackgroundMaintenanceAsync()
     {
         try
         {
-            await ViewModel.Settings.StartBackgroundMaintenanceAsync().ConfigureAwait(false);
+            await ViewModel.Settings.StartBackgroundMaintenanceAsync().ConfigureAwait(true);
         }
         catch (Exception exception)
         {
@@ -41,6 +54,8 @@ public sealed partial class MainWindow : Window
     {
         ViewModel.Dispose();
     }
+
+    private void OnClearErrorClick(object sender, RoutedEventArgs e) => ViewModel.ClearError();
 
     private void OnNavigationSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
