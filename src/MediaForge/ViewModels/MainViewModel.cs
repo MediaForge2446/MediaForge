@@ -176,6 +176,8 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
 
         _disposed = true;
         State.Changed -= OnStateChanged;
+        Explorer.Dispose();
+        Settings.Dispose();
         _lifetimeCts.Cancel();
 
         try
@@ -187,7 +189,6 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
             _loggingService.Error("Failed to persist application state during shutdown.", exception);
         }
 
-        Settings.Dispose();
         if (_toolManager is IDisposable disposableTools)
         {
             disposableTools.Dispose();
