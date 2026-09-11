@@ -7,6 +7,8 @@
         <converters:ChangeStatusToBrushConverter x:Key="ChangeStatusBrushConverter" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <converters:FailedStatusToVisibilityConverter x:Key="FailedStatusToVisibilityConverter" />
+        <converters:FileKindToGlyphConverter x:Key="FileKindToGlyphConverter" />
+        <converters:PendingStatusVisibilityConverter x:Key="PendingStatusVisibilityConverter" />
     </Page.Resources>
 
     <Grid Padding="28" RowSpacing="18">
@@ -139,7 +141,7 @@
                 <Grid ColumnSpacing="12">
                     <StackPanel Spacing="3">
                         <TextBlock Text="Pending changes" Style="{StaticResource SectionTitleTextStyle}" />
-                        <TextBlock Text="Nothing changes on disk until you press Save Changes."
+                        <TextBlock Text="Review everything before it touches your files."
                                    Style="{StaticResource CaptionTextStyle}" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
@@ -179,7 +181,7 @@
                                     <TextBlock Text="{Binding SourcePath}" TextTrimming="CharacterEllipsis" />
                                     <TextBlock Text="{Binding TargetPath}" Style="{StaticResource CaptionTextStyle}" TextTrimming="CharacterEllipsis" />
                                     <TextBlock Text="{Binding StatusText}"
-                                               Foreground="{Binding Status, Converter={StaticResource ChangeStatusBrushConverter}}"
+                                               Foreground="{Binding Status, Converter={StaticResource ChangeStatusToBrushConverter}}"
                                                TextTrimming="CharacterEllipsis" />
                                     <ProgressBar Maximum="1"
                                                  Value="{Binding Progress}"
@@ -193,11 +195,7 @@
                                         Content="Undo"
                                         Tag="{Binding Id}"
                                         Click="OnUndoChangeClick"
-                                        IsEnabled="{Binding Status}">
-                                    <Button.Visibility>
-                                        <Binding Path="Status" Converter="{StaticResource PendingStatusVisibilityConverter}" />
-                                    </Button.Visibility>
-                                </Button>
+                                        Visibility="{Binding Status, Converter={StaticResource PendingStatusVisibilityConverter}}" />
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
