@@ -57,7 +57,11 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <Grid>
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="2*" />
+                    </Grid.ColumnDefinitions>
                     <TextBlock Text="Queue" Style="{StaticResource SectionTitleTextStyle}" />
                     <ProgressBar Grid.Column="1"
                                  Maximum="1"
