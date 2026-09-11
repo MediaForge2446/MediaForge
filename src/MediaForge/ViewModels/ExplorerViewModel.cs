@@ -78,27 +78,23 @@ public sealed class ExplorerViewModel : ViewModelBase, IDisposable
             return;
         }
 
-        await _refreshGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        await _refreshGate.WaitAsync(cancellationToken).ConfigureAwait(true);
         try
         {
             IsLoading = true;
             var physicalItems = await _fileSystem
                 .GetDirectoryItemsAsync(fullPath, cancellationToken)
-                .ConfigureAwait(false);
+                .ConfigureAwait(true);
             cancellationToken.ThrowIfCancellationRequested();
 
             var projectedItems = ProjectPendingChanges(fullPath, physicalItems);
-
-            await App.MainWindowDispatcherAsync(() =>
+            Items.Clear();
+            foreach (var item in projectedItems)
             {
-                Items.Clear();
-                foreach (var item in projectedItems)
-                {
-                    Items.Add(item);
-                }
+                Items.Add(item);
+            }
 
-                CurrentPath = fullPath;
-            }).ConfigureAwait(true);
+            CurrentPath = fullPath;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
