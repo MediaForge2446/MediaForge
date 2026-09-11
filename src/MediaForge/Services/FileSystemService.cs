@@ -9,13 +9,14 @@ public sealed class FileSystemService : IFileSystemService
     public IReadOnlyList<FileItem> GetDirectoryItems(string directoryPath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(directoryPath);
+        var fullPath = Path.GetFullPath(directoryPath);
 
-        if (!Directory.Exists(directoryPath))
+        if (!Directory.Exists(fullPath))
         {
-            throw new DirectoryNotFoundException($"Directory not found: {directoryPath}");
+            throw new DirectoryNotFoundException($"Directory not found: {fullPath}");
         }
 
-        var directoryInfo = new DirectoryInfo(directoryPath);
+        var directoryInfo = new DirectoryInfo(fullPath);
         var items = new List<FileItem>();
 
         foreach (var directory in directoryInfo.EnumerateDirectories())
@@ -42,10 +43,17 @@ public sealed class FileSystemService : IFileSystemService
             });
         }
 
-        return items
-            .OrderBy(item => item.Kind == FileItemKind.File)
-            .ThenBy(item => item.Name, StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+        return SortItems(items);
+    }
+
+    public Task<IReadOnlyList<FileItem>> GetDirectoryItemsAsync(
+        string directoryPath,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(directoryPath);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return Task.Run(() => GetDirectoryItems(directoryPath), cancellationToken);
     }
 
     public bool DirectoryExists(string directoryPath) =>
@@ -57,67 +65,76 @@ public sealed class FileSystemService : IFileSystemService
     public void CreateDirectory(string directoryPath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(directoryPath);
-        Directory.CreateDirectory(directoryPath);
+        Directory.CreateDirectory(Path.GetFullPath(directoryPath));
     }
 
     public void Delete(string path)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        var fullPath = Path.GetFullPath(path);
 
-        if (File.Exists(path))
+        if (File.Exists(fullPath))
         {
-            File.Delete(path);
+            File.Delete(fullPath);
             return;
         }
 
-        if (Directory.Exists(path))
+        if (Directory.Exists(fullPath))
         {
-            Directory.Delete(path, recursive: true);
+            Directory.Delete(fullPath, recursive: true);
             return;
         }
 
-        throw new FileNotFoundException($"Path not found: {path}", path);
+        throw new FileNotFoundException($"Path not found: {fullPath}", fullPath);
     }
 
     public void Move(string sourcePath, string destinationPath)
     {
         ValidatePaths(sourcePath, destinationPath);
+        var source = Path.GetFullPath(sourcePath);
+        var destination = Path.GetFullPath(destinationPath);
+        EnsureDestinationParent(destination);
 
-        if (File.Exists(sourcePath))
+        if (File.Exists(source))
         {
-            EnsureDestinationParent(destinationPath);
-            File.Move(sourcePath, destinationPath);
+            File.Move(source, destination);
             return;
         }
 
-        if (Directory.Exists(sourcePath))
+        if (Directory.Exists(source))
         {
-            EnsureDestinationParent(destinationPath);
-            Directory.Move(sourcePath, destinationPath);
+            Directory.Move(source, destination);
             return;
         }
 
-        throw new FileNotFoundException($"Source path not found: {sourcePath}", sourcePath);
+        throw new FileNotFoundException($"Source path not found: {source}", source);
     }
 
     public void Rename(string sourcePath, string destinationPath)
     {
         ValidatePaths(sourcePath, destinationPath);
+        var source = Path.GetFullPath(sourcePath);
+        var destination = Path.GetFullPath(destinationPath);
 
-        if (File.Exists(sourcePath))
+        if (File.Exists(source))
         {
-            File.Move(sourcePath, destinationPath);
+            File.Move(source, destination);
             return;
         }
 
-        if (Directory.Exists(sourcePath))
+        if (Directory.Exists(source))
         {
-            Directory.Move(sourcePath, destinationPath);
+            Directory.Move(source, destination);
             return;
         }
 
-        throw new FileNotFoundException($"Source path not found: {sourcePath}", sourcePath);
+        throw new FileNotFoundException($"Source path not found: {source}", source);
     }
+
+    private static IReadOnlyList<FileItem> SortItems(IEnumerable<FileItem> items) =>
+        items.OrderBy(item => item.Kind == FileItemKind.File)
+             .ThenBy(item => item.Name, StringComparer.OrdinalIgnoreCase)
+             .ToArray();
 
     private static void ValidatePaths(string sourcePath, string destinationPath)
     {
@@ -140,12 +157,10 @@ public sealed class FileSystemService : IFileSystemService
 
     private static void EnsureDestinationParent(string destinationPath)
     {
-        var parent = Path.GetDirectoryName(Path.GetFullPath(destinationPath));
-        if (string.IsNullOrWhiteSpace(parent))
+        var parent = Path.GetDirectoryName(destinationPath);
+        if (!string.IsNullOrWhiteSpace(parent))
         {
-            return;
+            Directory.CreateDirectory(parent);
         }
-
-        Directory.CreateDirectory(parent);
     }
 }
