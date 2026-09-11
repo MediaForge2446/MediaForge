@@ -7,6 +7,12 @@
     <SolidColorBrush x:Key="FailedStatusBrush" Color="#C94A4A" />
     <SolidColorBrush x:Key="AccentSurfaceBrush" Color="#EEF6FF" />
 
+    <LinearGradientBrush x:Key="PrimaryButtonGradientBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#2563EB" Offset="0" />
+        <GradientStop Color="#3B82F6" Offset="0.55" />
+        <GradientStop Color="#60A5FA" Offset="1" />
+    </LinearGradientBrush>
+
     <Style x:Key="PageTitleTextStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="Segoe UI Variable Display" />
         <Setter Property="FontSize" Value="32" />
@@ -53,6 +59,8 @@
     <Style x:Key="PrimaryToolbarButtonStyle" TargetType="Button" BasedOn="{StaticResource ToolbarButtonStyle}">
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Background" Value="{StaticResource PrimaryButtonGradientBrush}" />
+        <Setter Property="Foreground" Value="White" />
     </Style>
 
     <Style x:Key="SubtleIconButtonStyle" TargetType="Button">
