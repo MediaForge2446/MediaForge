@@ -33,18 +33,35 @@ jobs:
       - name: Publish self-contained x64
         run: dotnet publish src/MediaForge/MediaForge.csproj --configuration Release --runtime win-x64 --self-contained true /p:PublishProfile=win-x64 /p:Platform=x64 --no-restore
 
-      - name: Install Inno Setup 7.1.0
+      - name: Install Inno Setup
         shell: pwsh
-        run: winget install --id JRSoftware.InnoSetup.7 -e --version 7.1.0 --source winget --accept-package-agreements --accept-source-agreements
+        run: choco install innosetup -y --no-progress
 
       - name: Build installer
         shell: pwsh
         run: |
-          & "${env:ProgramFiles}\Inno Setup 7\ISCC.exe" `
+          $iscc = Get-Command iscc.exe -ErrorAction SilentlyContinue
+          if ($null -eq $iscc) {
+            $candidates = @(
+              "$env:ProgramFiles\Inno Setup 7\ISCC.exe",
+              "$env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe",
+              "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
+            )
+            $isccPath = $candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+          } else {
+            $isccPath = $iscc.Source
+          }
+
+          if ([string]::IsNullOrWhiteSpace($isccPath) -or -not (Test-Path -LiteralPath $isccPath -PathType Leaf)) {
+            throw "Inno Setup compiler (ISCC.exe) was not found after Chocolatey installation."
+          }
+
+          & $isccPath `
             "/DPublishDir=$((Get-Location).Path)\artifacts\publish\win-x64" `
             "/DArchitecture=x64compatible" `
             "/DAppVersion=1.0.0" `
             installer\MediaForge.iss
+
           if ($LASTEXITCODE -ne 0) {
             throw "Inno Setup compilation failed with exit code $LASTEXITCODE."
           }
