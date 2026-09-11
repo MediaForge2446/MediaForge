@@ -10,8 +10,9 @@ public sealed class CommitServiceTests
     [Fact]
     public async Task CommitAsync_ProcessesCreateFolderBeforeDownloadAndDeleteLast()
     {
-        var fileSystem = new RecordingFileSystemService();
-        var downloads = new RecordingDownloadService();
+        var operations = new List<string>();
+        var fileSystem = new RecordingFileSystemService(operations);
+        var downloads = new RecordingDownloadService(operations);
         var logging = new RecordingLoggingService();
         var service = new CommitService(fileSystem, downloads, logging);
 
@@ -48,31 +49,28 @@ public sealed class CommitServiceTests
         Assert.Equal(ChangeStatus.Synced, results.Single(change => change.Id == delete.Id).Status);
         Assert.Equal(
             new[] { "create:C:\\Media\\New", "download:C:\\Media\\New\\song.mp3", "delete:C:\\Media\\old.mp3" },
-            fileSystem.Operations.Concat(downloads.Operations));
+            operations);
     }
 
-    private sealed class RecordingFileSystemService : IFileSystemService
+    private sealed class RecordingFileSystemService(List<string> operations) : IFileSystemService
     {
-        public List<string> Operations { get; } = new();
         public IReadOnlyList<FileItem> GetDirectoryItems(string directoryPath) => Array.Empty<FileItem>();
         public bool DirectoryExists(string directoryPath) => true;
         public bool FileExists(string filePath) => false;
-        public void CreateDirectory(string directoryPath) => Operations.Add($"create:{directoryPath}");
-        public void Delete(string path) => Operations.Add($"delete:{path}");
-        public void Move(string sourcePath, string destinationPath) => Operations.Add($"move:{sourcePath}->{destinationPath}");
-        public void Rename(string sourcePath, string destinationPath) => Operations.Add($"rename:{sourcePath}->{destinationPath}");
+        public void CreateDirectory(string directoryPath) => operations.Add($"create:{directoryPath}");
+        public void Delete(string path) => operations.Add($"delete:{path}");
+        public void Move(string sourcePath, string destinationPath) => operations.Add($"move:{sourcePath}->{destinationPath}");
+        public void Rename(string sourcePath, string destinationPath) => operations.Add($"rename:{sourcePath}->{destinationPath}");
     }
 
-    private sealed class RecordingDownloadService : IDownloadService
+    private sealed class RecordingDownloadService(List<string> operations) : IDownloadService
     {
-        public List<string> Operations { get; } = new();
-
         public Task<string> DownloadAsync(
             DownloadTask task,
             IProgress<DownloadProgress>? progress = null,
             CancellationToken cancellationToken = default)
         {
-            Operations.Add($"download:{task.TargetPath}");
+            operations.Add($"download:{task.TargetPath}");
             progress?.Report(new DownloadProgress
             {
                 DownloadId = task.Id,
