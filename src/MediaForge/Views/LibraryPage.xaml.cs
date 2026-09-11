@@ -1,108 +1,32 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using MediaForge.Core.Models;
-using MediaForge.ViewModels;
+using Windows.Storage.Pickers;
+using WinRT.Interop;
 
-namespace MediaForge.Views;
+namespace MediaForge;
 
 public sealed partial class LibraryPage : Page
 {
-    private LibraryViewModel? _viewModel;
-
-    public LibraryViewModel ViewModel
-    {
-        get => _viewModel ?? throw new InvalidOperationException("Library view model is not initialized.");
-        set
-        {
-            _viewModel = value ?? throw new ArgumentNullException(nameof(value));
-            DataContext = this;
-        }
-    }
-
-    public LibraryPage()
-    {
-        InitializeComponent();
-        DataContext = this;
-    }
-
-    private async void OnAddFolderClick(object sender, RoutedEventArgs e)
+    public MainViewModel Model => ((MainWindow)App.MainWindow!).ViewModel;
+    public LibraryPage(){InitializeComponent(); DataContext=Model;}
+    private async void AddFolder(object sender, RoutedEventArgs e)
     {
         try
         {
-            var picker = new Windows.Storage.Pickers.FolderPicker
-            {
-                SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.ComputerFolder
-            };
-            picker.FileTypeFilter.Add("*");
-
-            if (App.Current is not App app || app.MainWindow is null)
-            {
-                return;
-            }
-
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(app.MainWindow);
-            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-
-            var folder = await picker.PickSingleFolderAsync();
-            if (folder is not null)
-            {
-                ViewModel.AddRootFolder(folder.Path, folder.Name);
-                ViewModel.Refresh();
-            }
+            var picker=new FolderPicker(); picker.FileTypeFilter.Add("*"); InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(App.MainWindow));
+            var folder=await picker.PickSingleFolderAsync(); if(folder is not null) Model.AddFolder(folder.Path);
         }
-        catch (Exception exception)
-        {
-            Report(exception);
-        }
+        catch(Exception ex){Model.ReportError(ex);}
     }
-
-    private async void OnAddMediaClick(object sender, RoutedEventArgs e)
+    private async void OpenFolder(object sender, ItemClickEventArgs e)
     {
-        try
-        {
-            var dialog = new MediaDownloaderDialog(
-                ViewModel.Main,
-                () => ViewModel.Main.Explorer.CurrentPath ?? ViewModel.SelectedRootFolder?.Path)
-            {
-                XamlRoot = XamlRoot
-            };
-
-            await dialog.ShowAsync();
-            ViewModel.Main.Explorer.Refresh();
-        }
-        catch (Exception exception)
-        {
-            Report(exception);
-        }
+        if(e.ClickedItem is not LibraryFolder folder)return;
+        await Model.LoadFolderAsync(folder.Path, CancellationToken.None);
+        ((MainWindow)App.MainWindow!).NavigateToExplorer();
     }
-
-    private void OnFolderItemClick(object sender, ItemClickEventArgs e)
+    private async void AddMedia(object sender, RoutedEventArgs e)
     {
-        try
-        {
-            if (e.ClickedItem is not MediaFolder folder)
-            {
-                return;
-            }
-
-            ViewModel.SelectedRootFolder = folder;
-            ViewModel.Main.Explorer.OpenFolder(folder.Path);
-            if (App.Current is App app && app.MainWindow is MainWindow window)
-            {
-                window.NavigateToExplorer();
-            }
-        }
-        catch (Exception exception)
-        {
-            Report(exception);
-        }
-    }
-
-    private void Report(Exception exception)
-    {
-        if (App.Current is App app && app.MainWindow is MainWindow window)
-        {
-            window.ViewModel.ReportError(exception);
-        }
+        try { var dialog=new MediaDialog{XamlRoot=XamlRoot, DataContext=Model}; await dialog.ShowAsync(); Model.FilesRefresh(); }
+        catch(Exception ex){Model.ReportError(ex);}
     }
 }
