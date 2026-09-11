@@ -34,9 +34,16 @@ public sealed class PendingChangesViewModel : ViewModelBase
     public double OverallProgress
     {
         get => _overallProgress;
-        private set => SetProperty(ref _overallProgress, Math.Clamp(value, 0d, 1d));
+        private set
+        {
+            if (SetProperty(ref _overallProgress, Math.Clamp(value, 0d, 1d)))
+            {
+                OnPropertyChanged(nameof(OverallProgressText));
+            }
+        }
     }
 
+    public string OverallProgressText => OverallProgress.ToString("P0");
     public int PendingCount => Changes.Count(change => change.Status == ChangeStatus.Pending);
     public bool CanSave => !IsSaving && PendingCount > 0;
     public bool CanCancel => !IsSaving && PendingCount > 0;
@@ -79,6 +86,7 @@ public sealed class PendingChangesViewModel : ViewModelBase
         OnPropertyChanged(nameof(CanSave));
         OnPropertyChanged(nameof(CanCancel));
         OnPropertyChanged(nameof(CanUndo));
+        OnPropertyChanged(nameof(OverallProgressText));
     }
 
     public bool Undo(Guid changeId)
