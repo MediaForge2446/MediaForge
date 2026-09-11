@@ -82,11 +82,10 @@
                                             <TextBlock Text="Ready for downloads"
                                                        Style="{StaticResource CaptionTextStyle}" />
                                         </StackPanel>
-                                        <StackPanel Grid.Column="2" HorizontalAlignment="Right" Spacing="3">
+                                        <StackPanel Grid.Column="2" HorizontalAlignment="Right" Spacing="2">
                                             <TextBlock Text="{Binding InstalledVersion}" HorizontalAlignment="Right" />
-                                            <TextBlock Text="Latest: {Binding LatestVersion}"
-                                                       Style="{StaticResource CaptionTextStyle}"
-                                                       HorizontalAlignment="Right" />
+                                            <TextBlock Text="Latest" Style="{StaticResource CaptionTextStyle}" HorizontalAlignment="Right" />
+                                            <TextBlock Text="{Binding LatestVersion}" HorizontalAlignment="Right" />
                                         </StackPanel>
                                     </Grid>
                                 </Border>
