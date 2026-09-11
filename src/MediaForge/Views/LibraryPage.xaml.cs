@@ -7,7 +7,17 @@ namespace MediaForge.Views;
 
 public sealed partial class LibraryPage : Page
 {
-    public LibraryViewModel ViewModel { get; set; } = null!;
+    private LibraryViewModel? _viewModel;
+
+    public LibraryViewModel ViewModel
+    {
+        get => _viewModel ?? throw new InvalidOperationException("Library view model is not initialized.");
+        set
+        {
+            _viewModel = value ?? throw new ArgumentNullException(nameof(value));
+            DataContext = this;
+        }
+    }
 
     public LibraryPage()
     {
@@ -42,7 +52,7 @@ public sealed partial class LibraryPage : Page
         }
         catch (Exception exception)
         {
-            ViewModel.Main.ReportError(exception);
+            Report(exception);
         }
     }
 
@@ -62,7 +72,7 @@ public sealed partial class LibraryPage : Page
         }
         catch (Exception exception)
         {
-            ViewModel.Main.ReportError(exception);
+            Report(exception);
         }
     }
 
@@ -84,7 +94,15 @@ public sealed partial class LibraryPage : Page
         }
         catch (Exception exception)
         {
-            ViewModel.Main.ReportError(exception);
+            Report(exception);
+        }
+    }
+
+    private void Report(Exception exception)
+    {
+        if (App.Current is App app && app.MainWindow is MainWindow window)
+        {
+            window.ViewModel.ReportError(exception);
         }
     }
 }
