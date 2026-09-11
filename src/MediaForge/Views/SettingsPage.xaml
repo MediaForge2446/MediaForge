@@ -18,6 +18,10 @@
 
             <Border Style="{StaticResource CardBorderStyle}" Padding="20">
                 <Grid ColumnSpacing="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
                     <StackPanel Spacing="6">
                         <TextBlock Text="Background maintenance" Style="{StaticResource SectionTitleTextStyle}" />
                         <TextBlock Text="MediaForge can check and update yt-dlp and FFmpeg without blocking the interface."
@@ -34,6 +38,10 @@
             <Border Style="{StaticResource CardBorderStyle}" Padding="20">
                 <StackPanel Spacing="16">
                     <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
                         <StackPanel Spacing="3">
                             <TextBlock Text="Media tools" Style="{StaticResource SectionTitleTextStyle}" />
                             <TextBlock Text="These tools are stored per-user and updated safely with checksum verification."
