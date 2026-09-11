@@ -47,7 +47,7 @@
             </Border>
             <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
                 <StackPanel Spacing="3">
-                    <TextBlock Text="{Binding ViewModel.OverallProgress}" FontSize="26" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding ViewModel.OverallProgressText}" FontSize="26" FontWeight="SemiBold" />
                     <TextBlock Text="Current progress" Style="{StaticResource CaptionTextStyle}" />
                 </StackPanel>
             </Border>
