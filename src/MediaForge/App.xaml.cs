@@ -4,7 +4,7 @@ namespace MediaForge;
 
 public partial class App : Application
 {
-    public Window? MainWindow { get; private set; }
+    public static MainWindow? MainWindow { get; private set; }
 
     public App()
     {

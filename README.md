@@ -1,8 +1,5 @@
 # MediaForge
 
-Windows media library and download manager.
+Premium Windows media library and download manager.
 
-## Status
-
-Initial project bootstrap.
-
+The application uses a real Windows filesystem view with deferred staging, atomic local state persistence, YouTube metadata resolution and yt-dlp/FFmpeg based downloads.
