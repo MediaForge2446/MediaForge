@@ -6,8 +6,6 @@
     <SolidColorBrush x:Key="PendingStatusBrush" Color="#F7B731" />
     <SolidColorBrush x:Key="FailedStatusBrush" Color="#D13438" />
     <SolidColorBrush x:Key="AccentSurfaceBrush" Color="#EFF6FC" />
-    <StaticResourceHolder x:Key="PanelBackgroundBrush" />
-    <StaticResourceHolder x:Key="PanelStrokeBrush" />
 
     <Style x:Key="PageTitleTextStyle" TargetType="TextBlock">
         <Setter Property="FontSize" Value="32" />
