@@ -15,7 +15,7 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
     private readonly ISettingsService _settingsService;
     private readonly IToolManager _toolManager;
     private readonly IAppPersistenceService _persistenceService;
-    private readonly StagingHistory _stagingHistory = new();
+    private readonly StagingHistory _stagingHistory;
     private readonly CancellationTokenSource _lifetimeCts = new();
     private readonly SemaphoreSlim _saveGate = new(1, 1);
 
@@ -33,8 +33,16 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
     public string? LastError
     {
         get => _lastError;
-        private set => SetProperty(ref _lastError, value);
+        private set
+        {
+            if (SetProperty(ref _lastError, value))
+            {
+                OnPropertyChanged(nameof(HasError));
+            }
+        }
     }
+
+    public bool HasError => !string.IsNullOrWhiteSpace(LastError);
 
     public MainViewModel()
     {
@@ -45,6 +53,7 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
         _downloadService = new DownloadService(new YtDlpPathProvider(_toolManager.ToolsDirectory));
         _commitService = new CommitService(_fileSystemService, _downloadService, _loggingService);
         _persistenceService = new AppPersistenceService();
+        _stagingHistory = State.StagingHistory;
 
         Library = new LibraryViewModel(State.Library, this);
         Explorer = new ExplorerViewModel(_fileSystemService, State.PendingChanges, State.Library, _stagingHistory, this);
@@ -61,6 +70,8 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
         LastError = exception.Message;
         _loggingService.Error("A UI operation failed.", exception);
     }
+
+    public void ClearError() => LastError = null;
 
     private async Task RestoreStateAsync(CancellationToken cancellationToken)
     {
