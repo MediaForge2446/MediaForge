@@ -1,14 +1,7 @@
 <Page
     x:Class="MediaForge.Views.DownloadsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:converters="using:MediaForge.Converters">
-    <Page.Resources>
-        <converters:ChangeStatusToBrushConverter x:Key="ChangeStatusBrushConverter" />
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-        <converters:FailedStatusToVisibilityConverter x:Key="FailedStatusToVisibilityConverter" />
-    </Page.Resources>
-
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Grid Padding="28" RowSpacing="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -26,11 +19,7 @@
                 <TextBlock Text="Monitor staged downloads and completed media without leaving the workspace."
                            Style="{StaticResource PageSubtitleTextStyle}" />
             </StackPanel>
-            <Button Grid.Column="1"
-                    Content="Open Explorer"
-                    Click="OnOpenExplorerClick"
-                    Style="{StaticResource PrimaryToolbarButtonStyle}"
-                    VerticalAlignment="Bottom" />
+            <Button Grid.Column="1" Content="Open Explorer" Click="OnOpenExplorerClick" Style="{StaticResource PrimaryToolbarButtonStyle}" VerticalAlignment="Bottom" />
         </Grid>
 
         <Grid Grid.Row="1" ColumnSpacing="12">
@@ -54,8 +43,7 @@
             <Border Grid.Column="2" Style="{StaticResource CardBorderStyle}">
                 <StackPanel Spacing="3">
                     <TextBlock Text="Staged first" FontSize="20" FontWeight="SemiBold" />
-                    <TextBlock Text="Downloads are committed only when you save changes."
-                               Style="{StaticResource CaptionTextStyle}" />
+                    <TextBlock Text="Downloads are committed only when you save changes." Style="{StaticResource CaptionTextStyle}" />
                 </StackPanel>
             </Border>
         </Grid>
@@ -72,14 +60,9 @@
                         <ColumnDefinition Width="2*" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="Queue" Style="{StaticResource SectionTitleTextStyle}" />
-                    <ProgressBar Grid.Column="1"
-                                 Maximum="1"
-                                 Value="{Binding ViewModel.OverallProgress}"
-                                 Visibility="{Binding ViewModel.IsSaving, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <ProgressBar Grid.Column="1" Maximum="1" Value="{Binding ViewModel.OverallProgress}" />
                 </Grid>
-                <ListView Grid.Row="1"
-                          ItemsSource="{Binding ViewModel.Changes}"
-                          SelectionMode="None">
+                <ListView Grid.Row="1" ItemsSource="{Binding ViewModel.Changes}" SelectionMode="None">
                     <ListView.Resources>
                         <Style TargetType="ListViewItem">
                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -95,25 +78,15 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="160" />
                                 </Grid.ColumnDefinitions>
-                                <Ellipse Width="9" Height="9" VerticalAlignment="Center"
-                                         Fill="{Binding Status, Converter={StaticResource ChangeStatusToBrushConverter}}" />
+                                <TextBlock Text="•" FontSize="16" VerticalAlignment="Center" Opacity="0.65" />
                                 <TextBlock Grid.Column="1" Text="{Binding Type}" FontWeight="SemiBold" VerticalAlignment="Center" />
                                 <StackPanel Grid.Column="2" Spacing="3">
                                     <TextBlock Text="{Binding TargetPath}" TextTrimming="CharacterEllipsis" />
                                     <TextBlock Text="{Binding StatusText}" Style="{StaticResource CaptionTextStyle}" />
-                                    <ProgressBar Maximum="1"
-                                                 Value="{Binding Progress}"
-                                                 Visibility="{Binding ShowProgress, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                    <TextBlock Text="{Binding ErrorMessage}"
-                                               Foreground="{StaticResource FailedStatusBrush}"
-                                               TextWrapping="Wrap"
-                                               Visibility="{Binding Status, Converter={StaticResource FailedStatusToVisibilityConverter}}" />
+                                    <ProgressBar Maximum="1" Value="{Binding Progress}" />
+                                    <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource FailedStatusBrush}" TextWrapping="Wrap" />
                                 </StackPanel>
-                                <TextBlock Grid.Column="3"
-                                           Text="{Binding SourcePath}"
-                                           Style="{StaticResource CaptionTextStyle}"
-                                           TextWrapping="Wrap"
-                                           VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="3" Text="{Binding SourcePath}" Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" VerticalAlignment="Center" />
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
