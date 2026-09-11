@@ -13,7 +13,7 @@ jobs:
   validate:
     name: Validate Windows x64
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -41,12 +41,20 @@ jobs:
           $redistPath = Join-Path $dependencyDirectory 'vc_redist.x64.exe'
           Invoke-WebRequest -Uri 'https://aka.ms/vc14/vc_redist.x64.exe' -OutFile $redistPath -UseBasicParsing
           if (-not (Test-Path -LiteralPath $redistPath -PathType Leaf)) {
-            throw "Visual C++ Redistributable was not downloaded."
+            throw 'Visual C++ Redistributable download failed.'
           }
           $signature = Get-AuthenticodeSignature -FilePath $redistPath
           if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'Microsoft') {
-            throw "Visual C++ Redistributable signature validation failed."
+            throw 'Visual C++ Redistributable signature validation failed.'
           }
+          $process = Start-Process -FilePath $redistPath -ArgumentList '/install','/quiet','/norestart' -Wait -PassThru
+          if ($process.ExitCode -notin @(0, 1638, 3010)) {
+            throw "Visual C++ Redistributable installation failed with exit code $($process.ExitCode)."
+          }
+
+      - name: Smoke test published app
+        shell: pwsh
+        run: ./scripts/smoke-test.ps1 -PublishDirectory "artifacts/publish/win-x64"
 
       - name: Install Inno Setup
         shell: pwsh
@@ -68,7 +76,7 @@ jobs:
           }
 
           if ([string]::IsNullOrWhiteSpace($isccPath) -or -not (Test-Path -LiteralPath $isccPath -PathType Leaf)) {
-            throw "Inno Setup compiler (ISCC.exe) was not found after Chocolatey installation."
+            throw 'Inno Setup compiler (ISCC.exe) was not found after Chocolatey installation.'
           }
 
           & $isccPath `
