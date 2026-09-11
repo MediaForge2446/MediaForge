@@ -28,7 +28,7 @@
                         <TextBlock Text="Library &amp; Downloads" Style="{StaticResource CaptionTextStyle}" />
                     </StackPanel>
                     <TextBlock Grid.Column="1"
-                               Text="{Binding ViewModel.State.PendingChanges.PendingCount, StringFormat='{}{0} pending'}"
+                               Text="{Binding ViewModel.PendingCount, StringFormat='{}{0} pending'}"
                                VerticalAlignment="Center"
                                Opacity="0.65" />
                 </Grid>
