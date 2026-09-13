@@ -1,8 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MediaForge.Application.Abstractions;
-using MediaForge.Application.Staging;
 using MediaForge.Core.Enums;
 using MediaForge.Core.Interfaces;
 using MediaForge.Core.Models;
@@ -12,7 +10,7 @@ namespace MediaForge.App.ViewModels;
 public partial class ExplorerViewModel : ObservableObject
 {
     private readonly IExplorerService _explorer;
-    private readonly StagingService _staging;
+    private readonly Application.Abstractions.IStagingService _staging;
 
     [ObservableProperty]
     private string _currentPath = string.Empty;
@@ -40,7 +38,7 @@ public partial class ExplorerViewModel : ObservableObject
     public bool CanGoUp => !string.IsNullOrWhiteSpace(CurrentPath) &&
                            !string.Equals(Path.GetPathRoot(CurrentPath), CurrentPath, StringComparison.OrdinalIgnoreCase);
 
-    public ExplorerViewModel(IExplorerService explorer, StagingService staging)
+    public ExplorerViewModel(IExplorerService explorer, Application.Abstractions.IStagingService staging)
     {
         _explorer = explorer;
         _staging = staging;
@@ -51,35 +49,10 @@ public partial class ExplorerViewModel : ObservableObject
         if (!string.IsNullOrWhiteSpace(initialPath))
             CurrentPath = Path.GetFullPath(initialPath);
         if (!string.IsNullOrWhiteSpace(CurrentPath))
-            await RefreshAsync(cancellationToken).ConfigureAwait(true);
+            await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
-    [RelayCommand]
-    private async Task OpenAsync(ExplorerEntryViewModel? entry, CancellationToken cancellationToken)
-    {
-        if (entry is null || !entry.IsDirectory || IsBusy)
-            return;
-
-        CurrentPath = entry.FullPath;
-        await RefreshAsync(cancellationToken).ConfigureAwait(true);
-    }
-
-    [RelayCommand]
-    private async Task GoUpAsync(CancellationToken cancellationToken)
-    {
-        if (!CanGoUp || IsBusy)
-            return;
-
-        var parent = Directory.GetParent(CurrentPath)?.FullName;
-        if (parent is null)
-            return;
-
-        CurrentPath = parent;
-        await RefreshAsync(cancellationToken).ConfigureAwait(true);
-    }
-
-    [RelayCommand]
-    private async Task RefreshAsync(CancellationToken cancellationToken)
+    public async Task ReloadAsync(CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(CurrentPath) || IsBusy)
             return;
@@ -88,14 +61,52 @@ public partial class ExplorerViewModel : ObservableObject
         try
         {
             var entries = await _explorer.ListAsync(CurrentPath, cancellationToken).ConfigureAwait(true);
+            var projected = entries.ToDictionary(x => x.FullPath, StringComparer.OrdinalIgnoreCase);
+
+            foreach (var operation in _staging.Operations)
+            {
+                var payload = operation.Payload;
+                if (operation.OperationType == OperationType.CreateDirectory &&
+                    !string.IsNullOrWhiteSpace(payload?.DirectoryPath) &&
+                    string.Equals(Path.GetDirectoryName(payload.DirectoryPath), CurrentPath, StringComparison.OrdinalIgnoreCase) &&
+                    !projected.ContainsKey(payload.DirectoryPath))
+                {
+                    projected[payload.DirectoryPath] = new ExplorerEntry(
+                        Path.GetFileName(payload.DirectoryPath),
+                        payload.DirectoryPath,
+                        true,
+                        0,
+                        DateTimeOffset.UtcNow);
+                }
+            }
+
             Entries.Clear();
-            foreach (var entry in entries)
+            foreach (var entry in projected.Values
+                         .OrderByDescending(x => x.IsDirectory)
+                         .ThenBy(x => x.Name, StringComparer.CurrentCultureIgnoreCase))
             {
                 var pending = FindPendingOperation(entry.FullPath);
                 Entries.Add(new ExplorerEntryViewModel(entry, pending is not null, pending?.OperationId));
             }
+
+            foreach (var operation in _staging.Operations.Where(x => x.OperationType == OperationType.Delete))
+            {
+                var target = operation.Payload?.SourcePath;
+                if (!string.IsNullOrWhiteSpace(target) &&
+                    string.Equals(Path.GetDirectoryName(target), CurrentPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    var item = Entries.FirstOrDefault(x => string.Equals(x.FullPath, target, StringComparison.OrdinalIgnoreCase));
+                    if (item is not null)
+                        item.MarkedForDeletion = true;
+                }
+            }
+
             StatusText = $"{Entries.Count} פריטים";
             OnPropertyChanged(nameof(CanGoUp));
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText = "הפעולה בוטלה";
         }
         catch (Exception ex)
         {
@@ -105,6 +116,27 @@ public partial class ExplorerViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    [RelayCommand]
+    private async Task OpenAsync(ExplorerEntryViewModel? entry, CancellationToken cancellationToken)
+    {
+        if (entry is null || !entry.IsDirectory || entry.MarkedForDeletion || IsBusy)
+            return;
+        CurrentPath = entry.FullPath;
+        await ReloadAsync(cancellationToken).ConfigureAwait(true);
+    }
+
+    [RelayCommand]
+    private async Task GoUpAsync(CancellationToken cancellationToken)
+    {
+        if (!CanGoUp || IsBusy)
+            return;
+        var parent = Directory.GetParent(CurrentPath)?.FullName;
+        if (parent is null)
+            return;
+        CurrentPath = parent;
+        await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
     [RelayCommand]
@@ -121,8 +153,7 @@ public partial class ExplorerViewModel : ObservableObject
         }
 
         var target = Path.Combine(CurrentPath, name);
-        if (_staging.Operations.Any(x => string.Equals(x.Payload?.DirectoryPath, target, StringComparison.OrdinalIgnoreCase)) ||
-            Directory.Exists(target))
+        if (_staging.Operations.Any(x => string.Equals(x.Payload?.DirectoryPath, target, StringComparison.OrdinalIgnoreCase)) || Directory.Exists(target))
         {
             StatusText = "התיקייה כבר קיימת";
             return;
@@ -137,14 +168,14 @@ public partial class ExplorerViewModel : ObservableObject
 
         NewFolderName = string.Empty;
         StatusText = "תיקייה נוספה לשינויים ממתינים";
-        await RefreshAsync(cancellationToken).ConfigureAwait(true);
+        await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
     [RelayCommand]
     private async Task DeleteSelectedAsync(CancellationToken cancellationToken)
     {
         var entry = SelectedEntry;
-        if (entry is null || IsBusy)
+        if (entry is null || entry.MarkedForDeletion || IsBusy)
             return;
 
         await _staging.StageAsync(new StagingOperation
@@ -155,7 +186,7 @@ public partial class ExplorerViewModel : ObservableObject
         }, cancellationToken).ConfigureAwait(true);
 
         StatusText = "מחיקה סומנה לשמירה";
-        await RefreshAsync(cancellationToken).ConfigureAwait(true);
+        await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
     [RelayCommand]
@@ -180,7 +211,7 @@ public partial class ExplorerViewModel : ObservableObject
 
         NewName = string.Empty;
         StatusText = "שינוי השם סומן לשמירה";
-        await RefreshAsync(cancellationToken).ConfigureAwait(true);
+        await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
     [RelayCommand]
@@ -192,7 +223,7 @@ public partial class ExplorerViewModel : ObservableObject
             return;
 
         var destinationPath = Path.GetFullPath(destination);
-        if (entry.IsDirectory && destinationPath.StartsWith(entry.FullPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        if (entry.IsDirectory && IsSameOrChildPath(destinationPath, entry.FullPath))
         {
             StatusText = "אי אפשר להעביר תיקייה לתוך עצמה";
             return;
@@ -207,7 +238,7 @@ public partial class ExplorerViewModel : ObservableObject
 
         MoveDestination = string.Empty;
         StatusText = "העברה סומנה לשמירה";
-        await RefreshAsync(cancellationToken).ConfigureAwait(true);
+        await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
     [RelayCommand]
@@ -219,7 +250,7 @@ public partial class ExplorerViewModel : ObservableObject
 
         if (await _staging.UndoAsync(operationId, cancellationToken).ConfigureAwait(true))
             StatusText = "השינוי בוטל";
-        await RefreshAsync(cancellationToken).ConfigureAwait(true);
+        await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
     public async Task SetInitialPathAsync(string? path, CancellationToken cancellationToken = default)
@@ -227,7 +258,7 @@ public partial class ExplorerViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(path))
             return;
         CurrentPath = Path.GetFullPath(path);
-        await RefreshAsync(cancellationToken).ConfigureAwait(true);
+        await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
     private StagingOperation? FindPendingOperation(string path)
@@ -235,6 +266,13 @@ public partial class ExplorerViewModel : ObservableObject
             string.Equals(operation.Payload?.DestinationPath, path, StringComparison.OrdinalIgnoreCase) ||
             string.Equals(operation.Payload?.DirectoryPath, path, StringComparison.OrdinalIgnoreCase) ||
             string.Equals(operation.Payload?.SourcePath, path, StringComparison.OrdinalIgnoreCase));
+
+    private static bool IsSameOrChildPath(string candidate, string parent)
+    {
+        var normalizedCandidate = Path.GetFullPath(candidate).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var normalizedParent = Path.GetFullPath(parent).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        return normalizedCandidate.StartsWith(normalizedParent, StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 public sealed class ExplorerEntryViewModel : ObservableObject
@@ -246,9 +284,12 @@ public sealed class ExplorerEntryViewModel : ObservableObject
     public bool IsPending { get; }
     public Guid? PendingOperationId { get; }
 
+    [ObservableProperty]
+    private bool _markedForDeletion;
+
     public string KindText => IsDirectory ? "תיקייה" : "קובץ";
     public string SizeText => IsDirectory ? "—" : FormatBytes(Size);
-    public string StatusText => IsPending ? "ממתין לשמירה" : "מסונכרן";
+    public string StatusText => MarkedForDeletion ? "מחיקה ממתינה" : IsPending ? "שינוי ממתין" : "מסונכרן";
 
     public ExplorerEntryViewModel(ExplorerEntry entry, bool isPending, Guid? pendingOperationId)
     {
