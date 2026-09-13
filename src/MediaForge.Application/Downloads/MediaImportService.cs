@@ -35,10 +35,21 @@ public sealed class MediaImportService
         var directory = Path.GetFullPath(destinationDirectory.Trim());
         var staged = new List<StagingOperation>();
         var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var usedVideoIds = new HashSet<string>(
+            _staging.Operations
+                .Select(x => x.Payload?.VideoId)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x!),
+            StringComparer.OrdinalIgnoreCase);
 
         foreach (var item in items)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (string.IsNullOrWhiteSpace(item.VideoId))
+                throw new InvalidOperationException("A media item is missing its source VideoId.");
+            if (!usedVideoIds.Add(item.VideoId))
+                continue;
+
             var baseName = SanitizeFileName(item.Metadata.Title);
             if (string.IsNullOrWhiteSpace(baseName))
                 baseName = item.VideoId;
@@ -58,7 +69,8 @@ public sealed class MediaImportService
                 Payload = new StagingPayload(
                     SourceUrl: item.SourceUrl,
                     DestinationPath: destinationPath,
-                    DesiredFormat: format),
+                    DesiredFormat: format,
+                    VideoId: item.VideoId),
                 CreatedAt = DateTimeOffset.UtcNow
             };
 
