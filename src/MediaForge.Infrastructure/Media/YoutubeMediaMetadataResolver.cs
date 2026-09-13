@@ -1,6 +1,7 @@
 using MediaForge.Core.Interfaces;
 using MediaForge.Core.Models;
 using YoutubeExplode;
+using YoutubeExplode.Common;
 
 namespace MediaForge.Infrastructure.Media;
 
@@ -18,14 +19,13 @@ public sealed class YoutubeMediaMetadataResolver : IMediaMetadataResolver
         CancellationToken cancellationToken = default)
     {
         if (!Uri.TryCreate(sourceUrl?.Trim(), UriKind.Absolute, out var uri) ||
-            !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase))
+            (!string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) &&
+             !string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)))
         {
             throw new ArgumentException("Please enter a valid YouTube URL.", nameof(sourceUrl));
         }
 
         var normalized = uri.ToString();
-
         if (normalized.Contains("list=", StringComparison.OrdinalIgnoreCase) ||
             normalized.Contains("/playlist", StringComparison.OrdinalIgnoreCase))
         {
@@ -35,13 +35,14 @@ public sealed class YoutubeMediaMetadataResolver : IMediaMetadataResolver
             await foreach (var video in _youtube.Playlists.GetVideosAsync(playlist.Id, cancellationToken).ConfigureAwait(false))
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                var thumbnail = video.Thumbnails.Count == 0 ? null : video.Thumbnails.GetWithHighestResolution().Url;
                 items.Add(new ResolvedMediaItem(
                     video.Id.Value,
                     $"https://www.youtube.com/watch?v={video.Id.Value}",
                     new MediaMetadata(
                         video.Title.Trim(),
-                        video.Author.ChannelTitle,
-                        ThumbnailUrl: video.Thumbnails.GetWithHighestResolution()?.Url,
+                        video.Author?.ChannelTitle,
+                        ThumbnailUrl: thumbnail,
                         Duration: video.Duration)));
             }
 
@@ -52,6 +53,7 @@ public sealed class YoutubeMediaMetadataResolver : IMediaMetadataResolver
         }
 
         var videoInfo = await _youtube.Videos.GetAsync(normalized, cancellationToken).ConfigureAwait(false);
+        var videoThumbnail = videoInfo.Thumbnails.Count == 0 ? null : videoInfo.Thumbnails.GetWithHighestResolution().Url;
         return new MediaResolveResult(
             false,
             null,
@@ -60,8 +62,8 @@ public sealed class YoutubeMediaMetadataResolver : IMediaMetadataResolver
                 $"https://www.youtube.com/watch?v={videoInfo.Id.Value}",
                 new MediaMetadata(
                     videoInfo.Title.Trim(),
-                    videoInfo.Author.ChannelTitle,
-                    ThumbnailUrl: videoInfo.Thumbnails.GetWithHighestResolution()?.Url,
+                    videoInfo.Author?.ChannelTitle,
+                    ThumbnailUrl: videoThumbnail,
                     Duration: videoInfo.Duration))]);
     }
 }
