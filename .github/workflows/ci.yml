@@ -33,3 +33,6 @@ jobs:
 
       - name: Infrastructure unit tests
         run: dotnet test tests/MediaForge.Infrastructure.Tests/MediaForge.Infrastructure.Tests.csproj --configuration Release --no-restore --no-build
+
+      - name: Verify WPF publish configuration
+        run: dotnet publish src/MediaForge.App/MediaForge.App.csproj --configuration Release --runtime win-x64 --self-contained true --no-restore --output artifacts/app-check
