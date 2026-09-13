@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Windows;
-using System.Windows.Data;
+using WpfBinding = System.Windows.Data.Binding;
+using IValueConverter = System.Windows.Data.IValueConverter;
 
 namespace MediaForge.App.Converters;
 
@@ -10,7 +11,7 @@ public sealed class BooleanNotConverter : IValueConverter
         => value is bool boolean && !boolean;
 
     public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
-        => value is bool boolean ? !boolean : Binding.DoNothing;
+        => value is bool boolean ? !boolean : WpfBinding.DoNothing;
 }
 
 public sealed class BooleanToVisibilityConverterFallback : IValueConverter
@@ -19,7 +20,7 @@ public sealed class BooleanToVisibilityConverterFallback : IValueConverter
         => value is true ? Visibility.Visible : Visibility.Collapsed;
 
     public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
-        => value is Visibility visibility ? visibility == Visibility.Visible : Binding.DoNothing;
+        => value is Visibility visibility ? visibility == Visibility.Visible : WpfBinding.DoNothing;
 }
 
 public sealed class InverseBooleanToVisibilityConverter : IValueConverter
@@ -28,5 +29,5 @@ public sealed class InverseBooleanToVisibilityConverter : IValueConverter
         => value is false ? Visibility.Visible : Visibility.Collapsed;
 
     public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
-        => value is Visibility visibility ? visibility != Visibility.Visible : Binding.DoNothing;
+        => value is Visibility visibility ? visibility != Visibility.Visible : WpfBinding.DoNothing;
 }
