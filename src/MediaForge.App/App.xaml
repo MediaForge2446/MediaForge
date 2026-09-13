@@ -1,0 +1,56 @@
+<Application x:Class="MediaForge.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             ShutdownMode="OnMainWindowClose">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ui:ThemesDictionary Theme="Dark" />
+                <ui:ControlsDictionary />
+            </ResourceDictionary.MergedDictionaries>
+
+            <SolidColorBrush x:Key="MediaForgeBackgroundBrush" Color="#111318" />
+            <SolidColorBrush x:Key="MediaForgeSurfaceBrush" Color="#1A1D23" />
+            <SolidColorBrush x:Key="MediaForgeSurfaceElevatedBrush" Color="#20242C" />
+            <SolidColorBrush x:Key="MediaForgeBorderBrush" Color="#30343D" />
+            <SolidColorBrush x:Key="MediaForgeTextBrush" Color="#F5F7FA" />
+            <SolidColorBrush x:Key="MediaForgeMutedBrush" Color="#9EA5B1" />
+            <SolidColorBrush x:Key="MediaForgeAccentBrush" Color="#4CC2FF" />
+            <SolidColorBrush x:Key="MediaForgePendingBrush" Color="#FFC107" />
+            <SolidColorBrush x:Key="MediaForgeSuccessBrush" Color="#49C97D" />
+            <SolidColorBrush x:Key="MediaForgeErrorBrush" Color="#FF6B6B" />
+
+            <Style x:Key="MediaForgeNavButtonStyle" TargetType="Button">
+                <Setter Property="Height" Value="44" />
+                <Setter Property="Margin" Value="8,3" />
+                <Setter Property="Padding" Value="14,0" />
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Foreground" Value="{StaticResource MediaForgeMutedBrush}" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Cursor" Value="Hand" />
+            </Style>
+
+            <Style x:Key="MediaForgePrimaryButtonStyle" TargetType="Button">
+                <Setter Property="MinHeight" Value="42" />
+                <Setter Property="Padding" Value="18,0" />
+                <Setter Property="Background" Value="{StaticResource MediaForgeAccentBrush}" />
+                <Setter Property="Foreground" Value="#061018" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Cursor" Value="Hand" />
+            </Style>
+
+            <Style x:Key="MediaForgeCardStyle" TargetType="Border">
+                <Setter Property="Background" Value="{StaticResource MediaForgeSurfaceBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource MediaForgeBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="14" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
