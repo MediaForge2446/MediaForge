@@ -1,6 +1,8 @@
+using MediaForge.Core.Models;
+
 namespace MediaForge.Core.Interfaces;
 
 public interface IToolManager
 {
-    Task EnsureToolsReadyAsync(CancellationToken cancellationToken = default);
+    Task<ToolPaths> EnsureToolsReadyAsync(CancellationToken cancellationToken = default);
 }
