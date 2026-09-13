@@ -1,3 +1,4 @@
+using MediaForge.Application.Abstractions;
 using MediaForge.Core.Interfaces;
 using MediaForge.Core.Models;
 
