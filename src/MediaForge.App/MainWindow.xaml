@@ -137,7 +137,10 @@
                                     Visibility="{Binding HasPendingChanges, Converter={StaticResource BooleanToVisibilityConverterFallback}}">
                                 <StackPanel Orientation="Horizontal">
                                     <Ellipse Width="7" Height="7" Fill="{StaticResource MediaForgePendingBrush}" VerticalAlignment="Center" />
-                                    <TextBlock Text="{Binding PendingCount, StringFormat= {0} שינויים ממתינים}" Margin="7,0,0,0" FontSize="11" />
+                                    <TextBlock Margin="7,0,0,0" FontSize="11">
+                                        <Run Text="{Binding PendingCount}" />
+                                        <Run Text=" שינויים ממתינים" />
+                                    </TextBlock>
                                 </StackPanel>
                             </Border>
                             <Button Content="שמור שינויים" Command="{Binding SaveChangesCommand}"
