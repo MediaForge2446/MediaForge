@@ -45,13 +45,10 @@ public sealed class ManagedToolManager : IToolManager
 
             if (!ytDlpReady)
                 ytDlpReady = await SeedBundledYtDlpAsync(ytDlpPath, cancellationToken).ConfigureAwait(false);
-
             if (!ffmpegReady)
                 ffmpegReady = await SeedBundledFfmpegAsync(Path.Combine(_paths.ToolsDirectory, "ffmpeg"), cancellationToken).ConfigureAwait(false);
-
             if (!ytDlpReady)
                 await InstallYtDlpAsync(ytDlpPath, cancellationToken).ConfigureAwait(false);
-
             if (!ffmpegReady)
                 await InstallFfmpegAsync(ffmpegPath, cancellationToken).ConfigureAwait(false);
 
@@ -64,10 +61,7 @@ public sealed class ManagedToolManager : IToolManager
     }
 
     private Task<bool> SeedBundledYtDlpAsync(string destinationPath, CancellationToken cancellationToken)
-    {
-        var bundledPath = Path.Combine(_paths.BundledToolsDirectory, "yt-dlp.exe");
-        return SeedBundledFileAsync(bundledPath, destinationPath, YtDlpSha256, cancellationToken);
-    }
+        => SeedBundledFileAsync(Path.Combine(_paths.BundledToolsDirectory, "yt-dlp.exe"), destinationPath, YtDlpSha256, cancellationToken);
 
     private async Task<bool> SeedBundledFfmpegAsync(string destinationDirectory, CancellationToken cancellationToken)
     {
@@ -78,38 +72,22 @@ public sealed class ManagedToolManager : IToolManager
 
         var bundledHash = await ComputeSha256Async(bundledExecutable, cancellationToken).ConfigureAwait(false);
         var existingExecutable = Path.Combine(destinationDirectory, "bin", "ffmpeg.exe");
-        if (File.Exists(existingExecutable) && string.Equals(bundledHash, await ComputeSha256Async(existingExecutable, cancellationToken).ConfigureAwait(false), StringComparison.OrdinalIgnoreCase))
+        if (File.Exists(existingExecutable) &&
+            string.Equals(bundledHash, await ComputeSha256Async(existingExecutable, cancellationToken).ConfigureAwait(false), StringComparison.OrdinalIgnoreCase))
             return true;
 
         var stagingDirectory = destinationDirectory + ".bundle";
         TryDeleteDirectory(stagingDirectory);
         CopyDirectory(bundledDirectory, stagingDirectory);
-
-        try
-        {
-            ReplaceDirectoryAtomically(stagingDirectory, destinationDirectory);
-            return File.Exists(existingExecutable);
-        }
-        catch
-        {
-            TryDeleteDirectory(stagingDirectory);
-            throw;
-        }
+        ReplaceDirectoryAtomically(stagingDirectory, destinationDirectory);
+        return File.Exists(existingExecutable);
     }
 
-    private static async Task<bool> SeedBundledFileAsync(
-        string sourcePath,
-        string destinationPath,
-        string expectedHash,
-        CancellationToken cancellationToken)
+    private static async Task<bool> SeedBundledFileAsync(string sourcePath, string destinationPath, string expectedHash, CancellationToken cancellationToken)
     {
         if (!File.Exists(sourcePath))
             return false;
-
-        if (!string.Equals(
-                await ComputeSha256Async(sourcePath, cancellationToken).ConfigureAwait(false),
-                expectedHash,
-                StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(await ComputeSha256Async(sourcePath, cancellationToken).ConfigureAwait(false), expectedHash, StringComparison.OrdinalIgnoreCase))
             return false;
 
         var tempPath = destinationPath + ".bundle";
@@ -127,7 +105,6 @@ public sealed class ManagedToolManager : IToolManager
         {
             if (!await IsSha256MatchAsync(tempPath, YtDlpSha256, cancellationToken).ConfigureAwait(false))
                 throw new InvalidDataException($"yt-dlp {YtDlpVersion} failed SHA-256 verification.");
-
             ReplaceAtomically(tempPath, destinationPath);
         }
         catch
@@ -141,21 +118,17 @@ public sealed class ManagedToolManager : IToolManager
     {
         var archivePath = Path.Combine(_paths.ToolsDirectory, $"ffmpeg-{FfmpegVersion}.zip.download");
         var extractionPath = Path.Combine(_paths.ToolsDirectory, "ffmpeg.download");
-
         await DownloadAsync(FfmpegArchiveUrl, archivePath, cancellationToken).ConfigureAwait(false);
-
         try
         {
             var checksums = await _httpClient.GetStringAsync(FfmpegChecksumsUrl, cancellationToken).ConfigureAwait(false);
             var expectedHash = FindSha256(checksums, FfmpegArchiveFileName)
                 ?? throw new InvalidDataException($"No checksum was published for {FfmpegArchiveFileName}.");
-
             if (!await IsSha256MatchAsync(archivePath, expectedHash, cancellationToken).ConfigureAwait(false))
                 throw new InvalidDataException("FFmpeg archive failed SHA-256 verification.");
 
             TryDeleteDirectory(extractionPath);
             ZipFile.ExtractToDirectory(archivePath, extractionPath);
-
             var extractedRoot = Directory.GetDirectories(extractionPath).SingleOrDefault()
                 ?? throw new InvalidDataException("FFmpeg archive layout is invalid.");
             var extractedExecutable = Path.Combine(extractedRoot, "bin", "ffmpeg.exe");
@@ -163,12 +136,6 @@ public sealed class ManagedToolManager : IToolManager
                 throw new InvalidDataException("FFmpeg executable was not found in the verified archive.");
 
             ReplaceDirectoryAtomically(extractedRoot, Path.Combine(_paths.ToolsDirectory, "ffmpeg"));
-        }
-        catch
-        {
-            TryDelete(archivePath);
-            TryDeleteDirectory(extractionPath);
-            throw;
         }
         finally
         {
@@ -190,7 +157,6 @@ public sealed class ManagedToolManager : IToolManager
     {
         if (!File.Exists(path))
             return false;
-
         var hash = await ComputeSha256Async(path, cancellationToken).ConfigureAwait(false);
         return hash.Equals(expectedHash, StringComparison.OrdinalIgnoreCase);
     }
@@ -206,15 +172,10 @@ public sealed class ManagedToolManager : IToolManager
     {
         Directory.CreateDirectory(destinationDirectory);
         foreach (var directory in Directory.GetDirectories(sourceDirectory, "*", SearchOption.AllDirectories))
-        {
-            var relative = Path.GetRelativePath(sourceDirectory, directory);
-            Directory.CreateDirectory(Path.Combine(destinationDirectory, relative));
-        }
-
+            Directory.CreateDirectory(Path.Combine(destinationDirectory, Path.GetRelativePath(sourceDirectory, directory)));
         foreach (var file in Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories))
         {
-            var relative = Path.GetRelativePath(sourceDirectory, file);
-            var target = Path.Combine(destinationDirectory, relative);
+            var target = Path.Combine(destinationDirectory, Path.GetRelativePath(sourceDirectory, file));
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
             File.Copy(file, target, overwrite: true);
         }
@@ -228,31 +189,57 @@ public sealed class ManagedToolManager : IToolManager
             if (match.Success && string.Equals(Path.GetFileName(match.Groups["file"].Value.Trim()), fileName, StringComparison.OrdinalIgnoreCase))
                 return match.Groups["hash"].Value;
         }
-
         return null;
     }
 
     private static void ReplaceAtomically(string sourcePath, string destinationPath)
     {
         var backupPath = destinationPath + ".bak";
-        if (File.Exists(destinationPath))
-            File.Replace(sourcePath, destinationPath, backupPath, ignoreMetadataErrors: true);
-        else
-            File.Move(sourcePath, destinationPath);
-
-        TryDelete(backupPath);
+        try
+        {
+            if (File.Exists(destinationPath))
+                File.Replace(sourcePath, destinationPath, backupPath, ignoreMetadataErrors: true);
+            else
+                File.Move(sourcePath, destinationPath);
+        }
+        finally
+        {
+            TryDelete(backupPath);
+        }
     }
 
     private static void ReplaceDirectoryAtomically(string sourceDirectory, string destinationDirectory)
     {
         var backupDirectory = destinationDirectory + ".bak";
-        TryDeleteDirectory(backupDirectory);
+        var destinationMoved = false;
+        try
+        {
+            TryDeleteDirectory(backupDirectory);
+            if (Directory.Exists(destinationDirectory))
+            {
+                Directory.Move(destinationDirectory, backupDirectory);
+                destinationMoved = true;
+            }
 
-        if (Directory.Exists(destinationDirectory))
-            Directory.Move(destinationDirectory, backupDirectory);
-
-        Directory.Move(sourceDirectory, destinationDirectory);
-        TryDeleteDirectory(backupDirectory);
+            Directory.Move(sourceDirectory, destinationDirectory);
+            destinationMoved = false;
+            TryDeleteDirectory(backupDirectory);
+        }
+        catch
+        {
+            TryDeleteDirectory(destinationDirectory);
+            if (destinationMoved && Directory.Exists(backupDirectory))
+            {
+                try
+                {
+                    Directory.Move(backupDirectory, destinationDirectory);
+                }
+                catch
+                {
+                }
+            }
+            throw;
+        }
     }
 
     private static void TryDelete(string path)
