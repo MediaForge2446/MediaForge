@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using MediaForge.Core.Enums;
 using MediaForge.Core.Interfaces;
 using MediaForge.Core.Models;
 using MediaForge.Infrastructure.Persistence;
@@ -23,6 +24,7 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
     public async Task RunAsync(
         string url,
         string outputPath,
+        MediaFormat format,
         IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
     {
@@ -34,7 +36,7 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
         var tools = await _toolManager.EnsureToolsReadyAsync(cancellationToken).ConfigureAwait(false);
         Directory.CreateDirectory(Path.GetDirectoryName(outputPath) ?? _paths.AppDirectory);
 
-        var process = new Process
+        using var process = new Process
         {
             StartInfo = new ProcessStartInfo
             {
@@ -53,6 +55,24 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
         process.StartInfo.ArgumentList.Add("--no-warnings");
         process.StartInfo.ArgumentList.Add("--ffmpeg-location");
         process.StartInfo.ArgumentList.Add(Path.GetDirectoryName(tools.FfmpegPath) ?? string.Empty);
+
+        switch (format)
+        {
+            case MediaFormat.Mp3:
+                process.StartInfo.ArgumentList.Add("-x");
+                process.StartInfo.ArgumentList.Add("--audio-format");
+                process.StartInfo.ArgumentList.Add("mp3");
+                process.StartInfo.ArgumentList.Add("--audio-quality");
+                process.StartInfo.ArgumentList.Add("0");
+                break;
+            case MediaFormat.Mp4:
+                process.StartInfo.ArgumentList.Add("--merge-output-format");
+                process.StartInfo.ArgumentList.Add("mp4");
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(format));
+        }
+
         process.StartInfo.ArgumentList.Add("-o");
         process.StartInfo.ArgumentList.Add(outputPath);
         process.StartInfo.ArgumentList.Add(url);
@@ -60,38 +80,35 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
         if (!process.Start())
             throw new InvalidOperationException("Unable to start yt-dlp.");
 
-        using (process)
+        using var cancellationRegistration = cancellationToken.Register(() =>
         {
-            using var cancellationRegistration = cancellationToken.Register(() =>
+            try
             {
-                try
-                {
-                    if (!process.HasExited)
-                        process.Kill(entireProcessTree: true);
-                }
-                catch
-                {
-                    // The process may exit between HasExited and Kill.
-                }
-            });
-
-            var stderr = new List<string>();
-            var stdoutTask = ConsumeAsync(process.StandardOutput, progress, cancellationToken, null);
-            var stderrTask = ConsumeAsync(process.StandardError, progress: null, cancellationToken, stderr);
-
-            await Task.WhenAll(stdoutTask, stderrTask, process.WaitForExitAsync(cancellationToken)).ConfigureAwait(false);
-
-            cancellationToken.ThrowIfCancellationRequested();
-            if (process.ExitCode != 0)
-            {
-                var detail = string.Join(Environment.NewLine, stderr.Where(x => !string.IsNullOrWhiteSpace(x)).TakeLast(8));
-                throw new InvalidOperationException(string.IsNullOrWhiteSpace(detail)
-                    ? $"yt-dlp exited with code {process.ExitCode}."
-                    : detail);
+                if (!process.HasExited)
+                    process.Kill(entireProcessTree: true);
             }
+            catch
+            {
+                // The process may exit between HasExited and Kill.
+            }
+        });
 
-            progress?.Report(100d);
+        var stderr = new List<string>();
+        var stdoutTask = ConsumeAsync(process.StandardOutput, progress, cancellationToken, null);
+        var stderrTask = ConsumeAsync(process.StandardError, progress: null, cancellationToken, stderr);
+
+        await Task.WhenAll(stdoutTask, stderrTask, process.WaitForExitAsync(cancellationToken)).ConfigureAwait(false);
+
+        cancellationToken.ThrowIfCancellationRequested();
+        if (process.ExitCode != 0)
+        {
+            var detail = string.Join(Environment.NewLine, stderr.Where(x => !string.IsNullOrWhiteSpace(x)).TakeLast(8));
+            throw new InvalidOperationException(string.IsNullOrWhiteSpace(detail)
+                ? $"yt-dlp exited with code {process.ExitCode}."
+                : detail);
         }
+
+        progress?.Report(100d);
     }
 
     private static async Task ConsumeAsync(
