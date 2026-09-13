@@ -12,6 +12,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <conv:BooleanNotConverter x:Key="BooleanNotConverter" />
+            <conv:BooleanToVisibilityConverterFallback x:Key="BooleanToVisibilityConverterFallback" />
             <conv:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
             <conv:DirectoryGlyphConverter x:Key="DirectoryGlyphConverter" />
             <conv:PendingBrushConverter x:Key="PendingBrushConverter" />
