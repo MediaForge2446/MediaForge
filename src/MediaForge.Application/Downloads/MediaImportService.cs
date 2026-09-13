@@ -1,0 +1,95 @@
+using System.Text;
+using MediaForge.Application.Staging;
+using MediaForge.Core.Enums;
+using MediaForge.Core.Interfaces;
+using MediaForge.Core.Models;
+
+namespace MediaForge.Application.Downloads;
+
+public sealed class MediaImportService
+{
+    private readonly IMediaMetadataResolver _resolver;
+    private readonly StagingService _staging;
+
+    public MediaImportService(IMediaMetadataResolver resolver, StagingService staging)
+    {
+        _resolver = resolver;
+        _staging = staging;
+    }
+
+    public Task<MediaResolveResult> ResolveAsync(
+        string sourceUrl,
+        CancellationToken cancellationToken = default)
+        => _resolver.ResolveAsync(sourceUrl, cancellationToken);
+
+    public async Task<IReadOnlyList<StagingOperation>> StageDownloadsAsync(
+        IEnumerable<ResolvedMediaItem> items,
+        string destinationDirectory,
+        MediaFormat format,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+        if (string.IsNullOrWhiteSpace(destinationDirectory))
+            throw new ArgumentException("A destination directory is required.", nameof(destinationDirectory));
+
+        var directory = Path.GetFullPath(destinationDirectory.Trim());
+        Directory.CreateDirectory(directory);
+
+        var staged = new List<StagingOperation>();
+        var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var item in items)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var baseName = SanitizeFileName(item.Metadata.Title);
+            if (string.IsNullOrWhiteSpace(baseName))
+                baseName = item.VideoId;
+
+            var extension = format switch
+            {
+                MediaFormat.Mp3 => ".mp3",
+                MediaFormat.Mp4 => ".mp4",
+                _ => throw new ArgumentOutOfRangeException(nameof(format))
+            };
+
+            var fileName = MakeUnique(baseName, extension, usedNames);
+            var destinationPath = Path.Combine(directory, fileName);
+            var operation = new StagingOperation
+            {
+                OperationType = OperationType.Download,
+                Payload = new StagingPayload(
+                    SourceUrl: item.SourceUrl,
+                    DestinationPath: destinationPath,
+                    DesiredFormat: format),
+                CreatedAt = DateTimeOffset.UtcNow
+            };
+
+            await _staging.StageAsync(operation, cancellationToken).ConfigureAwait(false);
+            staged.Add(operation);
+        }
+
+        return staged;
+    }
+
+    private static string MakeUnique(string baseName, string extension, ISet<string> usedNames)
+    {
+        var candidate = baseName + extension;
+        var index = 2;
+        while (!usedNames.Add(candidate))
+            candidate = $"{baseName} ({index++}){extension}";
+        return candidate;
+    }
+
+    private static string SanitizeFileName(string value)
+    {
+        var invalid = Path.GetInvalidFileNameChars();
+        var builder = new StringBuilder(value.Length);
+        foreach (var character in value.Trim())
+            builder.Append(invalid.Contains(character) ? '_' : character);
+
+        var result = builder.ToString().Trim().TrimEnd('.', ' ');
+        if (result.Length > 180)
+            result = result[..180].TrimEnd('.', ' ');
+        return result;
+    }
+}
