@@ -36,8 +36,8 @@ public partial class SettingsViewModel : ObservableObject
         try
         {
             var tools = await _toolManager.EnsureToolsReadyAsync(cancellationToken).ConfigureAwait(true);
-            YtDlpPath = tools.YtDlpPath;
-            FfmpegPath = tools.FfmpegPath;
+            YtDlpPath = tools.YtDlpExecutablePath;
+            FfmpegPath = tools.FfmpegExecutablePath;
             ToolStatus = "הכלים מוכנים לשימוש";
         }
         catch (OperationCanceledException)
