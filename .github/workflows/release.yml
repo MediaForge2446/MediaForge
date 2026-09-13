@@ -121,17 +121,41 @@ jobs:
         env:
           MEDIAFORGE_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          $candidates = @(
-            'C:\Program Files\Inno Setup 7\ISCC.exe',
-            'C:\Program Files (x86)\Inno Setup 7\ISCC.exe'
+          $isccPath = $null
+          $uninstallRegistry = @(
+            'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+            'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*',
+            'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*'
           )
-          $isccPath = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
-          if (-not $isccPath) {
-            $isccPath = Get-Command ISCC.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -First 1
+          foreach ($path in $uninstallRegistry) {
+            $entry = Get-ItemProperty $path -ErrorAction SilentlyContinue |
+              Where-Object { $_.DisplayName -like 'Inno Setup*' -and $_.InstallLocation } |
+              Select-Object -First 1
+            if ($entry) {
+              $candidate = Join-Path $entry.InstallLocation 'ISCC.exe'
+              if (Test-Path $candidate) { $isccPath = $candidate; break }
+            }
           }
+
+          if (-not $isccPath) {
+            $knownPaths = @(
+              'C:\Program Files\Inno Setup 7\ISCC.exe',
+              'C:\Program Files (x86)\Inno Setup 7\ISCC.exe',
+              'C:\Program Files\Inno Setup 6\ISCC.exe',
+              'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+            )
+            $isccPath = $knownPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
+          }
+
+          if (-not $isccPath) {
+            $isccPath = Get-ChildItem 'C:\ProgramData\Chocolatey\bin' -Filter ISCC.exe -ErrorAction SilentlyContinue |
+              Select-Object -ExpandProperty FullName -First 1
+          }
+
           if (-not $isccPath) {
             throw 'Inno Setup compiler ISCC.exe was not found.'
           }
+
           Write-Host "Using Inno Setup compiler: $isccPath"
           & $isccPath "/DMyAppVersion=$env:MEDIAFORGE_VERSION" 'installer\MediaForge.iss'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
