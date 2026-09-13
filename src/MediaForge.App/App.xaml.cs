@@ -69,7 +69,7 @@ public partial class App : System.Windows.Application
         }
         catch (Exception ex)
         {
-            MessageBox.Show(
+            System.Windows.MessageBox.Show(
                 $"MediaForge could not start.\n\n{ex.Message}",
                 "MediaForge",
                 MessageBoxButton.OK,
@@ -80,7 +80,7 @@ public partial class App : System.Windows.Application
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        MessageBox.Show(
+        System.Windows.MessageBox.Show(
             $"MediaForge encountered an unexpected error.\n\n{e.Exception.Message}",
             "MediaForge",
             MessageBoxButton.OK,
