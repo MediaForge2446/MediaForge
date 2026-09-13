@@ -44,10 +44,7 @@
         <ui:TitleBar Grid.Row="0" Title="MediaForge" Margin="0,0,0,4"
                      ShowMinimize="True" ShowMaximize="True" ShowClose="True">
             <ui:TitleBar.Icon>
-                <Border Width="28" Height="28" CornerRadius="8" Background="{StaticResource MediaForgeAccentBrush}">
-                    <TextBlock Text="M" Foreground="#061018" FontSize="16" FontWeight="Bold"
-                               HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
+                <ui:SymbolIcon Symbol="Fluent24" />
             </ui:TitleBar.Icon>
         </ui:TitleBar>
 
