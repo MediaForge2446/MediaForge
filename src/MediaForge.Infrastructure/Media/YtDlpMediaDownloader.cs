@@ -20,6 +20,11 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
         IProgress<DownloadProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(sourceUrl))
+            throw new ArgumentException("A source URL is required.", nameof(sourceUrl));
+        if (string.IsNullOrWhiteSpace(outputPath))
+            throw new ArgumentException("An output path is required.", nameof(outputPath));
+
         var extension = format switch
         {
             MediaFormat.Mp3 => ".mp3",
@@ -30,58 +35,74 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
         var finalPath = Path.GetExtension(outputPath).Equals(extension, StringComparison.OrdinalIgnoreCase)
             ? outputPath
             : Path.ChangeExtension(outputPath, extension);
+        var stagingBase = finalPath + ".mediaforge-temp";
 
-        var tempPath = finalPath + ".part";
-        TryDelete(tempPath);
-
+        TryDeleteMatching(stagingBase);
         try
         {
             progress?.Report(new DownloadProgress(0, "מתחיל הורדה"));
-            await _runner.RunAsync(sourceUrl, tempPathWithoutExtension(tempPath), new Progress<double>(percent =>
-            {
-                progress?.Report(new DownloadProgress(percent, "מוריד"));
-            }), cancellationToken).ConfigureAwait(false);
+            await _runner.RunAsync(
+                sourceUrl,
+                stagingBase,
+                format,
+                new Progress<double>(percent => progress?.Report(new DownloadProgress(percent, "מוריד"))),
+                cancellationToken).ConfigureAwait(false);
 
-            var produced = ResolveProducedPath(tempPathWithoutExtension(tempPath), extension);
+            var produced = ResolveProducedPath(stagingBase, extension);
             if (produced is null)
-                throw new FileNotFoundException("The downloader completed without producing an output file.");
+                throw new FileNotFoundException("ההורדה הסתיימה ללא קובץ פלט תקין.");
 
             Directory.CreateDirectory(Path.GetDirectoryName(finalPath) ?? ".");
-            if (File.Exists(finalPath))
-                File.Delete(finalPath);
-            File.Move(produced, finalPath);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var replacement = finalPath + ".replace";
+            TryDelete(replacement);
+            File.Move(produced, replacement);
+            try
+            {
+                if (File.Exists(finalPath))
+                    File.Replace(replacement, finalPath, null, ignoreMetadataErrors: true);
+                else
+                    File.Move(replacement, finalPath);
+            }
+            finally
+            {
+                TryDelete(replacement);
+            }
+
             progress?.Report(new DownloadProgress(100, "הושלם"));
         }
         catch
         {
-            TryDelete(tempPath);
-            foreach (var candidate in Directory.Exists(Path.GetDirectoryName(tempPath) ?? string.Empty)
-                         ? Directory.GetFiles(Path.GetDirectoryName(tempPath)!, Path.GetFileNameWithoutExtension(tempPath) + "*")
-                         : [])
-            {
-                TryDelete(candidate);
-            }
-
+            TryDeleteMatching(stagingBase);
             throw;
         }
     }
 
-    private static string tempPathWithoutExtension(string path)
-        => Path.Combine(Path.GetDirectoryName(path) ?? ".", Path.GetFileNameWithoutExtension(path));
-
-    private static string? ResolveProducedPath(string requestedBasePath, string extension)
+    private static string? ResolveProducedPath(string stagingBase, string extension)
     {
-        var expected = requestedBasePath + extension;
+        var expected = stagingBase + extension;
         if (File.Exists(expected))
             return expected;
 
-        var directory = Path.GetDirectoryName(requestedBasePath);
+        var directory = Path.GetDirectoryName(stagingBase);
         if (directory is null || !Directory.Exists(directory))
             return null;
 
-        var prefix = Path.GetFileName(requestedBasePath);
+        var prefix = Path.GetFileName(stagingBase);
         return Directory.GetFiles(directory, prefix + ".*", SearchOption.TopDirectoryOnly)
             .FirstOrDefault(path => path.EndsWith(extension, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static void TryDeleteMatching(string prefix)
+    {
+        var directory = Path.GetDirectoryName(prefix);
+        if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
+            return;
+
+        var filePrefix = Path.GetFileName(prefix);
+        foreach (var path in Directory.GetFiles(directory, filePrefix + "*", SearchOption.TopDirectoryOnly))
+            TryDelete(path);
     }
 
     private static void TryDelete(string path)
@@ -93,7 +114,7 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
         }
         catch
         {
-            // Best effort cleanup after a failed/cancelled download.
+            // Best effort cleanup after a failed or cancelled download.
         }
     }
 }
