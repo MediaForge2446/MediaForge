@@ -63,16 +63,18 @@ public sealed class MediaImportService
 
             var fileName = MakeUnique(baseName, extension, usedNames);
             var destinationPath = Path.Combine(directory, fileName);
-            var operation = new StagingOperation
-            {
-                OperationType = OperationType.Download,
-                Payload = new StagingPayload(
+            var operation = new StagingOperation(
+                Guid.NewGuid(),
+                DateTimeOffset.UtcNow,
+                OperationType.Download,
+                destinationPath,
+                nameof(MediaState.Missing),
+                nameof(MediaState.Pending),
+                new StagingPayload(
                     SourceUrl: item.SourceUrl,
                     DestinationPath: destinationPath,
                     DesiredFormat: format,
-                    VideoId: item.VideoId),
-                CreatedAt = DateTimeOffset.UtcNow
-            };
+                    VideoId: item.VideoId));
 
             await _staging.StageAsync(operation, cancellationToken).ConfigureAwait(false);
             staged.Add(operation);
