@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediaForge.Core.Enums;
@@ -307,6 +308,9 @@ public sealed partial class ExplorerEntryViewModel : ObservableObject
         IsPending = isPending;
         PendingOperationId = pendingOperationId;
     }
+
+    partial void OnMarkedForDeletionChanged(bool value)
+        => OnPropertyChanged(nameof(StatusText));
 
     private static string FormatBytes(long bytes)
     {
