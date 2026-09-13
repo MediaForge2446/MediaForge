@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using MediaForge.Core.Interfaces;
 using MediaForge.Core.Models;
+using MediaForge.Infrastructure.Persistence;
 
 namespace MediaForge.Infrastructure.Tools;
 
