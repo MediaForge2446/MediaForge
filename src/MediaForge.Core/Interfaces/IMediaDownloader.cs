@@ -1,3 +1,4 @@
+using MediaForge.Core.Enums;
 using MediaForge.Core.Models;
 
 namespace MediaForge.Core.Interfaces;
