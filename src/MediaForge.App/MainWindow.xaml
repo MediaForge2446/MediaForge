@@ -1,0 +1,340 @@
+<ui:FluentWindow x:Class="MediaForge.App.MainWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 mc:Ignorable="d"
+                 Title="MediaForge"
+                 Width="1320"
+                 Height="820"
+                 MinWidth="1080"
+                 MinHeight="680"
+                 WindowStartupLocation="CenterScreen"
+                 Background="{StaticResource MediaForgeBackgroundBrush}"
+                 Foreground="{StaticResource MediaForgeTextBrush}"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica"
+                 WindowCornerPreference="Round">
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="38" />
+        </Grid.RowDefinitions>
+
+        <ui:TitleBar Grid.Row="0"
+                     Title="MediaForge"
+                     Margin="0,0,0,4"
+                     ShowMinimize="True"
+                     ShowMaximize="True"
+                     ShowClose="True">
+            <ui:TitleBar.Icon>
+                <Border Width="28" Height="28" CornerRadius="8" Background="{StaticResource MediaForgeAccentBrush}">
+                    <TextBlock Text="M"
+                               Foreground="#061018"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
+            </ui:TitleBar.Icon>
+        </ui:TitleBar>
+
+        <Border Grid.Row="1"
+                Style="{StaticResource MediaForgeCardStyle}"
+                Background="{StaticResource MediaForgeSurfaceBrush}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="238" />
+                    <ColumnDefinition Width="1" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Background="#15181E" CornerRadius="14,0,0,14">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="86" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="70" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Margin="20,20,18,10">
+                            <TextBlock Text="MEDIAFORGE"
+                                       FontSize="15"
+                                       FontWeight="Bold"
+                                       Foreground="{StaticResource MediaForgeTextBrush}" />
+                            <TextBlock Text="ניהול המדיה שלך, בפשטות"
+                                       Margin="0,3,0,0"
+                                       FontSize="11"
+                                       Foreground="{StaticResource MediaForgeMutedBrush}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Margin="0,12,0,0">
+                            <TextBlock Text="WORKSPACE"
+                                       Margin="20,0,0,8"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="#6F7784" />
+
+                            <Button Style="{StaticResource MediaForgeNavButtonStyle}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="home">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="⌂" Width="28" FontSize="18" VerticalAlignment="Center" />
+                                    <TextBlock Text="הספרייה שלי" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Style="{StaticResource MediaForgeNavButtonStyle}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="explorer">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="▦" Width="28" FontSize="17" VerticalAlignment="Center" />
+                                    <TextBlock Text="סייר הקבצים" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Style="{StaticResource MediaForgeNavButtonStyle}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="downloads">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="↓" Width="28" FontSize="19" VerticalAlignment="Center" />
+                                    <TextBlock Text="ההורדות שלי" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Separator Margin="20,16" Background="#2C313A" />
+
+                            <TextBlock Text="SYSTEM"
+                                       Margin="20,0,0,8"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="#6F7784" />
+
+                            <Button Style="{StaticResource MediaForgeNavButtonStyle}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="settings">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="⚙" Width="28" FontSize="17" VerticalAlignment="Center" />
+                                    <TextBlock Text="הגדרות" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+
+                        <Border Grid.Row="2"
+                                Margin="14,0"
+                                Background="#101217"
+                                CornerRadius="12"
+                                Padding="12">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Ellipse Width="8" Height="8" Fill="{StaticResource MediaForgeSuccessBrush}" />
+                                <StackPanel Margin="10,0,0,0">
+                                    <TextBlock Text="מנוע מדיה מוכן"
+                                               FontSize="11"
+                                               FontWeight="SemiBold" />
+                                    <TextBlock Text="הכול מנוהל אוטומטית"
+                                               FontSize="10"
+                                               Foreground="{StaticResource MediaForgeMutedBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Column="1" Background="{StaticResource MediaForgeBorderBrush}" />
+
+                <Grid Grid.Column="2" Margin="34,28,34,26" FlowDirection="LeftToRight">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <StackPanel HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding PageTitle}"
+                                       FontSize="30"
+                                       FontWeight="Bold" />
+                            <TextBlock Text="הכול במקום אחד. בלי להתעסק עם כלים, קבצים או הגדרות טכניות."
+                                       Margin="0,6,0,0"
+                                       FontSize="13"
+                                       Foreground="{StaticResource MediaForgeMutedBrush}" />
+                        </StackPanel>
+
+                        <Button Grid.Column="1"
+                                HorizontalAlignment="Right"
+                                Style="{StaticResource MediaForgePrimaryButtonStyle}"
+                                Command="{Binding AddRootFolderCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanNotConverter}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="＋" FontSize="19" Margin="0,0,6,0" />
+                                <TextBlock Text="הוספת תיקייה" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <Border Grid.Row="1"
+                            Margin="0,24,0,20"
+                            Padding="14,12"
+                            Background="#151920"
+                            BorderBrush="#272D36"
+                            BorderThickness="1"
+                            CornerRadius="12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="30" Height="30" CornerRadius="9" Background="#1F3442">
+                                    <TextBlock Text="✓"
+                                               Foreground="{StaticResource MediaForgeSuccessBrush}"
+                                               FontSize="15"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Margin="10,0,0,0">
+                                    <TextBlock Text="הספרייה נשמרת אוטומטית"
+                                               FontSize="12"
+                                               FontWeight="SemiBold" />
+                                    <TextBlock Text="ההגדרות והשינויים שלך נשארים גם אחרי סגירת התוכנה."
+                                               FontSize="10"
+                                               Foreground="{StaticResource MediaForgeMutedBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding StatusText}"
+                                       VerticalAlignment="Center"
+                                       FontSize="11"
+                                       Foreground="{StaticResource MediaForgeMutedBrush}" />
+                        </Grid>
+                    </Border>
+
+                    <ScrollViewer Grid.Row="2"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                                <TextBlock Text="התיקיות שלך"
+                                           FontSize="16"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="בחר תיקיית בסיס לכל מדיה שתרצה לנהל."
+                                           Margin="0,4,0,0"
+                                           FontSize="11"
+                                           Foreground="{StaticResource MediaForgeMutedBrush}" />
+                            </StackPanel>
+
+                            <ItemsControl Grid.Row="1" ItemsSource="{Binding RootFolders}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Width="286"
+                                                Height="154"
+                                                Margin="0,0,16,16"
+                                                Style="{StaticResource MediaForgeCardStyle}">
+                                            <Grid Margin="18">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+
+                                                <Border Width="44"
+                                                        Height="44"
+                                                        CornerRadius="12"
+                                                        Background="#26313B">
+                                                    <TextBlock Text="▣"
+                                                               Foreground="{StaticResource MediaForgeAccentBrush}"
+                                                               FontSize="22"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center" />
+                                                </Border>
+
+                                                <StackPanel Grid.Row="1" Margin="0,14,0,0">
+                                                    <TextBlock Text="{Binding Name}"
+                                                               FontSize="14"
+                                                               FontWeight="SemiBold"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Text="{Binding DisplayPath}"
+                                                               Margin="0,5,0,0"
+                                                               FontSize="10"
+                                                               Foreground="{StaticResource MediaForgeMutedBrush}"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                </StackPanel>
+
+                                                <StackPanel Grid.Row="2" Orientation="Horizontal">
+                                                    <Ellipse Width="7" Height="7" Fill="{StaticResource MediaForgeSuccessBrush}" VerticalAlignment="Center" />
+                                                    <TextBlock Text=" מחוברת"
+                                                               Margin="7,0,0,0"
+                                                               FontSize="10"
+                                                               Foreground="{StaticResource MediaForgeMutedBrush}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <Border Grid.Row="1"
+                                    Visibility="{Binding HasLibrary, Converter={StaticResource InverseBooleanToVisibilityConverter}}"
+                                    Margin="0,10,0,20"
+                                    Padding="44"
+                                    Background="#151920"
+                                    BorderBrush="#2B313A"
+                                    BorderThickness="1"
+                                    CornerRadius="16">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <Border Width="72" Height="72" CornerRadius="20" Background="#1C2A35">
+                                        <TextBlock Text="＋"
+                                                   Foreground="{StaticResource MediaForgeAccentBrush}"
+                                                   FontSize="34"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock Text="עדיין אין לך ספרייה"
+                                               Margin="0,18,0,0"
+                                               FontSize="17"
+                                               FontWeight="SemiBold"
+                                               HorizontalAlignment="Center" />
+                                    <TextBlock Text="הוסף תיקייה אחת, ומכאן MediaForge כבר ידאג לכל השאר."
+                                               Margin="0,7,0,18"
+                                               FontSize="11"
+                                               Foreground="{StaticResource MediaForgeMutedBrush}"
+                                               HorizontalAlignment="Center" />
+                                    <Button Style="{StaticResource MediaForgePrimaryButtonStyle}"
+                                            Command="{Binding AddRootFolderCommand}"
+                                            HorizontalAlignment="Center"
+                                            Content="＋  הוספת תיקייה ראשונה" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </ScrollViewer>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" Margin="4,6,4,0">
+            <TextBlock Text="MediaForge • Windows 11"
+                       FontSize="10"
+                       Foreground="#707784"
+                       VerticalAlignment="Center" />
+            <TextBlock Text="Downloads · Tools · FFmpeg · yt-dlp — מנוהלים ברקע"
+                       HorizontalAlignment="Right"
+                       FontSize="10"
+                       Foreground="#707784"
+                       VerticalAlignment="Center" />
+        </Grid>
+    </Grid>
+</ui:FluentWindow>
