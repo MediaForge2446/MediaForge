@@ -14,9 +14,10 @@ public sealed class ManagedToolManager : IToolManager
     private const string YtDlpUrl = "https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp.exe";
     private const string YtDlpSha256 = "66674953fe251b89f4d08c5f0e35e0728679bd67ab3d7d05c0562af101dd3e7a";
 
-    private const string FfmpegVersion = "9.0";
-    private const string FfmpegArchiveUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n9.0-latest-win64-gpl-9.0.zip";
-    private const string FfmpegChecksumsUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256";
+    private const string FfmpegVersion = "n9.0.1-29-gad500d59cb";
+    private const string FfmpegArchiveFileName = "ffmpeg-n9.0.1-29-gad500d59cb-win64-gpl-shared-9.0.zip";
+    private const string FfmpegArchiveUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-11-13-20/ffmpeg-n9.0.1-29-gad500d59cb-win64-gpl-shared-9.0.zip";
+    private const string FfmpegChecksumsUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-11-13-20/checksums.sha256";
 
     private readonly LocalAppPaths _paths;
     private readonly HttpClient _httpClient;
@@ -146,9 +147,8 @@ public sealed class ManagedToolManager : IToolManager
         try
         {
             var checksums = await _httpClient.GetStringAsync(FfmpegChecksumsUrl, cancellationToken).ConfigureAwait(false);
-            var fileName = Path.GetFileName(new Uri(FfmpegArchiveUrl).AbsolutePath);
-            var expectedHash = FindSha256(checksums, fileName)
-                ?? throw new InvalidDataException($"No checksum was published for {fileName}.");
+            var expectedHash = FindSha256(checksums, FfmpegArchiveFileName)
+                ?? throw new InvalidDataException($"No checksum was published for {FfmpegArchiveFileName}.");
 
             if (!await IsSha256MatchAsync(archivePath, expectedHash, cancellationToken).ConfigureAwait(false))
                 throw new InvalidDataException("FFmpeg archive failed SHA-256 verification.");
