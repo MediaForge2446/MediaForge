@@ -36,10 +36,12 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
             ? outputPath
             : Path.ChangeExtension(outputPath, extension);
         var stagingBase = finalPath + ".mediaforge-temp";
+        var parentDirectory = Path.GetDirectoryName(finalPath) ?? ".";
 
         TryDeleteMatching(stagingBase);
         try
         {
+            Directory.CreateDirectory(parentDirectory);
             progress?.Report(new DownloadProgress(0, "מתחיל הורדה"));
             await _runner.RunAsync(
                 sourceUrl,
@@ -52,7 +54,6 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
             if (produced is null)
                 throw new FileNotFoundException("ההורדה הסתיימה ללא קובץ פלט תקין.");
 
-            Directory.CreateDirectory(Path.GetDirectoryName(finalPath) ?? ".");
             cancellationToken.ThrowIfCancellationRequested();
 
             var replacement = finalPath + ".replace";
