@@ -1,4 +1,5 @@
 using MediaForge.Application.Commit;
+using MediaForge.Application.Downloads;
 using MediaForge.Core.Enums;
 using MediaForge.Core.Interfaces;
 using MediaForge.Core.Models;
