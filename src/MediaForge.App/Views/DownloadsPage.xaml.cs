@@ -1,8 +1,6 @@
-using System.Windows.Controls;
-
 namespace MediaForge.App.Views;
 
-public partial class DownloadsPage : UserControl
+public partial class DownloadsPage : System.Windows.Controls.UserControl
 {
     public DownloadsPage()
     {
