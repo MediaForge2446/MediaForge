@@ -23,7 +23,7 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Restore
-        run: dotnet restore MediaForge.sln
+        run: dotnet restore MediaForge.sln --runtime win-x64
 
       - name: Build
         run: dotnet build MediaForge.sln --configuration Release --no-restore
