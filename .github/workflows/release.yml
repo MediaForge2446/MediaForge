@@ -121,9 +121,19 @@ jobs:
         env:
           MEDIAFORGE_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          $iscc = Get-ChildItem 'C:\Program Files' -Recurse -Filter ISCC.exe -ErrorAction SilentlyContinue | Select-Object -First 1
-          if (-not $iscc) { throw 'Inno Setup compiler was not found.' }
-          & $iscc.FullName "/DMyAppVersion=$env:MEDIAFORGE_VERSION" 'installer\MediaForge.iss'
+          $candidates = @(
+            'C:\Program Files\Inno Setup 7\ISCC.exe',
+            'C:\Program Files (x86)\Inno Setup 7\ISCC.exe'
+          )
+          $isccPath = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $isccPath) {
+            $isccPath = Get-Command ISCC.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -First 1
+          }
+          if (-not $isccPath) {
+            throw 'Inno Setup compiler ISCC.exe was not found.'
+          }
+          Write-Host "Using Inno Setup compiler: $isccPath"
+          & $isccPath "/DMyAppVersion=$env:MEDIAFORGE_VERSION" 'installer\MediaForge.iss'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Verify Setup.exe
