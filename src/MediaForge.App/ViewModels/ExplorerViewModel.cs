@@ -159,13 +159,7 @@ public partial class ExplorerViewModel : ObservableObject
             return;
         }
 
-        await _staging.StageAsync(new StagingOperation
-        {
-            OperationType = OperationType.CreateDirectory,
-            Payload = new StagingPayload(DirectoryPath: target),
-            CreatedAt = DateTimeOffset.UtcNow
-        }, cancellationToken).ConfigureAwait(true);
-
+        await _staging.StageAsync(CreateOperation(OperationType.CreateDirectory, target, new StagingPayload(DirectoryPath: target)), cancellationToken).ConfigureAwait(true);
         NewFolderName = string.Empty;
         StatusText = "תיקייה נוספה לשינויים ממתינים";
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
@@ -178,13 +172,10 @@ public partial class ExplorerViewModel : ObservableObject
         if (entry is null || entry.MarkedForDeletion || IsBusy)
             return;
 
-        await _staging.StageAsync(new StagingOperation
-        {
-            OperationType = OperationType.Delete,
-            Payload = new StagingPayload(SourcePath: entry.FullPath, Recursive: entry.IsDirectory),
-            CreatedAt = DateTimeOffset.UtcNow
-        }, cancellationToken).ConfigureAwait(true);
-
+        await _staging.StageAsync(CreateOperation(
+            OperationType.Delete,
+            entry.FullPath,
+            new StagingPayload(SourcePath: entry.FullPath, Recursive: entry.IsDirectory)), cancellationToken).ConfigureAwait(true);
         StatusText = "מחיקה סומנה לשמירה";
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
@@ -202,13 +193,17 @@ public partial class ExplorerViewModel : ObservableObject
             return;
         }
 
-        await _staging.StageAsync(new StagingOperation
+        var destination = Path.Combine(Path.GetDirectoryName(entry.FullPath) ?? CurrentPath, name);
+        if (File.Exists(destination) || Directory.Exists(destination))
         {
-            OperationType = OperationType.Rename,
-            Payload = new StagingPayload(SourcePath: entry.FullPath, NewName: name),
-            CreatedAt = DateTimeOffset.UtcNow
-        }, cancellationToken).ConfigureAwait(true);
+            StatusText = "כבר קיים פריט בשם הזה";
+            return;
+        }
 
+        await _staging.StageAsync(CreateOperation(
+            OperationType.Rename,
+            entry.FullPath,
+            new StagingPayload(SourcePath: entry.FullPath, DestinationPath: destination, NewName: name)), cancellationToken).ConfigureAwait(true);
         NewName = string.Empty;
         StatusText = "שינוי השם סומן לשמירה";
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
@@ -228,14 +223,16 @@ public partial class ExplorerViewModel : ObservableObject
             StatusText = "אי אפשר להעביר תיקייה לתוך עצמה";
             return;
         }
-
-        await _staging.StageAsync(new StagingOperation
+        if (File.Exists(destinationPath) || Directory.Exists(destinationPath))
         {
-            OperationType = OperationType.Move,
-            Payload = new StagingPayload(SourcePath: entry.FullPath, DestinationPath: destinationPath),
-            CreatedAt = DateTimeOffset.UtcNow
-        }, cancellationToken).ConfigureAwait(true);
+            StatusText = "יעד ההעברה כבר קיים";
+            return;
+        }
 
+        await _staging.StageAsync(CreateOperation(
+            OperationType.Move,
+            entry.FullPath,
+            new StagingPayload(SourcePath: entry.FullPath, DestinationPath: destinationPath)), cancellationToken).ConfigureAwait(true);
         MoveDestination = string.Empty;
         StatusText = "העברה סומנה לשמירה";
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
@@ -261,6 +258,16 @@ public partial class ExplorerViewModel : ObservableObject
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
+    private static StagingOperation CreateOperation(OperationType type, string target, StagingPayload payload)
+        => new(
+            Guid.NewGuid(),
+            DateTimeOffset.UtcNow,
+            type,
+            target,
+            nameof(MediaState.Missing),
+            nameof(MediaState.Pending),
+            payload);
+
     private StagingOperation? FindPendingOperation(string path)
         => _staging.Operations.LastOrDefault(operation =>
             string.Equals(operation.Payload?.DestinationPath, path, StringComparison.OrdinalIgnoreCase) ||
@@ -275,7 +282,7 @@ public partial class ExplorerViewModel : ObservableObject
     }
 }
 
-public sealed class ExplorerEntryViewModel : ObservableObject
+public sealed partial class ExplorerEntryViewModel : ObservableObject
 {
     public string Name { get; }
     public string FullPath { get; }
