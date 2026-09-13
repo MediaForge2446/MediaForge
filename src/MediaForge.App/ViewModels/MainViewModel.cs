@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MediaForge.Application.Abstractions;
+using MediaForge.Application.Downloads;
 using MediaForge.Application.Library;
 using MediaForge.Application.Staging;
 using MediaForge.App.Services;
@@ -13,6 +15,7 @@ public partial class MainViewModel : ObservableObject
     private readonly LibraryService _libraryService;
     private readonly IFolderPicker _folderPicker;
     private readonly StagingService _stagingService;
+    private readonly ICommitEngine _commitEngine;
 
     [ObservableProperty]
     private string _pageTitle = "הספרייה שלי";
@@ -29,27 +32,40 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private int _pendingCount;
 
+    [ObservableProperty]
+    private object? _currentPage;
+
     public ObservableCollection<RootFolderViewModel> RootFolders { get; } = [];
+    public ExplorerViewModel Explorer { get; }
+    public DownloadsViewModel Downloads { get; }
+    public SettingsViewModel Settings { get; }
 
     public bool HasLibrary => RootFolders.Count > 0;
-
     public bool HasPendingChanges => PendingCount > 0;
 
     public MainViewModel(
         LibraryService libraryService,
         IFolderPicker folderPicker,
-        StagingService stagingService)
+        StagingService stagingService,
+        ICommitEngine commitEngine,
+        ExplorerViewModel explorer,
+        DownloadsViewModel downloads,
+        SettingsViewModel settings)
     {
         _libraryService = libraryService;
         _folderPicker = folderPicker;
         _stagingService = stagingService;
+        _commitEngine = commitEngine;
+        Explorer = explorer;
+        Downloads = downloads;
+        Settings = settings;
+        CurrentPage = this;
     }
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         IsBusy = true;
         StatusText = "טוען את הספרייה…";
-
         try
         {
             var library = await _libraryService.LoadAsync(cancellationToken).ConfigureAwait(true);
@@ -59,7 +75,13 @@ public partial class MainViewModel : ObservableObject
 
             await _stagingService.InitializeAsync(cancellationToken).ConfigureAwait(true);
             PendingCount = _stagingService.Operations.Count;
-            StatusText = RootFolders.Count == 0 ? "הספרייה שלך עדיין ריקה" : "הספרייה מסונכרנת";
+
+            var firstRoot = RootFolders.FirstOrDefault()?.Path;
+            Downloads.SetDefaultDestination(firstRoot ?? string.Empty);
+            await Explorer.InitializeAsync(firstRoot, cancellationToken).ConfigureAwait(true);
+
+            StatusText = RootFolders.Count == 0 ? "הספרייה שלך עדיין ריקה" : "הספרייה מוכנה";
+            CurrentPage = this;
             OnPropertyChanged(nameof(HasLibrary));
             OnPropertyChanged(nameof(HasPendingChanges));
         }
@@ -70,8 +92,11 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void Navigate(string section)
+    private async Task NavigateAsync(string section, CancellationToken cancellationToken)
     {
+        if (IsBusy)
+            return;
+
         ActiveSection = section;
         PageTitle = section switch
         {
@@ -81,6 +106,24 @@ public partial class MainViewModel : ObservableObject
             "settings" => "הגדרות",
             _ => "הספרייה שלי"
         };
+
+        switch (section)
+        {
+            case "home":
+                CurrentPage = this;
+                break;
+            case "explorer":
+                if (string.IsNullOrWhiteSpace(Explorer.CurrentPath))
+                    await Explorer.InitializeAsync(RootFolders.FirstOrDefault()?.Path, cancellationToken).ConfigureAwait(true);
+                CurrentPage = Explorer;
+                break;
+            case "downloads":
+                CurrentPage = Downloads;
+                break;
+            case "settings":
+                CurrentPage = Settings;
+                break;
+        }
     }
 
     [RelayCommand]
@@ -95,14 +138,21 @@ public partial class MainViewModel : ObservableObject
 
         IsBusy = true;
         StatusText = "מוסיף תיקייה…";
-
         try
         {
             var library = await _libraryService.LoadAsync(cancellationToken).ConfigureAwait(true);
             var root = await _libraryService.AddRootFolderAsync(library, path, cancellationToken: cancellationToken).ConfigureAwait(true);
             RootFolders.Add(new RootFolderViewModel(root));
+            if (string.IsNullOrWhiteSpace(Downloads.DestinationDirectory))
+                Downloads.SetDefaultDestination(root.Path);
+            if (string.IsNullOrWhiteSpace(Explorer.CurrentPath))
+                await Explorer.SetInitialPathAsync(root.Path, cancellationToken).ConfigureAwait(true);
             OnPropertyChanged(nameof(HasLibrary));
             StatusText = "התיקייה נוספה לספרייה";
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText = "הפעולה בוטלה";
         }
         catch (Exception ex)
         {
@@ -129,10 +179,60 @@ public partial class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(HasLibrary));
             StatusText = "התיקייה הוסרה מהספרייה";
         }
+        catch (OperationCanceledException)
+        {
+            StatusText = "הפעולה בוטלה";
+        }
+        catch (Exception ex)
+        {
+            StatusText = ex.Message;
+        }
         finally
         {
             IsBusy = false;
         }
+    }
+
+    [RelayCommand]
+    private async Task SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        if (IsBusy || !HasPendingChanges)
+            return;
+
+        IsBusy = true;
+        StatusText = "שומר שינויים…";
+        try
+        {
+            var operations = _stagingService.Operations.ToArray();
+            var progress = new Progress<CommitProgress>(value =>
+                StatusText = value.Percent >= 100 ? "מסיים…" : $"{value.Status} · {value.Percent:0}%");
+
+            var result = await _commitEngine.CommitAsync(operations, progress, cancellationToken).ConfigureAwait(true);
+            PendingCount = _stagingService.Operations.Count;
+            OnPropertyChanged(nameof(HasPendingChanges));
+            StatusText = result.Success
+                ? "כל השינויים נשמרו בהצלחה"
+                : $"השמירה הסתיימה עם {result.Items.Count(x => !x.Success)} שגיאות";
+            await Explorer.RefreshAsync(cancellationToken).ConfigureAwait(true);
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText = "השמירה בוטלה — שינויים שלא הושלמו נשארו ממתינים";
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"השמירה נכשלה: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    public void RefreshPendingCount()
+    {
+        PendingCount = _stagingService.Operations.Count;
+        OnPropertyChanged(nameof(HasPendingChanges));
     }
 }
 
