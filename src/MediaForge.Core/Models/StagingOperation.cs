@@ -8,4 +8,5 @@ public sealed record StagingOperation(
     OperationType OperationType,
     string Target,
     string? PreviousState,
-    string? DesiredState);
+    string? DesiredState,
+    StagingPayload? Payload = null);
