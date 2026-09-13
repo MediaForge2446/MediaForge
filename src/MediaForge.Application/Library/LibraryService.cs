@@ -1,4 +1,5 @@
 using MediaForge.Core.Interfaces;
+using CoreLibrary = MediaForge.Core.Models.Library;
 using MediaForge.Core.Models;
 
 namespace MediaForge.Application.Library;
@@ -13,11 +14,11 @@ public sealed class LibraryService
         _repository = repository;
     }
 
-    public async Task<Library> LoadAsync(CancellationToken cancellationToken = default)
-        => await _repository.LoadAsync(cancellationToken).ConfigureAwait(false) ?? new Library();
+    public async Task<CoreLibrary> LoadAsync(CancellationToken cancellationToken = default)
+        => await _repository.LoadAsync(cancellationToken).ConfigureAwait(false) ?? new CoreLibrary();
 
     public async Task<RootFolder> AddRootFolderAsync(
-        Library library,
+        CoreLibrary library,
         string path,
         string? name = null,
         CancellationToken cancellationToken = default)
@@ -50,7 +51,7 @@ public sealed class LibraryService
     }
 
     public async Task RemoveRootFolderAsync(
-        Library library,
+        CoreLibrary library,
         Guid rootFolderId,
         CancellationToken cancellationToken = default)
     {
