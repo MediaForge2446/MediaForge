@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediaForge.Application.Abstractions;
+using MediaForge.Application.Commit;
 using MediaForge.Application.Downloads;
 using MediaForge.Application.Library;
 using MediaForge.Application.Staging;
@@ -213,7 +214,8 @@ public partial class MainViewModel : ObservableObject
             StatusText = result.Success
                 ? "כל השינויים נשמרו בהצלחה"
                 : $"השמירה הסתיימה עם {result.Items.Count(x => !x.Success)} שגיאות";
-            await Explorer.RefreshAsync(cancellationToken).ConfigureAwait(true);
+            IsBusy = false;
+            await Explorer.ReloadAsync(cancellationToken).ConfigureAwait(true);
         }
         catch (OperationCanceledException)
         {
