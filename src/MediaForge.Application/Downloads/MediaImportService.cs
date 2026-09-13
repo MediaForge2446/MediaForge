@@ -1,5 +1,5 @@
 using System.Text;
-using MediaForge.Application.Staging;
+using MediaForge.Application.Abstractions;
 using MediaForge.Core.Enums;
 using MediaForge.Core.Interfaces;
 using MediaForge.Core.Models;
@@ -9,9 +9,9 @@ namespace MediaForge.Application.Downloads;
 public sealed class MediaImportService
 {
     private readonly IMediaMetadataResolver _resolver;
-    private readonly StagingService _staging;
+    private readonly IStagingService _staging;
 
-    public MediaImportService(IMediaMetadataResolver resolver, StagingService staging)
+    public MediaImportService(IMediaMetadataResolver resolver, IStagingService staging)
     {
         _resolver = resolver;
         _staging = staging;
