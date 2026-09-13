@@ -9,4 +9,5 @@ public sealed record StagingPayload(
     string? DirectoryPath = null,
     string? NewName = null,
     bool Recursive = false,
-    MediaFormat? DesiredFormat = null);
+    MediaFormat? DesiredFormat = null,
+    string? VideoId = null);
