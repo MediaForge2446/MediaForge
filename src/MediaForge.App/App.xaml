@@ -13,11 +13,13 @@
 
             <conv:BooleanNotConverter x:Key="BooleanNotConverter" />
             <conv:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+            <conv:DirectoryGlyphConverter x:Key="DirectoryGlyphConverter" />
+            <conv:PendingBrushConverter x:Key="PendingBrushConverter" />
 
-            <SolidColorBrush x:Key="MediaForgeBackgroundBrush" Color="#111318" />
-            <SolidColorBrush x:Key="MediaForgeSurfaceBrush" Color="#1A1D23" />
-            <SolidColorBrush x:Key="MediaForgeSurfaceElevatedBrush" Color="#20242C" />
-            <SolidColorBrush x:Key="MediaForgeBorderBrush" Color="#30343D" />
+            <SolidColorBrush x:Key="MediaForgeBackgroundBrush" Color="#0F1115" />
+            <SolidColorBrush x:Key="MediaForgeSurfaceBrush" Color="#171A20" />
+            <SolidColorBrush x:Key="MediaForgeSurfaceElevatedBrush" Color="#1E222A" />
+            <SolidColorBrush x:Key="MediaForgeBorderBrush" Color="#2D333D" />
             <SolidColorBrush x:Key="MediaForgeTextBrush" Color="#F5F7FA" />
             <SolidColorBrush x:Key="MediaForgeMutedBrush" Color="#9EA5B1" />
             <SolidColorBrush x:Key="MediaForgeAccentBrush" Color="#4CC2FF" />
@@ -33,7 +35,7 @@
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Foreground" Value="{StaticResource MediaForgeMutedBrush}" />
                 <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="FontSize" Value="14" />
+                <Setter Property="FontSize" Value="13" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="Cursor" Value="Hand" />
             </Style>
@@ -44,9 +46,55 @@
                 <Setter Property="Background" Value="{StaticResource MediaForgeAccentBrush}" />
                 <Setter Property="Foreground" Value="#061018" />
                 <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="FontSize" Value="14" />
+                <Setter Property="FontSize" Value="13" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="Cursor" Value="Hand" />
+            </Style>
+
+            <Style x:Key="MediaForgeSubtleButtonStyle" TargetType="Button">
+                <Setter Property="MinHeight" Value="36" />
+                <Setter Property="Padding" Value="14,0" />
+                <Setter Property="Background" Value="{StaticResource MediaForgeSurfaceElevatedBrush}" />
+                <Setter Property="Foreground" Value="{StaticResource MediaForgeTextBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource MediaForgeBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Cursor" Value="Hand" />
+            </Style>
+
+            <Style x:Key="MediaForgeDangerButtonStyle" TargetType="Button" BasedOn="{StaticResource MediaForgeSubtleButtonStyle}">
+                <Setter Property="Foreground" Value="{StaticResource MediaForgeErrorBrush}" />
+            </Style>
+
+            <Style x:Key="MediaForgeInputStyle" TargetType="TextBox">
+                <Setter Property="MinHeight" Value="38" />
+                <Setter Property="Padding" Value="10,0" />
+                <Setter Property="Background" Value="#12151A" />
+                <Setter Property="Foreground" Value="{StaticResource MediaForgeTextBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource MediaForgeBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+            </Style>
+
+            <Style x:Key="MediaForgeInlineInputStyle" TargetType="TextBox" BasedOn="{StaticResource MediaForgeInputStyle}">
+                <Setter Property="MinHeight" Value="30" />
+                <Setter Property="Padding" Value="5,0" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+
+            <Style x:Key="MediaForgePathBoxStyle" TargetType="TextBox" BasedOn="{StaticResource MediaForgeInputStyle}">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="FontSize" Value="11" />
+            </Style>
+
+            <Style x:Key="MediaForgeComboStyle" TargetType="ComboBox">
+                <Setter Property="Height" Value="42" />
+                <Setter Property="Background" Value="{StaticResource MediaForgeSurfaceElevatedBrush}" />
+                <Setter Property="Foreground" Value="{StaticResource MediaForgeTextBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource MediaForgeBorderBrush}" />
             </Style>
 
             <Style x:Key="MediaForgeCardStyle" TargetType="Border">
