@@ -33,8 +33,6 @@ public sealed class MediaImportService
             throw new ArgumentException("A destination directory is required.", nameof(destinationDirectory));
 
         var directory = Path.GetFullPath(destinationDirectory.Trim());
-        Directory.CreateDirectory(directory);
-
         var staged = new List<StagingOperation>();
         var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
