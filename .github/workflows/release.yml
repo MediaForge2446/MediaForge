@@ -84,10 +84,17 @@ jobs:
           if (-not (Test-Path (Join-Path $ffmpegBin 'ffmpeg.exe'))) { throw "FFmpeg executable missing." }
           $destination = Join-Path $tools 'ffmpeg'
           if (Test-Path $destination) { Remove-Item $destination -Recurse -Force }
-          New-Item -ItemType Directory -Force -Path $destination | Out-Null
-          Copy-Item -Path (Join-Path $ffmpegBin '*') -Destination $destination -Recurse -Force
+          Copy-Item -Path $root.FullName -Destination $destination -Recurse -Force
           Remove-Item $archive -Force
           Remove-Item $extract -Recurse -Force
+
+      - name: Verify bundled tool layout
+        shell: pwsh
+        run: |
+          $yt = Join-Path $env:GITHUB_WORKSPACE 'publish\tools\yt-dlp.exe'
+          $ffmpeg = Join-Path $env:GITHUB_WORKSPACE 'publish\tools\ffmpeg\bin\ffmpeg.exe'
+          if (-not (Test-Path $yt)) { throw 'Bundled yt-dlp.exe is missing.' }
+          if (-not (Test-Path $ffmpeg)) { throw 'Bundled ffmpeg.exe is missing.' }
 
       - name: Install Inno Setup 7
         shell: pwsh
