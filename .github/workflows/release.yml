@@ -48,7 +48,7 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Restore
-        run: dotnet restore MediaForge.sln
+        run: dotnet restore MediaForge.sln --runtime win-x64
 
       - name: Publish self-contained x64
         run: dotnet publish src/MediaForge.App/MediaForge.App.csproj --configuration Release --runtime win-x64 --self-contained true --no-restore --output publish
