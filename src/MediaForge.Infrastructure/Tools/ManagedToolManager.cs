@@ -43,6 +43,12 @@ public sealed class ManagedToolManager : IToolManager
             var ffmpegReady = File.Exists(ffmpegPath);
 
             if (!ytDlpReady)
+                ytDlpReady = await SeedBundledYtDlpAsync(ytDlpPath, cancellationToken).ConfigureAwait(false);
+
+            if (!ffmpegReady)
+                ffmpegReady = await SeedBundledFfmpegAsync(Path.Combine(_paths.ToolsDirectory, "ffmpeg"), cancellationToken).ConfigureAwait(false);
+
+            if (!ytDlpReady)
                 await InstallYtDlpAsync(ytDlpPath, cancellationToken).ConfigureAwait(false);
 
             if (!ffmpegReady)
@@ -54,6 +60,62 @@ public sealed class ManagedToolManager : IToolManager
         {
             _gate.Release();
         }
+    }
+
+    private Task<bool> SeedBundledYtDlpAsync(string destinationPath, CancellationToken cancellationToken)
+    {
+        var bundledPath = Path.Combine(_paths.BundledToolsDirectory, "yt-dlp.exe");
+        return SeedBundledFileAsync(bundledPath, destinationPath, YtDlpSha256, cancellationToken);
+    }
+
+    private async Task<bool> SeedBundledFfmpegAsync(string destinationDirectory, CancellationToken cancellationToken)
+    {
+        var bundledDirectory = Path.Combine(_paths.BundledToolsDirectory, "ffmpeg");
+        var bundledExecutable = Path.Combine(bundledDirectory, "bin", "ffmpeg.exe");
+        if (!File.Exists(bundledExecutable))
+            return false;
+
+        var bundledHash = await ComputeSha256Async(bundledExecutable, cancellationToken).ConfigureAwait(false);
+        var existingExecutable = Path.Combine(destinationDirectory, "bin", "ffmpeg.exe");
+        if (File.Exists(existingExecutable) && string.Equals(bundledHash, await ComputeSha256Async(existingExecutable, cancellationToken).ConfigureAwait(false), StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        var stagingDirectory = destinationDirectory + ".bundle";
+        TryDeleteDirectory(stagingDirectory);
+        CopyDirectory(bundledDirectory, stagingDirectory);
+
+        try
+        {
+            ReplaceDirectoryAtomically(stagingDirectory, destinationDirectory);
+            return File.Exists(existingExecutable);
+        }
+        catch
+        {
+            TryDeleteDirectory(stagingDirectory);
+            throw;
+        }
+    }
+
+    private static async Task<bool> SeedBundledFileAsync(
+        string sourcePath,
+        string destinationPath,
+        string expectedHash,
+        CancellationToken cancellationToken)
+    {
+        if (!File.Exists(sourcePath))
+            return false;
+
+        if (!string.Equals(
+                await ComputeSha256Async(sourcePath, cancellationToken).ConfigureAwait(false),
+                expectedHash,
+                StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        var tempPath = destinationPath + ".bundle";
+        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+        File.Copy(sourcePath, tempPath, overwrite: true);
+        ReplaceAtomically(tempPath, destinationPath);
+        return true;
     }
 
     private async Task InstallYtDlpAsync(string destinationPath, CancellationToken cancellationToken)
@@ -100,9 +162,6 @@ public sealed class ManagedToolManager : IToolManager
             if (!File.Exists(extractedExecutable))
                 throw new InvalidDataException("FFmpeg executable was not found in the verified archive.");
 
-            var destinationDirectory = Path.GetDirectoryName(destinationPath)
-                ?? throw new InvalidOperationException("FFmpeg destination directory is missing.");
-            Directory.CreateDirectory(destinationDirectory);
             ReplaceDirectoryAtomically(extractedRoot, Path.Combine(_paths.ToolsDirectory, "ffmpeg"));
         }
         catch
@@ -132,9 +191,33 @@ public sealed class ManagedToolManager : IToolManager
         if (!File.Exists(path))
             return false;
 
+        var hash = await ComputeSha256Async(path, cancellationToken).ConfigureAwait(false);
+        return hash.Equals(expectedHash, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static async Task<string> ComputeSha256Async(string path, CancellationToken cancellationToken)
+    {
         await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 128 * 1024, useAsync: true);
         var hash = await SHA256.HashDataAsync(stream, cancellationToken).ConfigureAwait(false);
-        return Convert.ToHexString(hash).Equals(expectedHash, StringComparison.OrdinalIgnoreCase);
+        return Convert.ToHexString(hash);
+    }
+
+    private static void CopyDirectory(string sourceDirectory, string destinationDirectory)
+    {
+        Directory.CreateDirectory(destinationDirectory);
+        foreach (var directory in Directory.GetDirectories(sourceDirectory, "*", SearchOption.AllDirectories))
+        {
+            var relative = Path.GetRelativePath(sourceDirectory, directory);
+            Directory.CreateDirectory(Path.Combine(destinationDirectory, relative));
+        }
+
+        foreach (var file in Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories))
+        {
+            var relative = Path.GetRelativePath(sourceDirectory, file);
+            var target = Path.Combine(destinationDirectory, relative);
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.Copy(file, target, overwrite: true);
+        }
     }
 
     private static string? FindSha256(string checksums, string fileName)
