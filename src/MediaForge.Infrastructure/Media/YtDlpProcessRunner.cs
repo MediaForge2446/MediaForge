@@ -40,7 +40,7 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
         {
             StartInfo = new ProcessStartInfo
             {
-                FileName = tools.YtDlpPath,
+                FileName = tools.YtDlpExecutablePath,
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
@@ -54,7 +54,7 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
         process.StartInfo.ArgumentList.Add("--no-playlist");
         process.StartInfo.ArgumentList.Add("--no-warnings");
         process.StartInfo.ArgumentList.Add("--ffmpeg-location");
-        process.StartInfo.ArgumentList.Add(Path.GetDirectoryName(tools.FfmpegPath) ?? string.Empty);
+        process.StartInfo.ArgumentList.Add(tools.FfmpegExecutablePath);
 
         switch (format)
         {
