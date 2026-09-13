@@ -1,0 +1,133 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "MediaForge version"
+        required: true
+        default: "0.1.0"
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      YTDLP_VERSION: "2026.08.19"
+      YTDLP_URL: "https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp.exe"
+      YTDLP_SHA256: "66674953fe251b89f4d08c5f0e35e0728679bd67ab3d7d05c0562af101dd3e7a"
+      FFMPEG_RELEASE: "autobuild-2026-09-11-13-20"
+      FFMPEG_URL: "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-11-13-20/ffmpeg-n9.0.1-29-gad500d59cb-win64-gpl-shared-9.0.zip"
+      FFMPEG_ARCHIVE_NAME: "ffmpeg-n9.0.1-29-gad500d59cb-win64-gpl-shared-9.0.zip"
+      FFMPEG_CHECKSUMS_URL: "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-11-13-20/checksums.sha256"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          if ('${{ github.event_name }}' -eq 'push') {
+            $version = '${{ github.ref_name }}'.TrimStart('v')
+          } else {
+            $version = '${{ github.event.inputs.version }}'
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore MediaForge.sln --runtime win-x64
+
+      - name: Publish self-contained x64
+        run: dotnet publish src/MediaForge.App/MediaForge.App.csproj --configuration Release --runtime win-x64 --self-contained true --no-restore --output publish
+
+      - name: Download and verify yt-dlp
+        shell: pwsh
+        run: |
+          $tools = Join-Path $env:GITHUB_WORKSPACE 'publish\tools'
+          New-Item -ItemType Directory -Force -Path $tools | Out-Null
+          $target = Join-Path $tools 'yt-dlp.exe'
+          Invoke-WebRequest -Uri $env:YTDLP_URL -OutFile $target
+          $actual = (Get-FileHash -Algorithm SHA256 $target).Hash.ToLowerInvariant()
+          if ($actual -ne $env:YTDLP_SHA256) { throw "yt-dlp SHA-256 verification failed." }
+
+      - name: Download and verify FFmpeg
+        shell: pwsh
+        run: |
+          $tools = Join-Path $env:GITHUB_WORKSPACE 'publish\tools'
+          $archive = Join-Path $tools $env:FFMPEG_ARCHIVE_NAME
+          $extract = Join-Path $tools 'ffmpeg-extract'
+          Invoke-WebRequest -Uri $env:FFMPEG_URL -OutFile $archive
+          $checksums = (Invoke-WebRequest -Uri $env:FFMPEG_CHECKSUMS_URL).Content
+          $line = $checksums -split "`r?`n" | Where-Object { $_ -match [regex]::Escape($env:FFMPEG_ARCHIVE_NAME) } | Select-Object -First 1
+          if (-not $line) { throw "FFmpeg checksum entry was not found." }
+          $expected = ($line -split '\s+')[0].ToLowerInvariant()
+          $actual = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) { throw "FFmpeg SHA-256 verification failed." }
+          if (Test-Path $extract) { Remove-Item $extract -Recurse -Force }
+          Expand-Archive -Path $archive -DestinationPath $extract -Force
+          $root = Get-ChildItem -Path $extract -Directory | Select-Object -First 1
+          if (-not $root) { throw "FFmpeg archive layout is invalid." }
+          $ffmpegBin = Join-Path $root.FullName 'bin'
+          if (-not (Test-Path (Join-Path $ffmpegBin 'ffmpeg.exe'))) { throw "FFmpeg executable missing." }
+          $destination = Join-Path $tools 'ffmpeg'
+          if (Test-Path $destination) { Remove-Item $destination -Recurse -Force }
+          Copy-Item -Path $root.FullName -Destination $destination -Recurse -Force
+          Remove-Item $archive -Force
+          Remove-Item $extract -Recurse -Force
+
+      - name: Verify bundled tool layout
+        shell: pwsh
+        run: |
+          $yt = Join-Path $env:GITHUB_WORKSPACE 'publish\tools\yt-dlp.exe'
+          $ffmpeg = Join-Path $env:GITHUB_WORKSPACE 'publish\tools\ffmpeg\bin\ffmpeg.exe'
+          if (-not (Test-Path $yt)) { throw 'Bundled yt-dlp.exe is missing.' }
+          if (-not (Test-Path $ffmpeg)) { throw 'Bundled ffmpeg.exe is missing.' }
+
+      - name: Install Inno Setup 7
+        shell: pwsh
+        run: |
+          winget install --id JRSoftware.InnoSetup.7 -e --accept-package-agreements --accept-source-agreements --disable-interactivity
+
+      - name: Build Setup.exe
+        shell: pwsh
+        env:
+          MEDIAFORGE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          $iscc = Get-ChildItem 'C:\Program Files' -Recurse -Filter ISCC.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $iscc) { throw 'Inno Setup compiler was not found.' }
+          & $iscc.FullName "/DMyAppVersion=$env:MEDIAFORGE_VERSION" 'installer\MediaForge.iss'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Verify Setup.exe
+        shell: pwsh
+        run: |
+          $setup = Join-Path $env:GITHUB_WORKSPACE 'installer\output\Setup.exe'
+          if (-not (Test-Path $setup)) { throw 'Setup.exe was not created.' }
+          Get-Item $setup | Format-List FullName,Length
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaForge-Setup
+          path: installer/output/Setup.exe
+          if-no-files-found: error
+
+      - name: Create GitHub release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: installer/output/Setup.exe
+          generate_release_notes: true

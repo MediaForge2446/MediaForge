@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mediaforge-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore MediaForge.sln --runtime win-x64
+
+      - name: Build
+        run: dotnet build MediaForge.sln --configuration Release --no-restore
+
+      - name: Application unit tests
+        run: dotnet test tests/MediaForge.Application.Tests/MediaForge.Application.Tests.csproj --configuration Release --no-restore --no-build
+
+      - name: Infrastructure unit tests
+        run: dotnet test tests/MediaForge.Infrastructure.Tests/MediaForge.Infrastructure.Tests.csproj --configuration Release --no-restore --no-build
+
+      - name: Verify WPF publish configuration
+        run: dotnet publish src/MediaForge.App/MediaForge.App.csproj --configuration Release --runtime win-x64 --self-contained true --no-restore --output artifacts/app-check

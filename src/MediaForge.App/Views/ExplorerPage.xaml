@@ -1,0 +1,109 @@
+<UserControl x:Class="MediaForge.App.Views.ExplorerPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             FlowDirection="RightToLeft">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <StackPanel>
+                <TextBlock Text="סייר הקבצים" FontSize="28" FontWeight="Bold" />
+                <TextBlock Text="כל שינוי מסומן תחילה כממתין. שום קובץ לא משתנה לפני שמירת השינויים."
+                           Margin="0,5,0,0" FontSize="13" Foreground="{StaticResource MediaForgeMutedBrush}" />
+            </StackPanel>
+            <Button HorizontalAlignment="Left" Content="↻  רענון" Command="{Binding RefreshCommand}" Style="{StaticResource MediaForgeSubtleButtonStyle}" />
+        </Grid>
+
+        <Border Grid.Row="1" Margin="0,20,0,14" Padding="10" Style="{StaticResource MediaForgeCardStyle}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button Content="↑" Command="{Binding GoUpCommand}" IsEnabled="{Binding CanGoUp}"
+                        Width="38" Height="34" Style="{StaticResource MediaForgeSubtleButtonStyle}" />
+                <TextBox Grid.Column="1" Text="{Binding CurrentPath}" IsReadOnly="True"
+                         Margin="10,0" Style="{StaticResource MediaForgePathBoxStyle}" />
+                <TextBlock Grid.Column="2" Text="{Binding StatusText}" VerticalAlignment="Center"
+                           FontSize="11" Foreground="{StaticResource MediaForgeMutedBrush}" />
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Width="220" Text="{Binding NewFolderName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MediaForgeInputStyle}" />
+                    <Button Content="＋ תיקייה" Command="{Binding CreateFolderCommand}" Margin="8,0,0,0" Style="{StaticResource MediaForgeSubtleButtonStyle}" />
+                </StackPanel>
+                <Button Grid.Column="1" Content="מחיקה" Command="{Binding DeleteSelectedCommand}" Margin="8,0,0,0" Style="{StaticResource MediaForgeDangerButtonStyle}" />
+                <Button Grid.Column="2" Content="שינוי שם" Command="{Binding RenameSelectedCommand}" Margin="8,0,0,0" Style="{StaticResource MediaForgeSubtleButtonStyle}" />
+                <Button Grid.Column="3" Content="ביטול שינוי" Command="{Binding UndoSelectedCommand}" Margin="8,0,0,0" Style="{StaticResource MediaForgeSubtleButtonStyle}" />
+            </Grid>
+
+            <Border Grid.Row="1" Style="{StaticResource MediaForgeCardStyle}">
+                <ListView ItemsSource="{Binding Entries}" SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
+                          BorderThickness="0" Background="Transparent" Padding="6">
+                    <ListView.View>
+                        <GridView AllowsColumnReorder="False">
+                            <GridViewColumn Header="שם" Width="300">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Command="{Binding DataContext.OpenCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                CommandParameter="{Binding}" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Stretch">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding IsDirectory, Converter={StaticResource DirectoryGlyphConverter}}" Width="30" FontSize="18" />
+                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="סוג" DisplayMemberBinding="{Binding KindText}" Width="110" />
+                            <GridViewColumn Header="גודל" DisplayMemberBinding="{Binding SizeText}" Width="100" />
+                            <GridViewColumn Header="מצב" Width="130">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding StatusText}"
+                                                   Foreground="{Binding IsPending, Converter={StaticResource PendingBrushConverter}}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Border>
+
+            <Border Grid.Row="2" Margin="0,12,0,0" Padding="12" Style="{StaticResource MediaForgeCardStyle}">
+                <Grid>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="שינוי שם:" FontSize="11" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding NewName, UpdateSourceTrigger=PropertyChanged}" Width="180" Margin="8,0,0,0" Style="{StaticResource MediaForgeInputStyle}" />
+                        <TextBlock Text="יעד העברה:" FontSize="11" Margin="18,0,0,0" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding MoveDestination, UpdateSourceTrigger=PropertyChanged}" Width="300" Margin="8,0,0,0" Style="{StaticResource MediaForgeInputStyle}" />
+                        <Button Content="העבר" Command="{Binding MoveSelectedCommand}" Margin="8,0,0,0" Style="{StaticResource MediaForgeSubtleButtonStyle}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>
