@@ -8,6 +8,7 @@ public sealed class LocalAppPaths
 
     public string LibraryFilePath => Path.Combine(AppDirectory, "library.json");
     public string StagingFilePath => Path.Combine(AppDirectory, "staging.json");
+    public string MediaIndexFilePath => Path.Combine(AppDirectory, "media-index.json");
     public string ToolsDirectory => Path.Combine(AppDirectory, "tools");
     public string BundledToolsDirectory => Path.Combine(AppContext.BaseDirectory, "tools");
 }
