@@ -9,13 +9,12 @@ public sealed class JsonMediaIndexTests
     [Fact]
     public async Task UpsertPersistsAndReloadsByVideoId()
     {
-        var tempRoot = Path.Combine(Path.GetTempPath(), "MediaForgeTests", Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(tempRoot);
+        var tempRoot = CreateTempDirectory();
         try
         {
             var store = new AtomicJsonStore();
-            var paths = new LocalAppPathsForTest(tempRoot);
-            var first = new JsonMediaIndex(store, paths);
+            var path = Path.Combine(tempRoot, "media-index.json");
+            var first = new JsonMediaIndex(store, path);
             var entry = new MediaIndexEntry(
                 "abc123",
                 "https://youtube.test/watch?v=abc123",
@@ -26,7 +25,7 @@ public sealed class JsonMediaIndexTests
 
             await first.UpsertAsync(entry);
 
-            var second = new JsonMediaIndex(store, paths);
+            var second = new JsonMediaIndex(store, path);
             var loaded = await second.FindByVideoIdAsync("ABC123");
 
             Assert.Equal(entry, loaded);
@@ -34,40 +33,44 @@ public sealed class JsonMediaIndexTests
         }
         finally
         {
-            try { Directory.Delete(tempRoot, true); } catch { }
+            TryDelete(tempRoot);
         }
     }
 
     [Fact]
     public async Task RemoveDeletesEntryFromPersistentIndex()
     {
-        var tempRoot = Path.Combine(Path.GetTempPath(), "MediaForgeTests", Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(tempRoot);
+        var tempRoot = CreateTempDirectory();
         try
         {
             var store = new AtomicJsonStore();
-            var paths = new LocalAppPathsForTest(tempRoot);
-            var index = new JsonMediaIndex(store, paths);
+            var path = Path.Combine(tempRoot, "media-index.json");
+            var index = new JsonMediaIndex(store, path);
             await index.UpsertAsync(new MediaIndexEntry(
                 "abc123", "https://youtube.test/abc123", Path.Combine(tempRoot, "song.mp3"),
                 MediaFormat.Mp3, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
 
             await index.RemoveAsync("abc123");
 
-            var reloaded = new JsonMediaIndex(store, paths);
+            var reloaded = new JsonMediaIndex(store, path);
             Assert.Null(await reloaded.FindByVideoIdAsync("abc123"));
             Assert.Empty(reloaded.Entries);
         }
         finally
         {
-            try { Directory.Delete(tempRoot, true); } catch { }
+            TryDelete(tempRoot);
         }
     }
 
-    private sealed class LocalAppPathsForTest : LocalAppPaths
+    private static string CreateTempDirectory()
     {
-        public LocalAppPathsForTest(string root) => Root = root;
-        public string Root { get; }
-        public override string AppDirectory => Root;
+        var path = Path.Combine(Path.GetTempPath(), "MediaForgeTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(path);
+        return path;
+    }
+
+    private static void TryDelete(string path)
+    {
+        try { Directory.Delete(path, true); } catch { }
     }
 }
