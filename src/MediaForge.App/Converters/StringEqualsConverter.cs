@@ -9,5 +9,5 @@ public sealed class StringEqualsConverter : IValueConverter
         => string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase) ? "Active" : null!;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => Binding.DoNothing;
+        => System.Windows.Data.Binding.DoNothing;
 }
