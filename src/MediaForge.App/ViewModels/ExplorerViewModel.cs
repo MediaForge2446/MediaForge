@@ -16,16 +16,19 @@ public partial class ExplorerViewModel : ObservableObject
     private readonly ExplorerProjectionService _projection;
     private readonly HashSet<Guid> _failedOperationIds = [];
 
+    [ObservableProperty] private string _rootPath = string.Empty;
     [ObservableProperty] private string _currentPath = string.Empty;
     [ObservableProperty] private ExplorerEntryViewModel? _selectedEntry;
     [ObservableProperty] private string _newFolderName = string.Empty;
     [ObservableProperty] private string _newName = string.Empty;
     [ObservableProperty] private string _moveDestination = string.Empty;
-    [ObservableProperty] private string _statusText = "בחר תיקייה כדי להתחיל";
+    [ObservableProperty] private string _statusText = "בחר תיקייה";
     [ObservableProperty] private bool _isBusy;
 
     public ObservableCollection<ExplorerEntryViewModel> Entries { get; } = [];
-    public bool CanGoUp => !string.IsNullOrWhiteSpace(CurrentPath) && !string.Equals(Path.GetPathRoot(CurrentPath), CurrentPath, StringComparison.OrdinalIgnoreCase);
+    public ObservableCollection<ExplorerTreeNodeViewModel> FolderTree { get; } = [];
+    public bool CanGoUp => !string.IsNullOrWhiteSpace(CurrentPath) && !string.Equals(Path.GetFullPath(RootPath), Path.GetFullPath(CurrentPath), StringComparison.OrdinalIgnoreCase);
+    public bool CanGoHome => CanGoUp;
 
     public event Action<string>? AddMediaRequested;
 
@@ -38,7 +41,12 @@ public partial class ExplorerViewModel : ObservableObject
 
     public async Task InitializeAsync(string? initialPath = null, CancellationToken cancellationToken = default)
     {
-        if (!string.IsNullOrWhiteSpace(initialPath)) CurrentPath = Path.GetFullPath(initialPath);
+        if (!string.IsNullOrWhiteSpace(initialPath))
+        {
+            RootPath = Path.GetFullPath(initialPath);
+            CurrentPath = RootPath;
+            await BuildFolderTreeAsync(cancellationToken).ConfigureAwait(true);
+        }
         if (!string.IsNullOrWhiteSpace(CurrentPath)) await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
@@ -62,11 +70,54 @@ public partial class ExplorerViewModel : ObservableObject
 
             StatusText = Entries.Count == 0 ? "התיקייה ריקה" : $"{Entries.Count} פריטים";
             OnPropertyChanged(nameof(CanGoUp));
+            OnPropertyChanged(nameof(CanGoHome));
         }
         catch (OperationCanceledException) { StatusText = "הפעולה בוטלה"; }
         catch (Exception ex) { StatusText = ex.Message; }
         finally { IsBusy = false; }
     }
+
+    private async Task BuildFolderTreeAsync(CancellationToken cancellationToken)
+    {
+        FolderTree.Clear();
+        if (string.IsNullOrWhiteSpace(RootPath)) return;
+        var root = new ExplorerTreeNodeViewModel(Path.GetFileName(RootPath.TrimEnd(Path.DirectorySeparatorChar)) is { Length: > 0 } name ? name : RootPath, RootPath);
+        await PopulateTreeAsync(root, depth: 0, cancellationToken).ConfigureAwait(true);
+        root.IsExpanded = true;
+        FolderTree.Add(root);
+    }
+
+    private async Task PopulateTreeAsync(ExplorerTreeNodeViewModel node, int depth, CancellationToken cancellationToken)
+    {
+        if (depth >= 4) return;
+        try
+        {
+            var entries = await _explorer.ListAsync(node.FullPath, cancellationToken).ConfigureAwait(true);
+            foreach (var entry in entries.Where(x => x.IsDirectory).OrderBy(x => x.Name, StringComparer.CurrentCultureIgnoreCase))
+            {
+                var child = new ExplorerTreeNodeViewModel(entry.Name, entry.FullPath);
+                node.Children.Add(child);
+                await PopulateTreeAsync(child, depth + 1, cancellationToken).ConfigureAwait(true);
+            }
+        }
+        catch (UnauthorizedAccessException) { }
+        catch (DirectoryNotFoundException) { }
+    }
+
+    public async Task NavigateToPathAsync(string path, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(RootPath) || string.IsNullOrWhiteSpace(path)) return;
+        var full = Path.GetFullPath(path);
+        if (!full.StartsWith(Path.GetFullPath(RootPath).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(full, Path.GetFullPath(RootPath), StringComparison.OrdinalIgnoreCase)) return;
+        CurrentPath = full;
+        await ReloadAsync(cancellationToken).ConfigureAwait(true);
+        OnPropertyChanged(nameof(CanGoUp));
+        OnPropertyChanged(nameof(CanGoHome));
+    }
+
+    public async Task GoHomeAsync(CancellationToken cancellationToken = default)
+        => await NavigateToPathAsync(RootPath, cancellationToken).ConfigureAwait(true);
 
     public void RequestAddMediaToCurrentFolder()
     {
@@ -76,11 +127,9 @@ public partial class ExplorerViewModel : ObservableObject
 
     public async Task ApplyCommitResultsAsync(IEnumerable<Guid> successfulOperationIds, IEnumerable<Guid> failedOperationIds, CancellationToken cancellationToken = default)
     {
-        foreach (var operationId in successfulOperationIds)
-            _failedOperationIds.Remove(operationId);
-        foreach (var operationId in failedOperationIds)
-            _failedOperationIds.Add(operationId);
-
+        foreach (var operationId in successfulOperationIds) _failedOperationIds.Remove(operationId);
+        foreach (var operationId in failedOperationIds) _failedOperationIds.Add(operationId);
+        await BuildFolderTreeAsync(cancellationToken).ConfigureAwait(true);
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
@@ -88,8 +137,7 @@ public partial class ExplorerViewModel : ObservableObject
     private async Task OpenAsync(ExplorerEntryViewModel? entry, CancellationToken cancellationToken)
     {
         if (entry is null || !entry.IsDirectory || entry.MarkedForDeletion || entry.IsError || IsBusy) return;
-        CurrentPath = entry.FullPath;
-        await ReloadAsync(cancellationToken).ConfigureAwait(true);
+        await NavigateToPathAsync(entry.FullPath, cancellationToken).ConfigureAwait(true);
     }
 
     [RelayCommand]
@@ -98,8 +146,8 @@ public partial class ExplorerViewModel : ObservableObject
         if (!CanGoUp || IsBusy) return;
         var parent = Directory.GetParent(CurrentPath)?.FullName;
         if (parent is null) return;
-        CurrentPath = parent;
-        await ReloadAsync(cancellationToken).ConfigureAwait(true);
+        if (!parent.StartsWith(Path.GetFullPath(RootPath), StringComparison.OrdinalIgnoreCase)) parent = RootPath;
+        await NavigateToPathAsync(parent, cancellationToken).ConfigureAwait(true);
     }
 
     [RelayCommand]
@@ -113,7 +161,8 @@ public partial class ExplorerViewModel : ObservableObject
         { StatusText = "התיקייה כבר קיימת"; return; }
         await _staging.StageAsync(CreateOperation(OperationType.CreateDirectory, target, new StagingPayload(DirectoryPath: target, IsDirectory: true)), cancellationToken).ConfigureAwait(true);
         NewFolderName = string.Empty;
-        StatusText = "תיקייה נוספה לשינויים ממתינים";
+        StatusText = "תיקייה נוספה לשינויים הממתינים";
+        await BuildFolderTreeAsync(cancellationToken).ConfigureAwait(true);
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
@@ -155,7 +204,7 @@ public partial class ExplorerViewModel : ObservableObject
         if (_staging.Operations.Any(x => string.Equals(x.Payload?.DestinationPath, destinationPath, StringComparison.OrdinalIgnoreCase))) { StatusText = "כבר קיים שינוי ממתין ליעד הזה"; return; }
         await _staging.StageAsync(CreateOperation(OperationType.Move, entry.FullPath, new StagingPayload(SourcePath: entry.FullPath, DestinationPath: destinationPath, IsDirectory: entry.IsDirectory)), cancellationToken).ConfigureAwait(true);
         MoveDestination = string.Empty;
-        StatusText = "העברה סומנה לשמירה";
+        StatusText = "ההעברה סומנה לשמירה";
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
@@ -175,8 +224,16 @@ public partial class ExplorerViewModel : ObservableObject
     public async Task SetInitialPathAsync(string? path, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(path)) return;
-        CurrentPath = Path.GetFullPath(path);
+        var full = Path.GetFullPath(path);
+        if (string.IsNullOrWhiteSpace(RootPath) || !string.Equals(RootPath, full, StringComparison.OrdinalIgnoreCase))
+        {
+            RootPath = full;
+            await BuildFolderTreeAsync(cancellationToken).ConfigureAwait(true);
+        }
+        CurrentPath = full;
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
+        OnPropertyChanged(nameof(CanGoUp));
+        OnPropertyChanged(nameof(CanGoHome));
     }
 
     private static StagingOperation CreateOperation(OperationType type, string target, StagingPayload payload)
@@ -187,6 +244,20 @@ public partial class ExplorerViewModel : ObservableObject
         var normalizedCandidate = Path.GetFullPath(candidate).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
         var normalizedParent = Path.GetFullPath(parent).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
         return normalizedCandidate.StartsWith(normalizedParent, StringComparison.OrdinalIgnoreCase);
+    }
+}
+
+public sealed partial class ExplorerTreeNodeViewModel : ObservableObject
+{
+    public string Name { get; }
+    public string FullPath { get; }
+    public ObservableCollection<ExplorerTreeNodeViewModel> Children { get; } = [];
+    [ObservableProperty] private bool _isExpanded;
+
+    public ExplorerTreeNodeViewModel(string name, string fullPath)
+    {
+        Name = name;
+        FullPath = fullPath;
     }
 }
 
