@@ -23,6 +23,7 @@ public partial class App : System.Windows.Application
         base.OnStartup(e);
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+
         try
         {
             var paths = new LocalAppPaths();
@@ -39,14 +40,33 @@ public partial class App : System.Windows.Application
             IExplorerService explorerService = new WindowsExplorerService();
             var libraryScanService = new LibraryScanService(explorerService);
             IFileSystem fileSystem = new WindowsFileSystem();
+            IMediaIndex mediaIndex = new JsonMediaIndex(store, paths);
+            await mediaIndex.InitializeAsync();
+
             var downloadQueue = new DownloadQueue(maxConcurrency: 2);
-            ICommitEngine commitEngine = new CommitEngine(fileSystem, mediaDownloader, stagingService, downloadQueue);
-            var mediaImportService = new MediaImportService(metadataResolver, stagingService);
+            ICommitEngine commitEngine = new CommitEngine(
+                fileSystem,
+                mediaDownloader,
+                stagingService,
+                downloadQueue,
+                mediaIndex);
+            var mediaImportService = new MediaImportService(
+                metadataResolver,
+                stagingService,
+                mediaIndex,
+                fileSystem);
             var explorerViewModel = new ExplorerViewModel(explorerService, stagingService);
             var downloadsViewModel = new DownloadsViewModel(mediaImportService, folderPicker);
             var settingsViewModel = new SettingsViewModel(toolManager);
-            var mainViewModel = new MainViewModel(libraryService, libraryScanService, folderPicker, stagingService, commitEngine,
-                explorerViewModel, downloadsViewModel, settingsViewModel);
+            var mainViewModel = new MainViewModel(
+                libraryService,
+                libraryScanService,
+                folderPicker,
+                stagingService,
+                commitEngine,
+                explorerViewModel,
+                downloadsViewModel,
+                settingsViewModel);
 
             var window = new MainWindow(mainViewModel);
             MainWindow = window;
@@ -55,14 +75,22 @@ public partial class App : System.Windows.Application
         }
         catch (Exception ex)
         {
-            System.Windows.MessageBox.Show($"MediaForge could not start.\n\n{ex.Message}", "MediaForge", MessageBoxButton.OK, MessageBoxImage.Error);
+            System.Windows.MessageBox.Show(
+                $"MediaForge could not start.\n\n{ex.Message}",
+                "MediaForge",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
             Shutdown(-1);
         }
     }
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        System.Windows.MessageBox.Show($"MediaForge encountered an unexpected error.\n\n{e.Exception.Message}", "MediaForge", MessageBoxButton.OK, MessageBoxImage.Error);
+        System.Windows.MessageBox.Show(
+            $"MediaForge encountered an unexpected error.\n\n{e.Exception.Message}",
+            "MediaForge",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
         e.Handled = true;
     }
 
