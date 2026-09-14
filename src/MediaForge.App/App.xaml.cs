@@ -47,10 +47,11 @@ public partial class App : System.Windows.Application
             var settingsViewModel = new SettingsViewModel(toolManager);
             var mainViewModel = new MainViewModel(libraryService, libraryScanService, folderPicker, stagingService, commitEngine,
                 explorerViewModel, downloadsViewModel, settingsViewModel);
-            await mainViewModel.InitializeAsync();
+
             var window = new MainWindow(mainViewModel);
             MainWindow = window;
             window.Show();
+            await mainViewModel.InitializeAsync();
         }
         catch (Exception ex)
         {
