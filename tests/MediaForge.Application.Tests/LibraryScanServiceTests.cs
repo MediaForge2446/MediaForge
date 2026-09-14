@@ -9,18 +9,22 @@ public sealed class LibraryScanServiceTests
     [Fact]
     public async Task ScanCountsFilesFoldersMediaAndBytesWithoutMutating()
     {
-        var root = new RootFolder(Guid.NewGuid(), @"C:\\Music", "Music");
+        var root = new RootFolder
+        {
+            Path = @"C:\Music",
+            Name = "Music"
+        };
         var explorer = new FakeExplorer(new Dictionary<string, IReadOnlyList<ExplorerEntry>>(StringComparer.OrdinalIgnoreCase)
         {
             [root.Path] =
             [
-                new("Albums", @"C:\\Music\\Albums", true, 0, DateTimeOffset.UtcNow),
-                new("cover.jpg", @"C:\\Music\\cover.jpg", false, 100, DateTimeOffset.UtcNow)
+                new("Albums", @"C:\Music\Albums", true, 0, DateTimeOffset.UtcNow),
+                new("cover.jpg", @"C:\Music\cover.jpg", false, 100, DateTimeOffset.UtcNow)
             ],
-            [@"C:\\Music\\Albums"] =
+            [@"C:\Music\Albums"] =
             [
-                new("song.mp3", @"C:\\Music\\Albums\\song.mp3", false, 2048, DateTimeOffset.UtcNow),
-                new("notes.txt", @"C:\\Music\\Albums\\notes.txt", false, 512, DateTimeOffset.UtcNow)
+                new("song.mp3", @"C:\Music\Albums\song.mp3", false, 2048, DateTimeOffset.UtcNow),
+                new("notes.txt", @"C:\Music\Albums\notes.txt", false, 512, DateTimeOffset.UtcNow)
             ]
         });
         var service = new LibraryScanService(explorer);
@@ -38,7 +42,11 @@ public sealed class LibraryScanServiceTests
     [Fact]
     public async Task ScanReportsMissingRoot()
     {
-        var root = new RootFolder(Guid.NewGuid(), @"Z:\\Missing", "Missing");
+        var root = new RootFolder
+        {
+            Path = @"Z:\Missing",
+            Name = "Missing"
+        };
         var service = new LibraryScanService(new MissingExplorer());
 
         var result = await service.ScanAsync(root);
