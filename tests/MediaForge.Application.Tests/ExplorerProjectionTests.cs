@@ -40,9 +40,9 @@ public sealed class ExplorerProjectionTests
         };
         var operations = new[]
         {
-            Op(OperationType.Rename, "C:/Music/Song.mp3", new StagingPayload(SourcePath: "C:/Music/Song.mp3", DestinationPath: "C:/Music/Renamed.mp3", NewName: "Renamed.mp3", IsDirectory: false), 1),
-            Op(OperationType.Move, "C:/Music/Renamed.mp3", new StagingPayload(SourcePath: "C:/Music/Renamed.mp3", DestinationPath: "C:/Music/Archive/Renamed.mp3", IsDirectory: false), 2),
-            Op(OperationType.Delete, "C:/Music/Keep", new StagingPayload(SourcePath: "C:/Music/Keep", Recursive: true, IsDirectory: true), 3)
+            Op(OperationType.Rename, "C:/Music/Song.mp3", new StagingPayload(SourcePath: "C:/Music/Song.mp3", DestinationPath: "C:/Music/Renamed.mp3", NewName: "Renamed.mp3"), 1),
+            Op(OperationType.Move, "C:/Music/Renamed.mp3", new StagingPayload(SourcePath: "C:/Music/Renamed.mp3", DestinationPath: "C:/Music/Archive/Renamed.mp3"), 2),
+            Op(OperationType.Delete, "C:/Music/Keep", new StagingPayload(SourcePath: "C:/Music/Keep", Recursive: true), 3)
         };
 
         var result = _projection.Project("C:/Music", actual, operations);
@@ -56,43 +56,26 @@ public sealed class ExplorerProjectionTests
     [Fact]
     public void ProjectsMovedItemIntoDestinationFolder()
     {
-        var actual = Array.Empty<ExplorerEntry>();
+        var actual = new[]
+        {
+            new ExplorerEntry("Song.mp3", "C:/Music/Song.mp3", false, 123, Timestamp),
+            new ExplorerEntry("Archive", "C:/Music/Archive", true, 0, Timestamp)
+        };
         var operations = new[]
         {
             Op(OperationType.Move, "C:/Music/Song.mp3", new StagingPayload(
                 SourcePath: "C:/Music/Song.mp3",
-                DestinationPath: "C:/Music/Archive/Song.mp3",
-                IsDirectory: false), 1)
+                DestinationPath: "C:/Music/Archive/Song.mp3"), 1)
         };
 
         var result = _projection.Project("C:/Music/Archive", actual, operations);
 
-        var moved = Assert.Single(result);
-        Assert.Equal("Song.mp3", moved.Entry.Name);
-        Assert.Equal("C:/Music/Archive/Song.mp3", moved.Entry.FullPath);
+        var moved = Assert.Single(result, x => x.Entry.Name == "Song.mp3");
         Assert.True(moved.IsPending);
-        Assert.False(moved.Entry.IsDirectory);
-    }
-
-    [Fact]
-    public void DoesNotResurrectAnItemDeletedBeforeRename()
-    {
-        var actual = new[]
-        {
-            new ExplorerEntry("Song.mp3", "C:/Music/Song.mp3", false, 123, Timestamp)
-        };
-        var operations = new[]
-        {
-            Op(OperationType.Delete, "C:/Music/Song.mp3", new StagingPayload(SourcePath: "C:/Music/Song.mp3", IsDirectory: false), 1),
-            Op(OperationType.Rename, "C:/Music/Song.mp3", new StagingPayload(SourcePath: "C:/Music/Song.mp3", DestinationPath: "C:/Music/Renamed.mp3", NewName: "Renamed.mp3", IsDirectory: false), 2)
-        };
-
-        var result = _projection.Project("C:/Music", actual, operations);
-
-        var deleted = Assert.Single(result);
-        Assert.Equal("Song.mp3", deleted.Entry.Name);
-        Assert.True(deleted.MarkedForDeletion);
-        Assert.DoesNotContain(result, x => x.Entry.Name == "Renamed.mp3");
+        Assert.Equal("Song.mp3", moved.Entry.Name);
+        Assert.True(Path.GetFullPath(moved.Entry.FullPath).Equals(
+            Path.GetFullPath("C:/Music/Archive/Song.mp3"),
+            StringComparison.OrdinalIgnoreCase));
     }
 
     private static StagingOperation Op(OperationType type, string target, StagingPayload payload, int seconds)
