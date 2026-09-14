@@ -27,7 +27,7 @@ public partial class ExplorerViewModel : ObservableObject
 
     public ObservableCollection<ExplorerEntryViewModel> Entries { get; } = [];
     public ObservableCollection<ExplorerTreeNodeViewModel> FolderTree { get; } = [];
-    public bool CanGoUp => !string.IsNullOrWhiteSpace(CurrentPath) && !string.Equals(Path.GetFullPath(RootPath), Path.GetFullPath(CurrentPath), StringComparison.OrdinalIgnoreCase);
+    public bool CanGoUp => !string.IsNullOrWhiteSpace(RootPath) && !string.IsNullOrWhiteSpace(CurrentPath) && !string.Equals(Path.GetFullPath(RootPath), Path.GetFullPath(CurrentPath), StringComparison.OrdinalIgnoreCase);
     public bool CanGoHome => CanGoUp;
 
     public event Action<string>? AddMediaRequested;
@@ -62,10 +62,7 @@ public partial class ExplorerViewModel : ObservableObject
             foreach (var item in projected)
             {
                 var isError = item.PendingOperationId is Guid operationId && _failedOperationIds.Contains(operationId);
-                Entries.Add(new ExplorerEntryViewModel(item.Entry, item.IsPending, item.PendingOperationId, isError)
-                {
-                    MarkedForDeletion = item.MarkedForDeletion
-                });
+                Entries.Add(new ExplorerEntryViewModel(item.Entry, item.IsPending, item.PendingOperationId, isError) { MarkedForDeletion = item.MarkedForDeletion });
             }
 
             StatusText = Entries.Count == 0 ? "התיקייה ריקה" : $"{Entries.Count} פריטים";
@@ -81,8 +78,9 @@ public partial class ExplorerViewModel : ObservableObject
     {
         FolderTree.Clear();
         if (string.IsNullOrWhiteSpace(RootPath)) return;
-        var root = new ExplorerTreeNodeViewModel(Path.GetFileName(RootPath.TrimEnd(Path.DirectorySeparatorChar)) is { Length: > 0 } name ? name : RootPath, RootPath);
-        await PopulateTreeAsync(root, depth: 0, cancellationToken).ConfigureAwait(true);
+        var rootName = Path.GetFileName(RootPath.TrimEnd(Path.DirectorySeparatorChar));
+        var root = new ExplorerTreeNodeViewModel(string.IsNullOrWhiteSpace(rootName) ? RootPath : rootName, RootPath);
+        await PopulateTreeAsync(root, 0, cancellationToken).ConfigureAwait(true);
         root.IsExpanded = true;
         FolderTree.Add(root);
     }
@@ -108,8 +106,9 @@ public partial class ExplorerViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(RootPath) || string.IsNullOrWhiteSpace(path)) return;
         var full = Path.GetFullPath(path);
-        if (!full.StartsWith(Path.GetFullPath(RootPath).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(full, Path.GetFullPath(RootPath), StringComparison.OrdinalIgnoreCase)) return;
+        var root = Path.GetFullPath(RootPath).TrimEnd(Path.DirectorySeparatorChar);
+        if (!string.Equals(full, root, StringComparison.OrdinalIgnoreCase) &&
+            !full.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) return;
         CurrentPath = full;
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
         OnPropertyChanged(nameof(CanGoUp));
@@ -118,6 +117,12 @@ public partial class ExplorerViewModel : ObservableObject
 
     public async Task GoHomeAsync(CancellationToken cancellationToken = default)
         => await NavigateToPathAsync(RootPath, cancellationToken).ConfigureAwait(true);
+
+    public async Task OpenFromDoubleClickAsync(ExplorerEntryViewModel entry, CancellationToken cancellationToken = default)
+    {
+        if (!entry.IsDirectory || entry.MarkedForDeletion || entry.IsError || IsBusy) return;
+        await NavigateToPathAsync(entry.FullPath, cancellationToken).ConfigureAwait(true);
+    }
 
     public void RequestAddMediaToCurrentFolder()
     {
@@ -135,10 +140,7 @@ public partial class ExplorerViewModel : ObservableObject
 
     [RelayCommand]
     private async Task OpenAsync(ExplorerEntryViewModel? entry, CancellationToken cancellationToken)
-    {
-        if (entry is null || !entry.IsDirectory || entry.MarkedForDeletion || entry.IsError || IsBusy) return;
-        await NavigateToPathAsync(entry.FullPath, cancellationToken).ConfigureAwait(true);
-    }
+        => await OpenFromDoubleClickAsync(entry!, cancellationToken).ConfigureAwait(true);
 
     [RelayCommand]
     private async Task GoUpAsync(CancellationToken cancellationToken)
@@ -225,12 +227,9 @@ public partial class ExplorerViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(path)) return;
         var full = Path.GetFullPath(path);
-        if (string.IsNullOrWhiteSpace(RootPath) || !string.Equals(RootPath, full, StringComparison.OrdinalIgnoreCase))
-        {
-            RootPath = full;
-            await BuildFolderTreeAsync(cancellationToken).ConfigureAwait(true);
-        }
+        RootPath = full;
         CurrentPath = full;
+        await BuildFolderTreeAsync(cancellationToken).ConfigureAwait(true);
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
         OnPropertyChanged(nameof(CanGoUp));
         OnPropertyChanged(nameof(CanGoHome));
