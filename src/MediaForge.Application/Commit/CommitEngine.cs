@@ -11,18 +11,21 @@ public sealed class CommitEngine : ICommitEngine
     private readonly IFileSystem _fileSystem;
     private readonly IMediaDownloader _mediaDownloader;
     private readonly IStagingService _staging;
+    private readonly IMediaIndex? _mediaIndex;
     private readonly DownloadQueue _downloadQueue;
 
     public CommitEngine(
         IFileSystem fileSystem,
         IMediaDownloader mediaDownloader,
         IStagingService staging,
-        DownloadQueue? downloadQueue = null)
+        DownloadQueue? downloadQueue = null,
+        IMediaIndex? mediaIndex = null)
     {
         _fileSystem = fileSystem;
         _mediaDownloader = mediaDownloader;
         _staging = staging;
         _downloadQueue = downloadQueue ?? new DownloadQueue();
+        _mediaIndex = mediaIndex;
     }
 
     public async Task<CommitResult> CommitAsync(
@@ -72,11 +75,11 @@ public sealed class CommitEngine : ICommitEngine
         IProgress<CommitProgress>? progress,
         CancellationToken cancellationToken)
     {
-        var results = await _downloadQueue.ExecuteAsync(
+        var results = (await _downloadQueue.ExecuteAsync(
             operations,
             _mediaDownloader,
             progress,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken).ConfigureAwait(false)).ToArray();
 
         foreach (var result in results.Where(x => x.Success))
         {
@@ -85,16 +88,42 @@ public sealed class CommitEngine : ICommitEngine
             if (string.IsNullOrWhiteSpace(outputPath) ||
                 !await _fileSystem.FileExistsAsync(outputPath, cancellationToken).ConfigureAwait(false))
             {
-                results = results.Select(x => x.OperationId == result.OperationId
-                    ? new CommitItemResult(x.OperationId, false, "Download completed but the output file was not found on disk.")
-                    : x).ToArray();
+                ReplaceResult(results, result.OperationId, new CommitItemResult(
+                    result.OperationId,
+                    false,
+                    "Download completed but the output file was not found on disk."));
                 continue;
+            }
+
+            var videoId = operation.Payload?.VideoId;
+            var format = operation.Payload?.DesiredFormat;
+            if (_mediaIndex is not null && !string.IsNullOrWhiteSpace(videoId) && format is not null)
+            {
+                await _mediaIndex.UpsertAsync(
+                    new MediaIndexEntry(
+                        videoId,
+                        operation.Payload?.SourceUrl ?? string.Empty,
+                        outputPath,
+                        format.Value,
+                        operation.CreatedAt,
+                        DateTimeOffset.UtcNow),
+                    cancellationToken).ConfigureAwait(false);
             }
 
             await _staging.CompleteAsync(result.OperationId, cancellationToken).ConfigureAwait(false);
         }
 
         return results;
+    }
+
+    private static void ReplaceResult(IList<CommitItemResult> results, Guid operationId, CommitItemResult replacement)
+    {
+        for (var i = 0; i < results.Count; i++)
+        {
+            if (results[i].OperationId != operationId) continue;
+            results[i] = replacement;
+            return;
+        }
     }
 
     private async Task<CommitItemResult> CommitFileOperationAsync(
