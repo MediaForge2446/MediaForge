@@ -14,6 +14,7 @@ public partial class ExplorerViewModel : ObservableObject
     private readonly IExplorerService _explorer;
     private readonly Application.Abstractions.IStagingService _staging;
     private readonly ExplorerProjectionService _projection;
+    private readonly HashSet<Guid> _failedOperationIds = [];
 
     [ObservableProperty] private string _currentPath = string.Empty;
     [ObservableProperty] private ExplorerEntryViewModel? _selectedEntry;
@@ -25,6 +26,8 @@ public partial class ExplorerViewModel : ObservableObject
 
     public ObservableCollection<ExplorerEntryViewModel> Entries { get; } = [];
     public bool CanGoUp => !string.IsNullOrWhiteSpace(CurrentPath) && !string.Equals(Path.GetPathRoot(CurrentPath), CurrentPath, StringComparison.OrdinalIgnoreCase);
+
+    public event Action<string>? AddMediaRequested;
 
     public ExplorerViewModel(IExplorerService explorer, Application.Abstractions.IStagingService staging, ExplorerProjectionService? projection = null)
     {
@@ -49,8 +52,15 @@ public partial class ExplorerViewModel : ObservableObject
             var projected = _projection.Project(CurrentPath, entries, _staging.Operations);
             Entries.Clear();
             foreach (var item in projected)
-                Entries.Add(new ExplorerEntryViewModel(item.Entry, item.IsPending, item.PendingOperationId) { MarkedForDeletion = item.MarkedForDeletion });
-            StatusText = $"{Entries.Count} פריטים";
+            {
+                var isError = item.PendingOperationId is Guid operationId && _failedOperationIds.Contains(operationId);
+                Entries.Add(new ExplorerEntryViewModel(item.Entry, item.IsPending, item.PendingOperationId, isError)
+                {
+                    MarkedForDeletion = item.MarkedForDeletion
+                });
+            }
+
+            StatusText = Entries.Count == 0 ? "התיקייה ריקה" : $"{Entries.Count} פריטים";
             OnPropertyChanged(nameof(CanGoUp));
         }
         catch (OperationCanceledException) { StatusText = "הפעולה בוטלה"; }
@@ -58,10 +68,26 @@ public partial class ExplorerViewModel : ObservableObject
         finally { IsBusy = false; }
     }
 
+    public void RequestAddMediaToCurrentFolder()
+    {
+        if (string.IsNullOrWhiteSpace(CurrentPath) || IsBusy) return;
+        AddMediaRequested?.Invoke(CurrentPath);
+    }
+
+    public async Task ApplyCommitResultsAsync(IEnumerable<Guid> successfulOperationIds, IEnumerable<Guid> failedOperationIds, CancellationToken cancellationToken = default)
+    {
+        foreach (var operationId in successfulOperationIds)
+            _failedOperationIds.Remove(operationId);
+        foreach (var operationId in failedOperationIds)
+            _failedOperationIds.Add(operationId);
+
+        await ReloadAsync(cancellationToken).ConfigureAwait(true);
+    }
+
     [RelayCommand]
     private async Task OpenAsync(ExplorerEntryViewModel? entry, CancellationToken cancellationToken)
     {
-        if (entry is null || !entry.IsDirectory || entry.MarkedForDeletion || IsBusy) return;
+        if (entry is null || !entry.IsDirectory || entry.MarkedForDeletion || entry.IsError || IsBusy) return;
         CurrentPath = entry.FullPath;
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
@@ -95,9 +121,9 @@ public partial class ExplorerViewModel : ObservableObject
     private async Task DeleteSelectedAsync(CancellationToken cancellationToken)
     {
         var entry = SelectedEntry;
-        if (entry is null || entry.MarkedForDeletion || IsBusy) return;
+        if (entry is null || entry.MarkedForDeletion || entry.IsError || IsBusy) return;
         await _staging.StageAsync(CreateOperation(OperationType.Delete, entry.FullPath, new StagingPayload(SourcePath: entry.FullPath, Recursive: entry.IsDirectory, IsDirectory: entry.IsDirectory)), cancellationToken).ConfigureAwait(true);
-        StatusText = "מחיקה סומנה לשמירה";
+        StatusText = "המחיקה סומנה לשמירה";
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
@@ -106,7 +132,7 @@ public partial class ExplorerViewModel : ObservableObject
     {
         var entry = SelectedEntry;
         var name = NewName.Trim();
-        if (entry is null || entry.MarkedForDeletion || string.IsNullOrWhiteSpace(name) || IsBusy) return;
+        if (entry is null || entry.MarkedForDeletion || entry.IsError || string.IsNullOrWhiteSpace(name) || IsBusy) return;
         if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) { StatusText = "השם החדש אינו חוקי"; return; }
         var destination = Path.Combine(Path.GetDirectoryName(entry.FullPath) ?? CurrentPath, name);
         if (File.Exists(destination) || Directory.Exists(destination)) { StatusText = "כבר קיים פריט בשם הזה"; return; }
@@ -122,7 +148,7 @@ public partial class ExplorerViewModel : ObservableObject
     {
         var entry = SelectedEntry;
         var destination = MoveDestination.Trim();
-        if (entry is null || entry.MarkedForDeletion || string.IsNullOrWhiteSpace(destination) || IsBusy) return;
+        if (entry is null || entry.MarkedForDeletion || entry.IsError || string.IsNullOrWhiteSpace(destination) || IsBusy) return;
         var destinationPath = Path.GetFullPath(destination);
         if (entry.IsDirectory && IsSameOrChildPath(destinationPath, entry.FullPath)) { StatusText = "אי אפשר להעביר תיקייה לתוך עצמה"; return; }
         if (File.Exists(destinationPath) || Directory.Exists(destinationPath)) { StatusText = "יעד ההעברה כבר קיים"; return; }
@@ -138,9 +164,13 @@ public partial class ExplorerViewModel : ObservableObject
     {
         var entry = SelectedEntry;
         if (entry?.PendingOperationId is not Guid operationId || IsBusy) return;
+        _failedOperationIds.Remove(operationId);
         if (await _staging.UndoAsync(operationId, cancellationToken).ConfigureAwait(true)) StatusText = "השינוי בוטל";
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
+
+    [RelayCommand]
+    private void AddMediaAsync() => RequestAddMediaToCurrentFolder();
 
     public async Task SetInitialPathAsync(string? path, CancellationToken cancellationToken = default)
     {
@@ -168,14 +198,15 @@ public sealed partial class ExplorerEntryViewModel : ObservableObject
     public long Size { get; }
     public bool IsPending { get; }
     public Guid? PendingOperationId { get; }
+    public bool IsError { get; }
 
     [ObservableProperty] private bool _markedForDeletion;
 
     public string KindText => IsDirectory ? "תיקייה" : "קובץ";
     public string SizeText => IsDirectory ? "—" : FormatBytes(Size);
-    public string StatusText => MarkedForDeletion ? "מחיקה ממתינה" : IsPending ? "שינוי ממתין" : "מסונכרן";
+    public string StatusText => IsError ? "השינוי נכשל" : MarkedForDeletion ? "מחיקה ממתינה" : IsPending ? "שינוי ממתין" : "מסונכרן";
 
-    public ExplorerEntryViewModel(ExplorerEntry entry, bool isPending, Guid? pendingOperationId)
+    public ExplorerEntryViewModel(ExplorerEntry entry, bool isPending, Guid? pendingOperationId, bool isError = false)
     {
         Name = entry.Name;
         FullPath = entry.FullPath;
@@ -183,6 +214,7 @@ public sealed partial class ExplorerEntryViewModel : ObservableObject
         Size = entry.Size;
         IsPending = isPending;
         PendingOperationId = pendingOperationId;
+        IsError = isError;
     }
 
     partial void OnMarkedForDeletionChanged(bool value) => OnPropertyChanged(nameof(StatusText));
