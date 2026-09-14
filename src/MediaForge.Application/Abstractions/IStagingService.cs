@@ -5,6 +5,7 @@ namespace MediaForge.Application.Abstractions;
 public interface IStagingService
 {
     IReadOnlyList<StagingOperation> Operations { get; }
+    event EventHandler? Changed;
     Task<StagingOperation> StageAsync(
         StagingOperation operation,
         CancellationToken cancellationToken = default);
