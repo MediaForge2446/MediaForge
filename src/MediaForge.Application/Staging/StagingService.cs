@@ -21,6 +21,8 @@ public sealed class StagingService : IStagingService
 
     public IReadOnlyList<StagingOperation> Operations => _operations.AsReadOnly();
 
+    public event EventHandler? Changed;
+
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -60,6 +62,7 @@ public sealed class StagingService : IStagingService
             _operations.Add(operation);
             _history.Add(operation);
             await PersistAsync(cancellationToken).ConfigureAwait(false);
+            Changed?.Invoke(this, EventArgs.Empty);
             return operation;
         }
         finally
@@ -82,6 +85,7 @@ public sealed class StagingService : IStagingService
             _operations.RemoveAt(index);
             _history.TryUndo(operationId, out _);
             await PersistAsync(cancellationToken).ConfigureAwait(false);
+            Changed?.Invoke(this, EventArgs.Empty);
             return true;
         }
         finally
@@ -97,9 +101,11 @@ public sealed class StagingService : IStagingService
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            _operations.RemoveAll(x => x.OperationId == operationId);
+            var removed = _operations.RemoveAll(x => x.OperationId == operationId);
             _history.TryUndo(operationId, out _);
             await PersistAsync(cancellationToken).ConfigureAwait(false);
+            if (removed > 0)
+                Changed?.Invoke(this, EventArgs.Empty);
         }
         finally
         {
@@ -117,6 +123,7 @@ public sealed class StagingService : IStagingService
             _operations.Clear();
             _history.Clear();
             await PersistAsync(cancellationToken).ConfigureAwait(false);
+            Changed?.Invoke(this, EventArgs.Empty);
         }
         finally
         {
