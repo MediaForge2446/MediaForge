@@ -77,8 +77,10 @@
                             <Button Content="שמור שינויים  →" Command="{Binding SaveChangesCommand}" IsEnabled="{Binding HasPendingChanges}" Margin="10,0,0,0" MinHeight="42" Style="{StaticResource MediaForgePrimaryButtonStyle}"/>
                         </StackPanel>
                     </Grid>
-                    <Border Grid.Row="1" Background="#0D1217" CornerRadius="17" BorderBrush="#222B34" BorderThickness="1" Padding="24">
-                        <ContentControl Content="{Binding CurrentPage}"/>
+                    <Border Grid.Row="1" Background="#0D1217" CornerRadius="17" BorderBrush="#222B34" BorderThickness="1" Padding="20">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="True">
+                            <ContentControl Content="{Binding CurrentPage}" />
+                        </ScrollViewer>
                     </Border>
                 </Grid>
             </Grid>
