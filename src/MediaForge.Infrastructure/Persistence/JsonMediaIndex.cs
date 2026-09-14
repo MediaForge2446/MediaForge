@@ -14,9 +14,14 @@ public sealed class JsonMediaIndex : IMediaIndex
     private bool _initialized;
 
     public JsonMediaIndex(AtomicJsonStore store, LocalAppPaths paths)
+        : this(store, paths.MediaIndexFilePath)
     {
-        _store = store;
-        _path = paths.MediaIndexFilePath;
+    }
+
+    public JsonMediaIndex(AtomicJsonStore store, string path)
+    {
+        _store = store ?? throw new ArgumentNullException(nameof(store));
+        _path = string.IsNullOrWhiteSpace(path) ? throw new ArgumentException("A media index path is required.", nameof(path)) : path;
     }
 
     public IReadOnlyList<MediaIndexEntry> Entries
