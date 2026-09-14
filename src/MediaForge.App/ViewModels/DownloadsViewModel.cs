@@ -24,6 +24,7 @@ public partial class DownloadsViewModel : ObservableObject
 
     public DownloadsViewModel(MediaImportService importService, IFolderPicker folderPicker) { _importService = importService; _folderPicker = folderPicker; }
     public void SetDefaultDestination(string path) { if (string.IsNullOrWhiteSpace(DestinationDirectory)) DestinationDirectory = path; }
+    public void SetDestination(string path) { if (!string.IsNullOrWhiteSpace(path)) DestinationDirectory = path; }
 
     [RelayCommand]
     private async Task ResolveAsync(CancellationToken cancellationToken)
