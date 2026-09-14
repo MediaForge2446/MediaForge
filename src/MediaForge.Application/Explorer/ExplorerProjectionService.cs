@@ -24,9 +24,9 @@ public sealed class ExplorerProjectionService
         ArgumentNullException.ThrowIfNull(actualEntries);
         ArgumentNullException.ThrowIfNull(operations);
 
-        var normalizedCurrentPath = Normalize(currentPath);
+        var normalizedCurrentPath = NormalizeRequired(currentPath);
         var projected = actualEntries.ToDictionary(
-            entry => Normalize(entry.FullPath),
+            entry => NormalizeRequired(entry.FullPath),
             entry => new MutableEntry(entry),
             StringComparer.OrdinalIgnoreCase);
 
@@ -133,10 +133,14 @@ public sealed class ExplorerProjectionService
     private static string? Normalize(string? path)
         => string.IsNullOrWhiteSpace(path) ? null : Path.GetFullPath(path);
 
+    private static string NormalizeRequired(string path)
+        => Path.GetFullPath(path);
+
     private static bool IsDirectChild(string path, string directory)
     {
         var parent = Path.GetDirectoryName(path);
-        return parent is not null && string.Equals(Normalize(parent), directory, StringComparison.OrdinalIgnoreCase);
+        return parent is not null
+            && string.Equals(NormalizeRequired(parent), directory, StringComparison.OrdinalIgnoreCase);
     }
 
     private sealed class MutableEntry(ExplorerEntry entry)
