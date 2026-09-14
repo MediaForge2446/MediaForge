@@ -3,176 +3,185 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d">
-    <Grid FlowDirection="LeftToRight">
+             mc:Ignorable="d" FlowDirection="RightToLeft">
+    <Grid Margin="22,20,22,18">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="210"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="220" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Margin="0,0,0,12" FlowDirection="RightToLeft">
-            <StackPanel HorizontalAlignment="Right">
-                <TextBlock Text="סייר הקבצים" FontSize="27" FontWeight="Bold" Foreground="#172236"/>
-                <TextBlock Text="עבוד בתוך התיקייה שבחרת. שום שינוי לא נכתב לדיסק עד שמירה." Margin="0,4,0,0" FontSize="11.5" Foreground="#7A879A"/>
+        <!-- Explorer navigation -->
+        <Grid Grid.Row="0" Margin="2,0,2,14">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <Button Content="⌂  חזרה לבית" Command="{Binding DataContext.NavigateHomeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        MinWidth="128" Style="{StaticResource MediaForgeSubtleButtonStyle}" />
+                <Button Content="‹" Command="{Binding GoBackCommand}" IsEnabled="{Binding CanGoBack}" Width="40" Height="40"
+                        Margin="9,0,0,0" Style="{StaticResource MediaForgeSubtleButtonStyle}" ToolTip="אחורה" />
+                <Button Content="›" Command="{Binding GoForwardCommand}" IsEnabled="{Binding CanGoForward}" Width="40" Height="40"
+                        Margin="6,0,0,0" Style="{StaticResource MediaForgeSubtleButtonStyle}" ToolTip="קדימה" />
+                <Button Content="↑" Command="{Binding GoUpCommand}" IsEnabled="{Binding CanGoUp}" Width="40" Height="40"
+                        Margin="6,0,0,0" Style="{StaticResource MediaForgeSubtleButtonStyle}" ToolTip="תיקיית אב" />
             </StackPanel>
-            <Button Content="⌂  חזרה לבית"
-                    Command="{Binding DataContext.NavigateHomeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                    HorizontalAlignment="Left"
-                    Style="{StaticResource MediaForgeSubtleButtonStyle}"
-                    MinWidth="120"/>
-        </Grid>
-
-        <Grid Grid.Row="1" Margin="0,0,0,12" FlowDirection="RightToLeft">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <Button Content="‹"
-                    Command="{Binding GoUpCommand}"
-                    IsEnabled="{Binding CanGoUp}"
-                    Width="42" Height="42"
-                    Style="{StaticResource MediaForgeSubtleButtonStyle}"/>
-            <Border Grid.Column="1" Margin="10,0" Padding="12,0" Background="#FFFFFF" BorderBrush="#D8E2EC" BorderThickness="1" CornerRadius="12">
-                <TextBox Text="{Binding CurrentPath}" IsReadOnly="True" Style="{StaticResource MediaForgePathBoxStyle}"/>
-            </Border>
-            <Border Grid.Column="2" Padding="11,8" Background="#EEF8F3" BorderBrush="#D4EDDF" BorderThickness="1" CornerRadius="11">
-                <StackPanel Orientation="Horizontal"><Ellipse Width="7" Height="7" Fill="{StaticResource MediaForgeSuccessBrush}"/><TextBlock Text=" מחובר" Margin="7,0,0,0" FontSize="10.5" Foreground="#2D7651"/></StackPanel>
+            <Border HorizontalAlignment="Right" Width="650" Height="42" Background="#F7FAFE"
+                    BorderBrush="#DCE6F1" BorderThickness="1" CornerRadius="12" Padding="14,0">
+                <TextBox Text="{Binding CurrentPath}" IsReadOnly="True" Style="{StaticResource MediaForgePathBoxStyle}"
+                         VerticalContentAlignment="Center" />
             </Border>
         </Grid>
 
-        <Grid Grid.Row="2" Margin="0,0,0,12">
+        <!-- Action toolbar -->
+        <Grid Grid.Row="1" Margin="2,0,2,16">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <Button Content="＋  הוסף תיקייה" Command="{Binding CreateFolderCommand}"
+                        MinWidth="142" MinHeight="44" Style="{StaticResource MediaForgePrimaryButtonStyle}" />
+                <Button Content="מחק" Command="{Binding DeleteSelectedCommand}"
+                        MinWidth="88" MinHeight="44" Margin="10,0,0,0" Style="{StaticResource MediaForgeDangerButtonStyle}" />
+                <Button Content="שנה שם" Command="{Binding RenameSelectedCommand}"
+                        MinWidth="104" MinHeight="44" Margin="10,0,0,0" Style="{StaticResource MediaForgeSubtleButtonStyle}" />
+                <Button Content="♫  הוסף מדיה" Command="{Binding AddMediaCommand}"
+                        MinWidth="132" MinHeight="44" Margin="10,0,0,0" Style="{StaticResource MediaForgeSubtleButtonStyle}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Ellipse Width="8" Height="8" Fill="{StaticResource MediaForgeSuccessBrush}" />
+                <TextBlock Text=" מסונכרן עם הדיסק" Margin="8,0,0,0" FontSize="10.5" Foreground="#7B899C" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Main Explorer surface -->
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="260"/>
-                <ColumnDefinition Width="14"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="278" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource MediaForgeCardStyle}" Padding="14">
-                <Grid FlowDirection="RightToLeft">
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                    <Grid Grid.Row="0" Margin="4,2,4,10">
-                        <TextBlock Text="תיקיות" FontSize="13" FontWeight="Bold" Foreground="#25344A"/>
-                        <TextBlock Text="מבנה התיקייה הראשית" Margin="0,3,0,0" FontSize="9.5" Foreground="#8A97A8" HorizontalAlignment="Right"/>
-                    </Grid>
-                    <TreeView x:Name="FolderTree" Grid.Row="1"
-                              ItemsSource="{Binding FolderTree}"
-                              BorderThickness="0"
-                              Background="Transparent"
+            <Border Grid.Column="0" Background="#F9FBFE" BorderBrush="#DCE6F1" BorderThickness="1"
+                    CornerRadius="18" Padding="14">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Margin="4,2,4,12">
+                        <TextBlock Text="תיקיות" FontSize="14" FontWeight="Bold" Foreground="#28384F" />
+                        <TextBlock Text="מבנה התיקייה הראשית" Margin="0,4,0,0" FontSize="10" Foreground="#8390A2" />
+                    </StackPanel>
+                    <TreeView Grid.Row="1" ItemsSource="{Binding FolderTree}" BorderThickness="0" Background="Transparent"
                               SelectedItemChanged="FolderTree_OnSelectedItemChanged">
                         <TreeView.ItemContainerStyle>
                             <Style TargetType="TreeViewItem">
-                                <Setter Property="Padding" Value="6,4"/>
-                                <Setter Property="Margin" Value="0,1"/>
+                                <Setter Property="Padding" Value="7,6" />
+                                <Setter Property="Margin" Value="0,2" />
+                                <Setter Property="Foreground" Value="#42536B" />
                             </Style>
                         </TreeView.ItemContainerStyle>
                         <TreeView.ItemTemplate>
                             <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="▣" FontSize="15" Foreground="{StaticResource MediaForgeAccentBrush}" Margin="0,0,8,0"/>
-                                    <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="#405066" TextTrimming="CharacterEllipsis"/>
-                                </StackPanel>
+                                <Border Padding="7,5" CornerRadius="9">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="▣" FontSize="15" Foreground="{StaticResource MediaForgeAccentBrush}" Margin="0,0,8,0" />
+                                        <TextBlock Text="{Binding Name}" FontSize="11.5" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Border>
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>
                     </TreeView>
                 </Grid>
             </Border>
 
-            <Border Grid.Column="2" Style="{StaticResource MediaForgeCardStyle}" Padding="16">
-                <Grid FlowDirection="RightToLeft">
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                    <Grid Grid.Row="0">
+            <Border Grid.Column="2" Background="#FFFFFF" BorderBrush="#DCE6F1" BorderThickness="1"
+                    CornerRadius="18" Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="2,0,2,12">
                         <StackPanel HorizontalAlignment="Right">
-                            <TextBlock Text="תוכן התיקייה" FontSize="16" FontWeight="Bold" Foreground="#243248"/>
-                            <TextBlock Text="{Binding StatusText}" Margin="0,3,0,0" FontSize="10.5" Foreground="#8290A3"/>
+                            <TextBlock Text="תוכן התיקייה" FontSize="17" FontWeight="Bold" Foreground="#26364C" />
+                            <TextBlock Text="{Binding StatusText}" Margin="0,4,0,0" FontSize="10.5" Foreground="#8390A2" />
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                            <Button Content="＋  תיקייה" Command="{Binding CreateFolderCommand}" Style="{StaticResource MediaForgeSubtleButtonStyle}" MinWidth="100"/>
-                            <Button Content="מחק" Command="{Binding DeleteSelectedCommand}" Margin="8,0,0,0" Style="{StaticResource MediaForgeDangerButtonStyle}" MinWidth="76"/>
-                            <Button Content="שנה שם" Command="{Binding RenameSelectedCommand}" Margin="8,0,0,0" Style="{StaticResource MediaForgeSubtleButtonStyle}" MinWidth="84"/>
-                            <Button Content="＋  הוסף מדיה" Command="{Binding AddMediaCommand}" Margin="8,0,0,0" Style="{StaticResource MediaForgePrimaryButtonStyle}" MinWidth="122"/>
-                        </StackPanel>
+                        <TextBlock Text="בחר פריט כדי למחוק או לשנות שם" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                   FontSize="10" Foreground="#9AA5B5" />
                     </Grid>
 
-                    <Grid Grid.Row="1" Margin="0,14,0,8">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="130"/><ColumnDefinition Width="110"/><ColumnDefinition Width="150"/></Grid.ColumnDefinitions>
-                        <TextBlock Text="שם" FontSize="9.5" FontWeight="Bold" Foreground="#8B98A9"/>
-                        <TextBlock Grid.Column="1" Text="סוג" FontSize="9.5" FontWeight="Bold" Foreground="#8B98A9"/>
-                        <TextBlock Grid.Column="2" Text="גודל" FontSize="9.5" FontWeight="Bold" Foreground="#8B98A9"/>
-                        <TextBlock Grid.Column="3" Text="מצב" FontSize="9.5" FontWeight="Bold" Foreground="#8B98A9"/>
+                    <Grid Grid.Row="1" Margin="0,0,0,7">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="120" /><ColumnDefinition Width="100" /><ColumnDefinition Width="145" /></Grid.ColumnDefinitions>
+                        <TextBlock Text="שם" FontSize="9.5" FontWeight="Bold" Foreground="#8A97A8" />
+                        <TextBlock Grid.Column="1" Text="סוג" FontSize="9.5" FontWeight="Bold" Foreground="#8A97A8" />
+                        <TextBlock Grid.Column="2" Text="גודל" FontSize="9.5" FontWeight="Bold" Foreground="#8A97A8" />
+                        <TextBlock Grid.Column="3" Text="מצב" FontSize="9.5" FontWeight="Bold" Foreground="#8A97A8" />
                     </Grid>
 
-                    <ListView x:Name="EntriesList" Grid.Row="2"
-                              ItemsSource="{Binding Entries}"
-                              SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
-                              BorderThickness="0"
-                              Background="Transparent"
-                              Padding="0"
+                    <ListView Grid.Row="2" ItemsSource="{Binding Entries}" SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
+                              BorderThickness="0" Background="Transparent" Padding="0"
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListView.ItemContainerStyle>
                             <Style TargetType="ListViewItem">
-                                <Setter Property="Padding" Value="0"/>
-                                <Setter Property="Margin" Value="0,0,0,5"/>
-                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                                <EventSetter Event="MouseDoubleClick" Handler="Entry_OnDoubleClick"/>
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Margin" Value="0,2,0,5" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <EventSetter Event="MouseDoubleClick" Handler="Entry_OnDoubleClick" />
                             </Style>
                         </ListView.ItemContainerStyle>
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Border Padding="10" CornerRadius="12" Background="#FFFFFF" BorderBrush="#E0E7F0" BorderThickness="1">
+                                <Border Padding="11,9" CornerRadius="12" Background="#FFFFFF" BorderBrush="#E1E8F0" BorderThickness="1">
                                     <Border.Style>
                                         <Style TargetType="Border">
-                                            <Setter Property="Background" Value="#FFFFFF"/>
-                                            <Setter Property="BorderBrush" Value="#E0E7F0"/>
+                                            <Setter Property="Background" Value="#FFFFFF" />
+                                            <Setter Property="BorderBrush" Value="#E1E8F0" />
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsPending}" Value="True">
-                                                    <Setter Property="Background" Value="#FFFCF2"/>
-                                                    <Setter Property="BorderBrush" Value="#F1D88C"/>
+                                                    <Setter Property="Background" Value="#FFFCF4" />
+                                                    <Setter Property="BorderBrush" Value="#F1D990" />
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding MarkedForDeletion}" Value="True">
-                                                    <Setter Property="Background" Value="#FFF8E9"/>
-                                                    <Setter Property="BorderBrush" Value="#E3B646"/>
+                                                    <Setter Property="Background" Value="#FFF9EC" />
+                                                    <Setter Property="BorderBrush" Value="#E1B84F" />
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding IsError}" Value="True">
-                                                    <Setter Property="Background" Value="#FFF2F3"/>
-                                                    <Setter Property="BorderBrush" Value="#E3B9BE"/>
+                                                    <Setter Property="Background" Value="#FFF3F4" />
+                                                    <Setter Property="BorderBrush" Value="#E2B1B8" />
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
                                     <Grid MinHeight="54">
-                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="130"/><ColumnDefinition Width="110"/><ColumnDefinition Width="150"/></Grid.ColumnDefinitions>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="120" /><ColumnDefinition Width="100" /><ColumnDefinition Width="145" /></Grid.ColumnDefinitions>
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <Border Width="34" Height="34" CornerRadius="9" Background="#EFF5FC"><TextBlock Text="{Binding IsDirectory, Converter={StaticResource DirectoryGlyphConverter}}" FontSize="16" Foreground="{StaticResource MediaForgeAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                            <Border Width="34" Height="34" CornerRadius="9" Background="#EFF5FC">
+                                                <TextBlock Text="{Binding IsDirectory, Converter={StaticResource DirectoryGlyphConverter}}" FontSize="16"
+                                                           Foreground="{StaticResource MediaForgeAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
                                             <TextBlock Text="{Binding Name}" Margin="10,0,0,0" FontSize="12.5" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
-                                                        <Setter Property="Foreground" Value="#2C3A4F"/>
+                                                        <Setter Property="Foreground" Value="#2E3D53" />
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding MarkedForDeletion}" Value="True"><Setter Property="TextDecorations" Value="{x:Static TextDecorations.Strikethrough}"/><Setter Property="Foreground" Value="#A37C24"/></DataTrigger>
-                                                            <DataTrigger Binding="{Binding IsError}" Value="True"><Setter Property="Foreground" Value="#C83F4D"/></DataTrigger>
+                                                            <DataTrigger Binding="{Binding MarkedForDeletion}" Value="True">
+                                                                <Setter Property="TextDecorations" Value="{x:Static TextDecorations.Strikethrough}" />
+                                                                <Setter Property="Foreground" Value="#A37A1E" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsError}" Value="True">
+                                                                <Setter Property="Foreground" Value="#C33F4D" />
+                                                            </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </TextBlock.Style>
                                             </TextBlock>
                                         </StackPanel>
-                                        <TextBlock Grid.Column="1" Text="{Binding KindText}" VerticalAlignment="Center" Foreground="#8491A3" FontSize="10.5"/>
-                                        <TextBlock Grid.Column="2" Text="{Binding SizeText}" VerticalAlignment="Center" Foreground="#8491A3" FontSize="10.5"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding KindText}" VerticalAlignment="Center" Foreground="#8290A2" FontSize="10.5" />
+                                        <TextBlock Grid.Column="2" Text="{Binding SizeText}" VerticalAlignment="Center" Foreground="#8290A2" FontSize="10.5" />
                                         <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
                                             <Ellipse Width="8" Height="8">
                                                 <Ellipse.Style>
                                                     <Style TargetType="Ellipse">
-                                                        <Setter Property="Fill" Value="{StaticResource MediaForgeSuccessBrush}"/>
+                                                        <Setter Property="Fill" Value="{StaticResource MediaForgeSuccessBrush}" />
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsPending}" Value="True"><Setter Property="Fill" Value="{StaticResource MediaForgePendingBrush}"/></DataTrigger>
-                                                            <DataTrigger Binding="{Binding IsError}" Value="True"><Setter Property="Fill" Value="{StaticResource MediaForgeErrorBrush}"/></DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsPending}" Value="True"><Setter Property="Fill" Value="{StaticResource MediaForgePendingBrush}" /></DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsError}" Value="True"><Setter Property="Fill" Value="{StaticResource MediaForgeErrorBrush}" /></DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </Ellipse.Style>
                                             </Ellipse>
-                                            <TextBlock Text="{Binding StatusText}" Margin="8,0,0,0" FontSize="10.5" Foreground="#7A879A"/>
+                                            <TextBlock Text="{Binding StatusText}" Margin="8,0,0,0" FontSize="10.5" Foreground="#7A879A" />
                                         </StackPanel>
                                     </Grid>
                                 </Border>
@@ -183,32 +192,44 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="3" Style="{StaticResource MediaForgeCardStyle}" Padding="14">
+        <!-- Always-visible staging area -->
+        <Border Grid.Row="3" Margin="0,14,0,0" Background="#FFFDF8" BorderBrush="#E7D89E" BorderThickness="1" CornerRadius="18" Padding="15">
             <Grid FlowDirection="RightToLeft">
-                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
                 <Grid Grid.Row="0" Margin="2,0,2,9">
                     <StackPanel HorizontalAlignment="Right">
-                        <StackPanel Orientation="Horizontal"><Ellipse Width="9" Height="9" Fill="{StaticResource MediaForgePendingBrush}" VerticalAlignment="Center"/><TextBlock Text="שינויים ממתינים" Margin="8,0,0,0" FontSize="14" FontWeight="Bold" Foreground="#314158"/></StackPanel>
-                        <TextBlock Text="כל פעולה שתעשה מופיעה כאן עד שתאשר שמירה" Margin="0,4,0,0" FontSize="10" Foreground="#8390A2"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="32" Height="32" CornerRadius="9" Background="#FFF2D0">
+                                <TextBlock Text="◷" FontSize="17" Foreground="#AF7A00" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Margin="9,0,0,0">
+                                <TextBlock Text="שינויים ממתינים" FontSize="14" FontWeight="Bold" Foreground="#34435A" />
+                                <TextBlock Text="השינויים נשארים כאן עד שתבחר לשמור אותם לדיסק" Margin="0,3,0,0" FontSize="10" Foreground="#8A7C5E" />
+                            </StackPanel>
+                        </StackPanel>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                        <Button Content="שמור שינויים" Command="{Binding DataContext.SaveChangesCommand, RelativeSource={RelativeSource AncestorType=Window}}" IsEnabled="{Binding DataContext.HasPendingChanges, RelativeSource={RelativeSource AncestorType=Window}}" Style="{StaticResource MediaForgePrimaryButtonStyle}" MinWidth="130"/>
+                        <Button Content="שמור שינויים  ✓" Command="{Binding DataContext.SaveChangesCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                IsEnabled="{Binding DataContext.HasPendingChanges, RelativeSource={RelativeSource AncestorType=Window}}"
+                                Style="{StaticResource MediaForgePrimaryButtonStyle}" MinWidth="145" />
                     </StackPanel>
                 </Grid>
-                <Border Grid.Row="1" Background="#FBFCFE" BorderBrush="#E4EAF2" BorderThickness="1" CornerRadius="12">
-                    <ListView ItemsSource="{Binding DataContext.PendingOperations, RelativeSource={RelativeSource AncestorType=Window}}" BorderThickness="0" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                        <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,0,0,3"/></Style></ListView.ItemContainerStyle>
+                <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E9E1C9" BorderThickness="1" CornerRadius="12">
+                    <ListView ItemsSource="{Binding DataContext.PendingOperations, RelativeSource={RelativeSource AncestorType=Window}}"
+                              BorderThickness="0" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,0,0,2"/></Style></ListView.ItemContainerStyle>
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="9">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="96"/><ColumnDefinition Width="*"/><ColumnDefinition Width="170"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                    <Border Background="#FFF8E7" BorderBrush="#F0DEAB" BorderThickness="1" CornerRadius="8" Padding="7,3" HorizontalAlignment="Right"><TextBlock Text="ממתין" FontSize="9.5" Foreground="#926C08"/></Border>
+                                <Grid Padding="8,7">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="88"/><ColumnDefinition Width="*"/><ColumnDefinition Width="165"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Background="#FFF5D9" BorderBrush="#F0DDA1" BorderThickness="1" CornerRadius="8" Padding="7,3" HorizontalAlignment="Right"><TextBlock Text="ממתין" FontSize="9.5" Foreground="#906A09" /></Border>
                                     <StackPanel Grid.Column="1" Margin="10,0" HorizontalAlignment="Right">
-                                        <TextBlock Text="{Binding OperationType}" FontSize="10.5" FontWeight="SemiBold" Foreground="#384861"/>
-                                        <TextBlock Text="{Binding Target}" Margin="0,2,0,0" FontSize="9.5" Foreground="#8591A1" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding OperationType}" FontSize="10.5" FontWeight="SemiBold" Foreground="#405067" />
+                                        <TextBlock Text="{Binding Target}" Margin="0,2,0,0" FontSize="9.5" Foreground="#8591A2" TextTrimming="CharacterEllipsis" />
                                     </StackPanel>
-                                    <TextBlock Grid.Column="2" Text="{Binding CreatedAt, StringFormat={}{0:dd/MM HH:mm}}" VerticalAlignment="Center" FontSize="9.5" Foreground="#8B97A8"/>
-                                    <Button Grid.Column="3" Content="בטל" Command="{Binding DataContext.UndoPendingCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding OperationId}" Style="{StaticResource MediaForgeSubtleButtonStyle}" MinHeight="34"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding CreatedAt, StringFormat={}{0:dd/MM/yyyy HH:mm}}" VerticalAlignment="Center" FontSize="9.5" Foreground="#8B97A8" />
+                                    <Button Grid.Column="3" Content="בטל" Command="{Binding DataContext.UndoPendingCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding OperationId}" MinHeight="32" Style="{StaticResource MediaForgeSubtleButtonStyle}" />
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
