@@ -65,7 +65,8 @@ public sealed class ExplorerProjectionTests
         {
             Op(OperationType.Move, "C:/Music/Song.mp3", new StagingPayload(
                 SourcePath: "C:/Music/Song.mp3",
-                DestinationPath: "C:/Music/Archive/Song.mp3"), 1)
+                DestinationPath: "C:/Music/Archive/Song.mp3",
+                IsDirectory: false), 1)
         };
 
         var result = _projection.Project("C:/Music/Archive", actual, operations);
@@ -73,9 +74,10 @@ public sealed class ExplorerProjectionTests
         var moved = Assert.Single(result, x => x.Entry.Name == "Song.mp3");
         Assert.True(moved.IsPending);
         Assert.Equal("Song.mp3", moved.Entry.Name);
-        Assert.True(Path.GetFullPath(moved.Entry.FullPath).Equals(
+        Assert.Equal(
             Path.GetFullPath("C:/Music/Archive/Song.mp3"),
-            StringComparison.OrdinalIgnoreCase));
+            Path.GetFullPath(moved.Entry.FullPath),
+            StringComparer.OrdinalIgnoreCase);
     }
 
     private static StagingOperation Op(OperationType type, string target, StagingPayload payload, int seconds)
