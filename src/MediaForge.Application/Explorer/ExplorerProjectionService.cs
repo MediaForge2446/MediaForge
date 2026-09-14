@@ -61,10 +61,10 @@ public sealed class ExplorerProjectionService
                 ProjectDelete(projected, operation);
                 break;
             case OperationType.Rename:
-                ProjectRenameOrMove(projected, currentPath, operation, isMove: false);
+                ProjectRenameOrMove(projected, currentPath, operation);
                 break;
             case OperationType.Move:
-                ProjectRenameOrMove(projected, currentPath, operation, isMove: true);
+                ProjectRenameOrMove(projected, currentPath, operation);
                 break;
         }
     }
@@ -117,8 +117,7 @@ public sealed class ExplorerProjectionService
     private static void ProjectRenameOrMove(
         IDictionary<string, MutableEntry> projected,
         string currentPath,
-        StagingOperation operation,
-        bool isMove)
+        StagingOperation operation)
     {
         var source = Normalize(operation.Payload?.SourcePath);
         var destination = Normalize(operation.Payload?.DestinationPath)
@@ -132,7 +131,7 @@ public sealed class ExplorerProjectionService
         {
             // The source may live outside the currently displayed folder. In that case
             // there is no entry to move, but the destination still needs to appear in
-            // the destination folder's projection.
+            // the destination folder's projection when its type was persisted.
             if (IsDirectChild(destination, currentPath) && operation.Payload?.IsDirectory is not null)
             {
                 sourceEntry = new MutableEntry(
