@@ -52,82 +52,119 @@ public sealed class ExplorerProjectionService
         switch (operation.OperationType)
         {
             case OperationType.CreateDirectory:
-            {
-                var path = Normalize(payload.DirectoryPath);
-                if (path is null || !IsDirectChild(path, currentPath)) return;
-                if (!projected.ContainsKey(path))
-                {
-                    projected[path] = new MutableEntry(
-                        new ExplorerEntry(Path.GetFileName(path), path, true, 0, DateTimeOffset.UtcNow));
-                }
-                projected[path].MarkPending(operation.OperationId);
+                ProjectCreateDirectory(projected, currentPath, operation);
                 break;
-            }
             case OperationType.Download:
-            {
-                var path = Normalize(payload.DestinationPath);
-                if (path is null || !IsDirectChild(path, currentPath)) return;
-                if (!projected.ContainsKey(path))
-                {
-                    projected[path] = new MutableEntry(
-                        new ExplorerEntry(Path.GetFileName(path), path, false, 0, DateTimeOffset.UtcNow));
-                }
-                projected[path].MarkPending(operation.OperationId);
+                ProjectDownload(projected, currentPath, operation);
                 break;
-            }
             case OperationType.Delete:
-            {
-                var source = Normalize(payload.SourcePath);
-                if (source is null) return;
-                if (projected.TryGetValue(source, out var target))
-                {
-                    target.MarkPending(operation.OperationId);
-                    target.MarkedForDeletion = true;
-                }
+                ProjectDelete(projected, operation);
                 break;
-            }
             case OperationType.Rename:
-            {
-                var source = Normalize(payload.SourcePath);
-                var destination = Normalize(payload.DestinationPath)
-                    ?? (source is null || string.IsNullOrWhiteSpace(payload.NewName)
-                        ? null
-                        : Normalize(Path.Combine(Path.GetDirectoryName(source) ?? currentPath, payload.NewName)));
-                if (source is null || destination is null) return;
-
-                if (projected.Remove(source, out var sourceEntry))
-                {
-                    sourceEntry.Entry = sourceEntry.Entry with
-                    {
-                        Name = Path.GetFileName(destination),
-                        FullPath = destination,
-                        LastModifiedUtc = DateTimeOffset.UtcNow
-                    };
-                    sourceEntry.MarkPending(operation.OperationId);
-                    projected[destination] = sourceEntry;
-                }
+                ProjectRenameOrMove(projected, currentPath, operation);
                 break;
-            }
             case OperationType.Move:
-            {
-                var source = Normalize(payload.SourcePath);
-                var destination = Normalize(payload.DestinationPath);
-                if (source is null || destination is null) return;
-
-                if (projected.Remove(source, out var sourceEntry))
-                {
-                    sourceEntry.Entry = sourceEntry.Entry with
-                    {
-                        Name = Path.GetFileName(destination),
-                        FullPath = destination,
-                        LastModifiedUtc = DateTimeOffset.UtcNow
-                    };
-                    sourceEntry.MarkPending(operation.OperationId);
-                    projected[destination] = sourceEntry;
-                }
+                ProjectRenameOrMove(projected, currentPath, operation);
                 break;
-            }
         }
+    }
+
+    private static void ProjectCreateDirectory(
+        IDictionary<string, MutableEntry> projected,
+        string currentPath,
+        StagingOperation operation)
+    {
+        var path = Normalize(operation.Payload?.DirectoryPath);
+        if (path is null || !IsDirectChild(path, currentPath)) return;
+
+        if (!projected.ContainsKey(path))
+        {
+            projected[path] = new MutableEntry(
+                new ExplorerEntry(Path.GetFileName(path), path, true, 0, operation.CreatedAt));
+        }
+
+        projected[path].MarkPending(operation.OperationId);
+    }
+
+    private static void ProjectDownload(
+        IDictionary<string, MutableEntry> projected,
+        string currentPath,
+        StagingOperation operation)
+    {
+        var path = Normalize(operation.Payload?.DestinationPath);
+        if (path is null || !IsDirectChild(path, currentPath)) return;
+
+        if (!projected.ContainsKey(path))
+        {
+            projected[path] = new MutableEntry(
+                new ExplorerEntry(Path.GetFileName(path), path, false, 0, operation.CreatedAt));
+        }
+
+        projected[path].MarkPending(operation.OperationId);
+    }
+
+    private static void ProjectDelete(
+        IDictionary<string, MutableEntry> projected,
+        StagingOperation operation)
+    {
+        var source = Normalize(operation.Payload?.SourcePath);
+        if (source is null || !projected.TryGetValue(source, out var target)) return;
+
+        target.MarkPending(operation.OperationId);
+        target.MarkedForDeletion = true;
+    }
+
+    private static void ProjectRenameOrMove(
+        IDictionary<string, MutableEntry> projected,
+        string currentPath,
+        StagingOperation operation)
+    {
+        var source = Normalize(operation.Payload?.SourcePath);
+        var destination = Normalize(operation.Payload?.DestinationPath)
+            ?? (source is null || string.IsNullOrWhiteSpace(operation.Payload?.NewName)
+                ? null
+                : Normalize(Path.Combine(Path.GetDirectoryName(source) ?? currentPath, operation.Payload.NewName)));
+
+        if (source is null || destination is null) return;
+
+        if (!projected.Remove(source, out var sourceEntry))
+        {
+            // The source may live outside the currently displayed folder. In that case
+            // there is no entry to move, but the destination still needs to appear in
+            // the destination folder's projection when its type was persisted.
+            if (IsDirectChild(destination, currentPath) && operation.Payload?.IsDirectory is not null)
+            {
+                sourceEntry = new MutableEntry(
+                    new ExplorerEntry(
+                        Path.GetFileName(destination),
+                        destination,
+                        operation.Payload.IsDirectory.Value,
+                        0,
+                        operation.CreatedAt));
+                sourceEntry.MarkPending(operation.OperationId);
+                projected[destination] = sourceEntry;
+            }
+
+            return;
+        }
+
+        // A persisted or previously staged Delete must not be resurrected by a later
+        // Rename/Move operation in the visual projection.
+        if (sourceEntry.MarkedForDeletion)
+        {
+            projected[source] = sourceEntry;
+            return;
+        }
+
+        sourceEntry.Entry = sourceEntry.Entry with
+        {
+            Name = Path.GetFileName(destination),
+            FullPath = destination,
+            LastModifiedUtc = operation.CreatedAt
+        };
+        sourceEntry.MarkPending(operation.OperationId);
+        sourceEntry.MarkedForDeletion = false;
+        projected[destination] = sourceEntry;
     }
 
     private static string? Normalize(string? path)

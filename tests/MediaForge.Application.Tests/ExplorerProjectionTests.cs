@@ -53,6 +53,33 @@ public sealed class ExplorerProjectionTests
         Assert.DoesNotContain(result, x => x.Entry.Name is "Song.mp3" or "Renamed.mp3");
     }
 
+    [Fact]
+    public void ProjectsMovedItemIntoDestinationFolder()
+    {
+        var actual = new[]
+        {
+            new ExplorerEntry("Song.mp3", "C:/Music/Song.mp3", false, 123, Timestamp),
+            new ExplorerEntry("Archive", "C:/Music/Archive", true, 0, Timestamp)
+        };
+        var operations = new[]
+        {
+            Op(OperationType.Move, "C:/Music/Song.mp3", new StagingPayload(
+                SourcePath: "C:/Music/Song.mp3",
+                DestinationPath: "C:/Music/Archive/Song.mp3",
+                IsDirectory: false), 1)
+        };
+
+        var result = _projection.Project("C:/Music/Archive", actual, operations);
+
+        var moved = Assert.Single(result, x => x.Entry.Name == "Song.mp3");
+        Assert.True(moved.IsPending);
+        Assert.Equal("Song.mp3", moved.Entry.Name);
+        Assert.Equal(
+            Path.GetFullPath("C:/Music/Archive/Song.mp3"),
+            Path.GetFullPath(moved.Entry.FullPath),
+            StringComparer.OrdinalIgnoreCase);
+    }
+
     private static StagingOperation Op(OperationType type, string target, StagingPayload payload, int seconds)
         => new(Guid.NewGuid(), Timestamp.AddSeconds(seconds), type, target, nameof(MediaState.Synced), nameof(MediaState.Pending), payload);
 }
