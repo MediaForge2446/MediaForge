@@ -6,15 +6,22 @@
              mc:Ignorable="d" FlowDirection="RightToLeft">
     <Grid>
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+
         <Grid Grid.Row="0">
             <StackPanel HorizontalAlignment="Right">
-                <TextBlock Text="הורדת מדיה" FontSize="29" FontWeight="Bold" HorizontalAlignment="Right"/>
-                <TextBlock Text="הדבק קישור, בדוק את המדיה והכן אותה לשמירה בספרייה." Margin="0,5,0,0" FontSize="13" Foreground="#87919E" HorizontalAlignment="Right"/>
+                <TextBlock Text="הורדת מדיה" FontSize="30" FontWeight="Bold" HorizontalAlignment="Right"/>
+                <TextBlock Text="הדבק קישור, קבל תצוגה מקדימה, ערוך את הפריטים והוסף אותם ל־Save Changes." Margin="0,5,0,0" FontSize="13" Foreground="#87919E" HorizontalAlignment="Right"/>
             </StackPanel>
-            <Border HorizontalAlignment="Left" VerticalAlignment="Center" Padding="12,8" CornerRadius="11" Background="#151F25" BorderBrush="#27333C" BorderThickness="1">
-                <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{StaticResource MediaForgeSuccessBrush}" VerticalAlignment="Center"/><TextBlock Text=" הורדה חכמה · yt-dlp + FFmpeg" Margin="8,0,0,0" FontSize="10" Foreground="#AEB8C3"/></StackPanel>
-            </Border>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <Border Padding="12,8" CornerRadius="11" Background="#121A20" BorderBrush="#27333C" BorderThickness="1">
+                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{StaticResource MediaForgeSuccessBrush}" VerticalAlignment="Center"/><TextBlock Text=" מערכת הורדה מוכנה" Margin="8,0,0,0" FontSize="10" Foreground="#B9C4CD"/></StackPanel>
+                </Border>
+                <Border Padding="10,8" Margin="8,0,0,0" CornerRadius="11" Background="#10161C" BorderBrush="#27333C" BorderThickness="1">
+                    <TextBlock Text="MP3 · MP4 · WAV · M4A" FontSize="9.5" Foreground="#6F7B87"/>
+                </Border>
+            </StackPanel>
         </Grid>
+
         <Border Grid.Row="1" Margin="0,22,0,16" Padding="15" Style="{StaticResource MediaForgeCardStyle}">
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="132"/></Grid.ColumnDefinitions>
@@ -26,20 +33,22 @@
                     </Grid>
                 </Border>
                 <Button Grid.Column="1" Content="בדוק והצג" Command="{Binding ResolveCommand}" Margin="10,0,10,0" Style="{StaticResource MediaForgePrimaryButtonStyle}" MinWidth="118"/>
-                <ComboBox Grid.Column="2" ItemsSource="{Binding Formats}" SelectedItem="{Binding SelectedFormat}" Style="{StaticResource MediaForgeComboStyle}"/>
+                <ComboBox Grid.Column="2" ItemsSource="{Binding Formats}" SelectedItem="{Binding SelectedFormat}" Style="{StaticResource MediaForgeComboStyle}" ToolTip="פורמט ברירת המחדל"/>
             </Grid>
         </Border>
+
         <Grid Grid.Row="2">
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+
             <Border Grid.Row="0" Padding="15" Margin="0,0,0,12" Style="{StaticResource MediaForgeCardStyle}">
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <StackPanel>
-                        <TextBlock Text="{Binding CollectionTitle}" FontSize="16" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding CollectionTitle}" FontSize="16" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
                         <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                             <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="#7F8995"/>
                             <Ellipse Width="4" Height="4" Margin="8,0" Fill="#46525E" VerticalAlignment="Center"/>
-                            <TextBlock Text="הפריטים יישארו ממתינים עד שמירה" FontSize="10" Foreground="#687480"/>
+                            <TextBlock Text="הפריטים ממתינים עד שמירה" FontSize="10" Foreground="#687480"/>
                         </StackPanel>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
@@ -48,6 +57,7 @@
                     </StackPanel>
                 </Grid>
             </Border>
+
             <Border Grid.Row="1" Style="{StaticResource MediaForgeCardStyle}">
                 <Grid>
                     <Grid.RowDefinitions><RowDefinition Height="42"/><RowDefinition Height="*"/></Grid.RowDefinitions>
@@ -60,34 +70,50 @@
                             <TextBlock Grid.Column="5" Text="מצב" FontSize="10" FontWeight="Bold" Foreground="#63707C" HorizontalAlignment="Center"/>
                         </Grid>
                     </Border>
-                    <ListView Grid.Row="1" ItemsSource="{Binding Items}" BorderThickness="0" Background="Transparent" Padding="8">
-                        <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,0,0,5"/></Style></ListView.ItemContainerStyle>
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <Border Padding="8" Background="#12171D" CornerRadius="12" BorderBrush="#202832" BorderThickness="1">
-                                    <Grid MinHeight="72">
-                                        <Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="62"/><ColumnDefinition Width="*"/><ColumnDefinition Width="100"/><ColumnDefinition Width="90"/><ColumnDefinition Width="78"/></Grid.ColumnDefinitions>
-                                        <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                        <Border Grid.Column="1" Width="52" Height="52" CornerRadius="10" Background="#1A232D" VerticalAlignment="Center" ClipToBounds="True"><Image Source="{Binding ThumbnailUrl}" Stretch="UniformToFill"/></Border>
-                                        <StackPanel Grid.Column="2" Margin="14,0,14,0" VerticalAlignment="Center"><TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MediaForgeInlineInputStyle}"/><TextBlock Text="{Binding Artist}" Margin="6,2,0,0" FontSize="10" Foreground="#75808D"/></StackPanel>
-                                        <ComboBox Grid.Column="3" ItemsSource="{Binding Formats}" SelectedItem="{Binding DesiredFormat}" Style="{StaticResource MediaForgeComboStyle}" Height="34" VerticalAlignment="Center" Margin="4,0"/>
-                                        <TextBlock Grid.Column="4" Text="{Binding DurationText}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="11" Foreground="#84909C"/>
-                                        <Border Grid.Column="5" Padding="8,5" CornerRadius="8" Background="#19232C" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="מוכן" FontSize="10" Foreground="#AFC0CB"/></Border>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                    <Border Grid.RowSpan="2" Background="#071015" Opacity="0.64" CornerRadius="16" Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverterFallback}}">
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"><ProgressBar IsIndeterminate="True" Width="190" Height="4"/><TextBlock Text="מעבד…" Margin="0,12,0,0" HorizontalAlignment="Center" FontSize="11" Foreground="#CDD6DD"/></StackPanel>
-                    </Border>
+                    <Grid Grid.Row="1">
+                        <ListView ItemsSource="{Binding Items}" BorderThickness="0" Background="Transparent" Padding="8" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,0,0,5"/></Style></ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="8" Background="#12171D" CornerRadius="12" BorderBrush="#202832" BorderThickness="1">
+                                        <Grid MinHeight="72">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="62"/><ColumnDefinition Width="*"/><ColumnDefinition Width="100"/><ColumnDefinition Width="90"/><ColumnDefinition Width="78"/></Grid.ColumnDefinitions>
+                                            <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                            <Border Grid.Column="1" Width="52" Height="52" CornerRadius="10" Background="#1A232D" VerticalAlignment="Center" ClipToBounds="True"><Image Source="{Binding ThumbnailUrl}" Stretch="UniformToFill"/></Border>
+                                            <StackPanel Grid.Column="2" Margin="14,0,14,0" VerticalAlignment="Center"><TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MediaForgeInlineInputStyle}"/><TextBlock Text="{Binding Artist}" Margin="6,2,0,0" FontSize="10" Foreground="#75808D"/></StackPanel>
+                                            <ComboBox Grid.Column="3" ItemsSource="{Binding Formats}" SelectedItem="{Binding DesiredFormat}" Style="{StaticResource MediaForgeComboStyle}" Height="34" VerticalAlignment="Center" Margin="4,0"/>
+                                            <TextBlock Grid.Column="4" Text="{Binding DurationText}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="11" Foreground="#84909C"/>
+                                            <Border Grid.Column="5" Padding="8,5" CornerRadius="8" Background="#19232C" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="מוכן" FontSize="10" Foreground="#AFC0CB"/></Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        <Border Visibility="{Binding HasItems, Converter={StaticResource InverseBooleanToVisibilityConverter}}" Background="#0C1116" CornerRadius="0,0,16,16">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Border Width="76" Height="76" CornerRadius="24" Background="#12232B" BorderBrush="#203A46" BorderThickness="1"><TextBlock Text="↗" FontSize="32" Foreground="{StaticResource MediaForgeAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                <TextBlock Text="מוכן לקבלת קישור" Margin="0,16,0,0" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="הדבק קישור למעלה ולחץ על ‘בדוק והצג’ כדי לטעון שיר או פלייליסט." Margin="0,7,0,0" FontSize="10.5" Foreground="#737F8B" TextAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="#071015" Opacity="0.66" CornerRadius="0,0,16,16" Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverterFallback}}">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"><ProgressBar IsIndeterminate="True" Width="190" Height="4"/><TextBlock Text="מביא נתוני מדיה…" Margin="0,12,0,0" HorizontalAlignment="Center" FontSize="11" Foreground="#CDD6DD"/></StackPanel>
+                        </Border>
+                    </Grid>
                 </Grid>
             </Border>
+
             <Border Grid.Row="2" Margin="0,12,0,0" Padding="14" Style="{StaticResource MediaForgeCardStyle}">
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                    <StackPanel><TextBlock Text="תיקיית יעד" FontSize="11" FontWeight="SemiBold"/><TextBlock Text="{Binding DestinationDirectory}" Margin="0,4,0,0" FontSize="10" Foreground="#778390" TextTrimming="CharacterEllipsis"/></StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left"><Button Content="בחר תיקייה" Command="{Binding PickDestinationCommand}" Style="{StaticResource MediaForgeSubtleButtonStyle}"/><Button Content="הוסף לשינויים  →" Command="{Binding StageSelectedCommand}" Margin="8,0,0,0" Style="{StaticResource MediaForgePrimaryButtonStyle}" MinWidth="146"/></StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="תיקיית יעד" FontSize="11" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding DestinationDirectory}" Margin="0,4,0,0" FontSize="10" Foreground="#778390" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
+                        <Button Content="בחר תיקייה" Command="{Binding PickDestinationCommand}" Style="{StaticResource MediaForgeSubtleButtonStyle}"/>
+                        <Button Content="הוסף לשינויים  →" Command="{Binding StageSelectedCommand}" Margin="8,0,0,0" Style="{StaticResource MediaForgePrimaryButtonStyle}" MinWidth="146"/>
+                    </StackPanel>
                 </Grid>
             </Border>
         </Grid>
