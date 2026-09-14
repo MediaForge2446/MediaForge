@@ -85,7 +85,7 @@ public partial class ExplorerViewModel : ObservableObject
         var target = Path.Combine(CurrentPath, name);
         if (_staging.Operations.Any(x => string.Equals(x.Payload?.DirectoryPath, target, StringComparison.OrdinalIgnoreCase)) || Directory.Exists(target))
         { StatusText = "התיקייה כבר קיימת"; return; }
-        await _staging.StageAsync(CreateOperation(OperationType.CreateDirectory, target, new StagingPayload(DirectoryPath: target)), cancellationToken).ConfigureAwait(true);
+        await _staging.StageAsync(CreateOperation(OperationType.CreateDirectory, target, new StagingPayload(DirectoryPath: target, IsDirectory: true)), cancellationToken).ConfigureAwait(true);
         NewFolderName = string.Empty;
         StatusText = "תיקייה נוספה לשינויים ממתינים";
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
@@ -96,7 +96,7 @@ public partial class ExplorerViewModel : ObservableObject
     {
         var entry = SelectedEntry;
         if (entry is null || entry.MarkedForDeletion || IsBusy) return;
-        await _staging.StageAsync(CreateOperation(OperationType.Delete, entry.FullPath, new StagingPayload(SourcePath: entry.FullPath, Recursive: entry.IsDirectory)), cancellationToken).ConfigureAwait(true);
+        await _staging.StageAsync(CreateOperation(OperationType.Delete, entry.FullPath, new StagingPayload(SourcePath: entry.FullPath, Recursive: entry.IsDirectory, IsDirectory: entry.IsDirectory)), cancellationToken).ConfigureAwait(true);
         StatusText = "מחיקה סומנה לשמירה";
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
@@ -106,11 +106,12 @@ public partial class ExplorerViewModel : ObservableObject
     {
         var entry = SelectedEntry;
         var name = NewName.Trim();
-        if (entry is null || string.IsNullOrWhiteSpace(name) || IsBusy) return;
+        if (entry is null || entry.MarkedForDeletion || string.IsNullOrWhiteSpace(name) || IsBusy) return;
         if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) { StatusText = "השם החדש אינו חוקי"; return; }
         var destination = Path.Combine(Path.GetDirectoryName(entry.FullPath) ?? CurrentPath, name);
         if (File.Exists(destination) || Directory.Exists(destination)) { StatusText = "כבר קיים פריט בשם הזה"; return; }
-        await _staging.StageAsync(CreateOperation(OperationType.Rename, entry.FullPath, new StagingPayload(SourcePath: entry.FullPath, DestinationPath: destination, NewName: name)), cancellationToken).ConfigureAwait(true);
+        if (_staging.Operations.Any(x => string.Equals(x.Payload?.DestinationPath, destination, StringComparison.OrdinalIgnoreCase))) { StatusText = "כבר קיים שינוי ממתין ליעד הזה"; return; }
+        await _staging.StageAsync(CreateOperation(OperationType.Rename, entry.FullPath, new StagingPayload(SourcePath: entry.FullPath, DestinationPath: destination, NewName: name, IsDirectory: entry.IsDirectory)), cancellationToken).ConfigureAwait(true);
         NewName = string.Empty;
         StatusText = "שינוי השם סומן לשמירה";
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
@@ -121,11 +122,12 @@ public partial class ExplorerViewModel : ObservableObject
     {
         var entry = SelectedEntry;
         var destination = MoveDestination.Trim();
-        if (entry is null || string.IsNullOrWhiteSpace(destination) || IsBusy) return;
+        if (entry is null || entry.MarkedForDeletion || string.IsNullOrWhiteSpace(destination) || IsBusy) return;
         var destinationPath = Path.GetFullPath(destination);
         if (entry.IsDirectory && IsSameOrChildPath(destinationPath, entry.FullPath)) { StatusText = "אי אפשר להעביר תיקייה לתוך עצמה"; return; }
         if (File.Exists(destinationPath) || Directory.Exists(destinationPath)) { StatusText = "יעד ההעברה כבר קיים"; return; }
-        await _staging.StageAsync(CreateOperation(OperationType.Move, entry.FullPath, new StagingPayload(SourcePath: entry.FullPath, DestinationPath: destinationPath)), cancellationToken).ConfigureAwait(true);
+        if (_staging.Operations.Any(x => string.Equals(x.Payload?.DestinationPath, destinationPath, StringComparison.OrdinalIgnoreCase))) { StatusText = "כבר קיים שינוי ממתין ליעד הזה"; return; }
+        await _staging.StageAsync(CreateOperation(OperationType.Move, entry.FullPath, new StagingPayload(SourcePath: entry.FullPath, DestinationPath: destinationPath, IsDirectory: entry.IsDirectory)), cancellationToken).ConfigureAwait(true);
         MoveDestination = string.Empty;
         StatusText = "העברה סומנה לשמירה";
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
