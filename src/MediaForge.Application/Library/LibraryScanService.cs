@@ -3,27 +3,15 @@ using MediaForge.Core.Models;
 
 namespace MediaForge.Application.Library;
 
-/// <summary>
-/// Reads the physical filesystem and produces a live snapshot. It never mutates the library.
-/// </summary>
+/// <summary>Reads the physical filesystem through the explorer abstraction and never mutates user files.</summary>
 public sealed class LibraryScanService
 {
     private readonly IExplorerService _explorer;
+    public LibraryScanService(IExplorerService explorer) => _explorer = explorer;
 
-    public LibraryScanService(IExplorerService explorer)
-    {
-        _explorer = explorer;
-    }
-
-    public async Task<LibraryScanResult> ScanAsync(
-        RootFolder root,
-        CancellationToken cancellationToken = default)
+    public async Task<LibraryScanResult> ScanAsync(RootFolder root, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(root);
-
-        if (!Directory.Exists(root.Path))
-            return new LibraryScanResult(root.Id, root.Path, false, 0, 0, 0, 0, 0);
-
         var folderCount = 0;
         var fileCount = 0;
         var mediaCount = 0;
@@ -36,36 +24,23 @@ public sealed class LibraryScanService
             cancellationToken.ThrowIfCancellationRequested();
             var directory = stack.Pop();
             IReadOnlyList<ExplorerEntry> entries;
-            try
-            {
-                entries = await _explorer.ListAsync(directory, cancellationToken).ConfigureAwait(false);
-            }
-            catch (UnauthorizedAccessException)
-            {
-                continue;
-            }
+            try { entries = await _explorer.ListAsync(directory, cancellationToken).ConfigureAwait(false); }
             catch (DirectoryNotFoundException)
             {
+                if (directory == root.Path) return new LibraryScanResult(root.Id, root.Path, false, 0, 0, 0, 0, DateTimeOffset.Now);
                 continue;
             }
+            catch (UnauthorizedAccessException) { continue; }
 
             foreach (var entry in entries)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (entry.IsDirectory)
-                {
-                    folderCount++;
-                    stack.Push(entry.FullPath);
-                    continue;
-                }
-
+                if (entry.IsDirectory) { folderCount++; stack.Push(entry.FullPath); continue; }
                 fileCount++;
-                totalBytes += Math.Max(0, entry.Size);
-                if (IsMediaFile(entry.Name))
-                    mediaCount++;
+                totalBytes = checked(totalBytes + Math.Max(0, entry.Size));
+                if (IsMediaFile(entry.Name)) mediaCount++;
             }
         }
-
         return new LibraryScanResult(root.Id, root.Path, true, folderCount, fileCount, mediaCount, totalBytes, DateTimeOffset.Now);
     }
 
@@ -80,18 +55,9 @@ public sealed class LibraryScanService
         || name.EndsWith(".webm", StringComparison.OrdinalIgnoreCase);
 }
 
-public sealed record LibraryScanResult(
-    Guid RootFolderId,
-    string Path,
-    bool Exists,
-    int FolderCount,
-    int FileCount,
-    int MediaCount,
-    long TotalBytes,
-    DateTimeOffset? ScannedAt = null)
+public sealed record LibraryScanResult(Guid RootFolderId, string Path, bool Exists, int FolderCount, int FileCount, int MediaCount, long TotalBytes, DateTimeOffset? ScannedAt = null)
 {
     public string TotalSizeText => FormatBytes(TotalBytes);
-
     private static string FormatBytes(long bytes)
     {
         if (bytes < 1024) return $"{bytes} B";
