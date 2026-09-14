@@ -33,10 +33,10 @@ jobs:
         run: dotnet build MediaForge.sln --configuration Release --no-restore
 
       - name: Application unit tests
-        run: dotnet test tests/MediaForge.Application.Tests/MediaForge.Application.Tests.csproj --configuration Release --no-restore --no-build
+        run: dotnet test tests/MediaForge.Application.Tests/MediaForge.Application.Tests.csproj --configuration Release --no-restore --no-build --blame-hang --blame-hang-timeout 2m
 
       - name: Infrastructure unit tests
-        run: dotnet test tests/MediaForge.Infrastructure.Tests/MediaForge.Infrastructure.Tests.csproj --configuration Release --no-restore --no-build
+        run: dotnet test tests/MediaForge.Infrastructure.Tests/MediaForge.Infrastructure.Tests.csproj --configuration Release --no-restore --no-build --blame-hang --blame-hang-timeout 2m
 
       - name: Verify WPF publish configuration
         run: dotnet publish src/MediaForge.App/MediaForge.App.csproj --configuration Release --runtime win-x64 --self-contained true --no-restore --output artifacts/app-check
