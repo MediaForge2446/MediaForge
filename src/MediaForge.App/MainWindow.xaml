@@ -14,9 +14,13 @@
         <DataTemplate DataType="{x:Type vm:DownloadsViewModel}"><views:DownloadsPage/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><views:SettingsPage/></DataTemplate>
     </ui:FluentWindow.Resources>
+
     <Grid Margin="10">
         <Grid.RowDefinitions><RowDefinition Height="52"/><RowDefinition Height="*"/><RowDefinition Height="32"/></Grid.RowDefinitions>
-        <ui:TitleBar Grid.Row="0" Title="MediaForge" Margin="0,0,0,6" ShowMinimize="True" ShowMaximize="True" ShowClose="True"><ui:TitleBar.Icon><ui:SymbolIcon Symbol="Fluent24"/></ui:TitleBar.Icon></ui:TitleBar>
+        <ui:TitleBar Grid.Row="0" Title="MediaForge" Margin="0,0,0,6" ShowMinimize="True" ShowMaximize="True" ShowClose="True">
+            <ui:TitleBar.Icon><ui:SymbolIcon Symbol="Fluent24"/></ui:TitleBar.Icon>
+        </ui:TitleBar>
+
         <Border Grid.Row="1" CornerRadius="20" Background="#0E1318" BorderBrush="#28313B" BorderThickness="1">
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="254"/><ColumnDefinition Width="1"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -29,15 +33,25 @@
                                 <StackPanel Margin="12,0,0,0" VerticalAlignment="Center"><TextBlock Text="MEDIAFORGE" FontSize="15" FontWeight="Bold"/><TextBlock Text="Media workspace" Margin="0,3,0,0" FontSize="10" Foreground="#6F7A87"/></StackPanel>
                             </StackPanel>
                         </Grid>
+
                         <StackPanel Grid.Row="1" Margin="0,10,0,0">
                             <TextBlock Text="WORKSPACE" Margin="12,0,0,9" FontSize="10" FontWeight="Bold" Foreground="#5F6A77"/>
-                            <Button Tag="{Binding ActiveSection, Converter={StaticResource BooleanNotConverter}}" Style="{StaticResource MediaForgeNavButtonStyle}" Command="{Binding NavigateCommand}" CommandParameter="home"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⌂" FontSize="21" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="הספרייה שלי" VerticalAlignment="Center"/></Grid></Button>
-                            <Button Style="{StaticResource MediaForgeNavButtonStyle}" Command="{Binding NavigateCommand}" CommandParameter="explorer"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="▦" FontSize="18" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="סייר הקבצים" VerticalAlignment="Center"/></Grid></Button>
-                            <Button Style="{StaticResource MediaForgeNavButtonStyle}" Command="{Binding NavigateCommand}" CommandParameter="downloads"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="↓" FontSize="23" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="הורדת מדיה" VerticalAlignment="Center"/></Grid></Button>
+                            <Button Tag="{Binding ActiveSection, Converter={StaticResource StringEqualsConverter}, ConverterParameter=home}" Style="{StaticResource MediaForgeNavButtonStyle}" Command="{Binding NavigateCommand}" CommandParameter="home">
+                                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⌂" FontSize="21" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="הספרייה שלי" VerticalAlignment="Center"/></Grid>
+                            </Button>
+                            <Button Tag="{Binding ActiveSection, Converter={StaticResource StringEqualsConverter}, ConverterParameter=explorer}" Style="{StaticResource MediaForgeNavButtonStyle}" Command="{Binding NavigateCommand}" CommandParameter="explorer">
+                                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="▦" FontSize="18" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="סייר הקבצים" VerticalAlignment="Center"/></Grid>
+                            </Button>
+                            <Button Tag="{Binding ActiveSection, Converter={StaticResource StringEqualsConverter}, ConverterParameter=downloads}" Style="{StaticResource MediaForgeNavButtonStyle}" Command="{Binding NavigateCommand}" CommandParameter="downloads">
+                                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="↓" FontSize="23" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="הורדת מדיה" VerticalAlignment="Center"/></Grid>
+                            </Button>
                             <Separator Margin="12,18" Background="#202832"/>
                             <TextBlock Text="SYSTEM" Margin="12,0,0,9" FontSize="10" FontWeight="Bold" Foreground="#5F6A77"/>
-                            <Button Style="{StaticResource MediaForgeNavButtonStyle}" Command="{Binding NavigateCommand}" CommandParameter="settings"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⚙" FontSize="18" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="הגדרות וכלים" VerticalAlignment="Center"/></Grid></Button>
+                            <Button Tag="{Binding ActiveSection, Converter={StaticResource StringEqualsConverter}, ConverterParameter=settings}" Style="{StaticResource MediaForgeNavButtonStyle}" Command="{Binding NavigateCommand}" CommandParameter="settings">
+                                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⚙" FontSize="18" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="הגדרות וכלים" VerticalAlignment="Center"/></Grid>
+                            </Button>
                         </StackPanel>
+
                         <Border Grid.Row="2" Padding="14" Background="#121920" CornerRadius="15" BorderBrush="#222D36" BorderThickness="1">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{StaticResource MediaForgeSuccessBrush}" VerticalAlignment="Center"/><TextBlock Text=" מערכת פעילה" Margin="8,0,0,0" FontWeight="SemiBold" FontSize="11"/></StackPanel>
@@ -48,16 +62,24 @@
                     </Grid>
                 </Border>
                 <Border Grid.Column="1" Background="#252D36"/>
+
                 <Grid Grid.Column="2" Margin="30,24,30,18">
                     <Grid.RowDefinitions><RowDefinition Height="76"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                     <Grid Grid.Row="0">
-                        <StackPanel FlowDirection="RightToLeft" HorizontalAlignment="Right" VerticalAlignment="Center"><TextBlock Text="{Binding PageTitle}" FontSize="28" FontWeight="Bold"/><TextBlock Text="{Binding StatusText}" Margin="0,4,0,0" FontSize="11" Foreground="#87919E" HorizontalAlignment="Right"/></StackPanel>
+                        <StackPanel FlowDirection="RightToLeft" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding PageTitle}" FontSize="28" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding StatusText}" Margin="0,4,0,0" FontSize="11" Foreground="#87919E" HorizontalAlignment="Right"/>
+                        </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                            <Border Padding="12,8" CornerRadius="12" Background="#151D24" BorderBrush="#29333D" BorderThickness="1" Visibility="{Binding HasPendingChanges, Converter={StaticResource BooleanToVisibilityConverterFallback}}"><StackPanel Orientation="Horizontal"><Ellipse Width="7" Height="7" Fill="{StaticResource MediaForgePendingBrush}" VerticalAlignment="Center"/><TextBlock Margin="8,0,0,0" FontSize="11" FontWeight="SemiBold"><Run Text="{Binding PendingCount}"/><Run Text="  ממתינים"/></TextBlock></StackPanel></Border>
+                            <Border Padding="12,8" CornerRadius="12" Background="#151D24" BorderBrush="#29333D" BorderThickness="1" Visibility="{Binding HasPendingChanges, Converter={StaticResource BooleanToVisibilityConverterFallback}}">
+                                <StackPanel Orientation="Horizontal"><Ellipse Width="7" Height="7" Fill="{StaticResource MediaForgePendingBrush}" VerticalAlignment="Center"/><TextBlock Margin="8,0,0,0" FontSize="11" FontWeight="SemiBold"><Run Text="{Binding PendingCount}"/><Run Text="  ממתינים"/></TextBlock></StackPanel>
+                            </Border>
                             <Button Content="שמור שינויים  →" Command="{Binding SaveChangesCommand}" IsEnabled="{Binding HasPendingChanges}" Margin="10,0,0,0" MinHeight="42" Style="{StaticResource MediaForgePrimaryButtonStyle}"/>
                         </StackPanel>
                     </Grid>
-                    <Border Grid.Row="1" Background="#0D1217" CornerRadius="17" BorderBrush="#222B34" BorderThickness="1" Padding="24"><ContentControl Content="{Binding CurrentPage}"/></Border>
+                    <Border Grid.Row="1" Background="#0D1217" CornerRadius="17" BorderBrush="#222B34" BorderThickness="1" Padding="24">
+                        <ContentControl Content="{Binding CurrentPage}"/>
+                    </Border>
                 </Grid>
             </Grid>
         </Border>
