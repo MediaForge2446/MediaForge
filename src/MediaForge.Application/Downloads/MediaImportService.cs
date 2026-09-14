@@ -62,8 +62,6 @@ public sealed class MediaImportService
                 if (await _fileSystem.FileExistsAsync(indexed.PhysicalPath, cancellationToken).ConfigureAwait(false))
                     continue;
 
-                // The physical file disappeared; keep the source record useful only after
-                // we know it is stale, then allow a fresh stage operation to repair it.
                 await _mediaIndex.RemoveAsync(item.VideoId, cancellationToken).ConfigureAwait(false);
             }
 
@@ -72,7 +70,7 @@ public sealed class MediaImportService
             var baseName = SanitizeFileName(item.Metadata.Title);
             if (string.IsNullOrWhiteSpace(baseName)) baseName = item.VideoId;
             var extension = GetExtension(format);
-            var fileName = MakeUnique(baseName, extension, usedNames, _fileSystem, directory, cancellationToken);
+            var fileName = await MakeUniqueAsync(baseName, extension, usedNames, _fileSystem, directory, cancellationToken).ConfigureAwait(false);
             var destinationPath = Path.Combine(directory, fileName);
 
             var operation = new StagingOperation(
@@ -100,7 +98,7 @@ public sealed class MediaImportService
         _ => throw new ArgumentOutOfRangeException(nameof(format))
     };
 
-    private static async Task<string> MakeUnique(
+    private static async Task<string> MakeUniqueAsync(
         string baseName,
         string extension,
         ISet<string> usedNames,
