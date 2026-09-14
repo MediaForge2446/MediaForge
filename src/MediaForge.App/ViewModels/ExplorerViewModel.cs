@@ -15,6 +15,9 @@ public partial class ExplorerViewModel : ObservableObject
     private readonly Application.Abstractions.IStagingService _staging;
     private readonly ExplorerProjectionService _projection;
     private readonly HashSet<Guid> _failedOperationIds = [];
+    private readonly Stack<string> _backHistory = [];
+    private readonly Stack<string> _forwardHistory = [];
+    private bool _historyNavigation;
 
     [ObservableProperty] private string _rootPath = string.Empty;
     [ObservableProperty] private string _currentPath = string.Empty;
@@ -29,6 +32,8 @@ public partial class ExplorerViewModel : ObservableObject
     public ObservableCollection<ExplorerTreeNodeViewModel> FolderTree { get; } = [];
     public bool CanGoUp => !string.IsNullOrWhiteSpace(RootPath) && !string.IsNullOrWhiteSpace(CurrentPath) && !string.Equals(Path.GetFullPath(RootPath), Path.GetFullPath(CurrentPath), StringComparison.OrdinalIgnoreCase);
     public bool CanGoHome => CanGoUp;
+    public bool CanGoBack => _backHistory.Count > 0;
+    public bool CanGoForward => _forwardHistory.Count > 0;
 
     public event Action<string>? AddMediaRequested;
 
@@ -45,6 +50,8 @@ public partial class ExplorerViewModel : ObservableObject
         {
             RootPath = Path.GetFullPath(initialPath);
             CurrentPath = RootPath;
+            _backHistory.Clear();
+            _forwardHistory.Clear();
             await BuildFolderTreeAsync(cancellationToken).ConfigureAwait(true);
         }
         if (!string.IsNullOrWhiteSpace(CurrentPath)) await ReloadAsync(cancellationToken).ConfigureAwait(true);
@@ -68,6 +75,8 @@ public partial class ExplorerViewModel : ObservableObject
             StatusText = Entries.Count == 0 ? "התיקייה ריקה" : $"{Entries.Count} פריטים";
             OnPropertyChanged(nameof(CanGoUp));
             OnPropertyChanged(nameof(CanGoHome));
+            OnPropertyChanged(nameof(CanGoBack));
+            OnPropertyChanged(nameof(CanGoForward));
         }
         catch (OperationCanceledException) { StatusText = "הפעולה בוטלה"; }
         catch (Exception ex) { StatusText = ex.Message; }
@@ -109,10 +118,42 @@ public partial class ExplorerViewModel : ObservableObject
         var root = Path.GetFullPath(RootPath).TrimEnd(Path.DirectorySeparatorChar);
         if (!string.Equals(full, root, StringComparison.OrdinalIgnoreCase) &&
             !full.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) return;
+        if (string.Equals(full, CurrentPath, StringComparison.OrdinalIgnoreCase)) return;
+
+        if (!_historyNavigation && !string.IsNullOrWhiteSpace(CurrentPath))
+        {
+            _backHistory.Push(CurrentPath);
+            _forwardHistory.Clear();
+        }
+
         CurrentPath = full;
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
         OnPropertyChanged(nameof(CanGoUp));
         OnPropertyChanged(nameof(CanGoHome));
+        OnPropertyChanged(nameof(CanGoBack));
+        OnPropertyChanged(nameof(CanGoForward));
+    }
+
+    [RelayCommand]
+    private async Task GoBackAsync(CancellationToken cancellationToken)
+    {
+        if (_backHistory.Count == 0 || IsBusy) return;
+        var target = _backHistory.Pop();
+        if (!string.IsNullOrWhiteSpace(CurrentPath)) _forwardHistory.Push(CurrentPath);
+        _historyNavigation = true;
+        try { await NavigateToPathAsync(target, cancellationToken).ConfigureAwait(true); }
+        finally { _historyNavigation = false; }
+    }
+
+    [RelayCommand]
+    private async Task GoForwardAsync(CancellationToken cancellationToken)
+    {
+        if (_forwardHistory.Count == 0 || IsBusy) return;
+        var target = _forwardHistory.Pop();
+        if (!string.IsNullOrWhiteSpace(CurrentPath)) _backHistory.Push(CurrentPath);
+        _historyNavigation = true;
+        try { await NavigateToPathAsync(target, cancellationToken).ConfigureAwait(true); }
+        finally { _historyNavigation = false; }
     }
 
     public async Task GoHomeAsync(CancellationToken cancellationToken = default)
@@ -140,7 +181,9 @@ public partial class ExplorerViewModel : ObservableObject
 
     [RelayCommand]
     private async Task OpenAsync(ExplorerEntryViewModel? entry, CancellationToken cancellationToken)
-        => await OpenFromDoubleClickAsync(entry!, cancellationToken).ConfigureAwait(true);
+    {
+        if (entry is not null) await OpenFromDoubleClickAsync(entry, cancellationToken).ConfigureAwait(true);
+    }
 
     [RelayCommand]
     private async Task GoUpAsync(CancellationToken cancellationToken)
@@ -163,7 +206,7 @@ public partial class ExplorerViewModel : ObservableObject
         { StatusText = "התיקייה כבר קיימת"; return; }
         await _staging.StageAsync(CreateOperation(OperationType.CreateDirectory, target, new StagingPayload(DirectoryPath: target, IsDirectory: true)), cancellationToken).ConfigureAwait(true);
         NewFolderName = string.Empty;
-        StatusText = "תיקייה נוספה לשינויים הממתינים";
+        StatusText = "התיקייה נוספה לשינויים הממתינים";
         await BuildFolderTreeAsync(cancellationToken).ConfigureAwait(true);
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
@@ -229,10 +272,14 @@ public partial class ExplorerViewModel : ObservableObject
         var full = Path.GetFullPath(path);
         RootPath = full;
         CurrentPath = full;
+        _backHistory.Clear();
+        _forwardHistory.Clear();
         await BuildFolderTreeAsync(cancellationToken).ConfigureAwait(true);
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
         OnPropertyChanged(nameof(CanGoUp));
         OnPropertyChanged(nameof(CanGoHome));
+        OnPropertyChanged(nameof(CanGoBack));
+        OnPropertyChanged(nameof(CanGoForward));
     }
 
     private static StagingOperation CreateOperation(OperationType type, string target, StagingPayload payload)
