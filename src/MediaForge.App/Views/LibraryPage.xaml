@@ -4,7 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" FlowDirection="RightToLeft">
-    <Grid Margin="26,24,26,24">
+    <Grid Margin="30,28,30,26">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -13,118 +13,121 @@
 
         <Grid Grid.Row="0" Margin="4,0,4,24">
             <StackPanel HorizontalAlignment="Right">
-                <TextBlock Text="הבית" FontSize="31" FontWeight="Bold" Foreground="#172338" />
-                <TextBlock Text="בחר תיקייה ראשית כדי לפתוח את סביבת העבודה שלך."
-                           Margin="0,6,0,0" FontSize="13" Foreground="#7A879A" />
+                <TextBlock Text="הבית" FontSize="32" FontWeight="Bold" Foreground="#172338" />
+                <TextBlock Text="כאן מתחילים. בחר תיקייה ראשית כדי לפתוח את סביבת העבודה שלך."
+                           Margin="0,7,0,0" FontSize="13" Foreground="#7A879A" />
             </StackPanel>
             <Button Content="＋  הוסף תיקייה ראשית"
                     Command="{Binding AddRootFolderCommand}"
-                    MinWidth="180" MinHeight="46"
+                    MinWidth="188" MinHeight="48"
                     HorizontalAlignment="Left"
                     Style="{StaticResource MediaForgePrimaryButtonStyle}" />
         </Grid>
 
-        <Border Grid.Row="1" Padding="16,13" Margin="0,0,0,16"
-                Background="#F7FAFE" BorderBrush="#E1E9F3" BorderThickness="1" CornerRadius="16">
+        <Border Grid.Row="1" Padding="18,15" Margin="0,0,0,18"
+                Background="#F7FAFE" BorderBrush="#E0E8F2" BorderThickness="1" CornerRadius="17">
             <Grid>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Border Width="34" Height="34" CornerRadius="10" Background="#EAF3FF">
-                        <TextBlock Text="⌂" FontSize="18" Foreground="{StaticResource MediaForgeAccentBrush}"
+                    <Border Width="36" Height="36" CornerRadius="11" Background="#EAF3FF">
+                        <TextBlock Text="⌂" FontSize="19" Foreground="{StaticResource MediaForgeAccentBrush}"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
-                    <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="התיקיות הראשיות שלך" FontSize="13" FontWeight="SemiBold" Foreground="#243248" />
-                        <TextBlock Text="{Binding RootFolders.Count, StringFormat={} {0} תיקיות מחוברות}" Margin="0,2,0,0"
+                    <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="תיקיות ראשיות" FontSize="13.5" FontWeight="SemiBold" Foreground="#243248" />
+                        <TextBlock Text="בחר אחת כדי להיכנס לסייר הקבצים" Margin="0,2,0,0"
                                    FontSize="10.5" Foreground="#7D8A9E" />
                     </StackPanel>
                 </StackPanel>
-                <TextBlock Text="הדיסק לא משתנה מהמסך הזה — אתה רק בוחר סביבת עבודה."
+                <TextBlock Text="השינויים עצמם נשמרים רק לאחר 'שמור שינויים' בתוך סביבת העבודה."
                            HorizontalAlignment="Left" VerticalAlignment="Center"
                            FontSize="10.5" Foreground="#7D8A9E" />
             </Grid>
         </Border>
 
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <ItemsControl ItemsSource="{Binding RootFolders}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Button Command="{Binding DataContext.OpenRootFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                CommandParameter="{Binding}"
-                                Background="Transparent" BorderThickness="0" Padding="0"
-                                Margin="0,0,16,16" HorizontalContentAlignment="Stretch">
-                            <Border Width="420" MinHeight="168" Padding="20"
-                                    Background="#FFFFFF" BorderBrush="#DCE6F1" BorderThickness="1" CornerRadius="20">
-                                <Border.Style>
-                                    <Style TargetType="Border">
-                                        <Setter Property="Background" Value="#FFFFFF" />
-                                        <Setter Property="BorderBrush" Value="#DCE6F1" />
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="#F9FBFF" />
-                                                <Setter Property="BorderBrush" Value="#BFD7F2" />
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Border.Style>
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="*" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Border Width="48" Height="48" CornerRadius="14" Background="#EAF3FF">
-                                            <TextBlock Text="▣" FontSize="23" Foreground="{StaticResource MediaForgeAccentBrush}"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                        </Border>
-                                        <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Name}" FontSize="17" FontWeight="SemiBold" Foreground="#18243A"
-                                                       TextTrimming="CharacterEllipsis" />
-                                            <TextBlock Text="מחובר לספרייה" Margin="0,4,0,0" FontSize="10.5" Foreground="#2EAF69" />
+        <Grid Grid.Row="2">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding RootFolders}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding DataContext.OpenRootFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}" Background="Transparent" BorderThickness="0"
+                                    Padding="0" Margin="0,0,18,18" HorizontalContentAlignment="Stretch">
+                                <Border Width="430" MinHeight="178" Padding="22"
+                                        Background="#FFFFFF" BorderBrush="#DCE5EF" BorderThickness="1" CornerRadius="21">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="#FFFFFF" />
+                                            <Setter Property="BorderBrush" Value="#DCE5EF" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#FBFDFF" />
+                                                    <Setter Property="BorderBrush" Value="#BDD7F3" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Border Width="52" Height="52" CornerRadius="15" Background="#EAF3FF">
+                                                <TextBlock Text="▣" FontSize="24" Foreground="{StaticResource MediaForgeAccentBrush}"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="SemiBold"
+                                                           Foreground="#18243A" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding ScanStatus}" Margin="0,5,0,0" FontSize="10.5"
+                                                           Foreground="#2EAF69" />
+                                            </StackPanel>
                                         </StackPanel>
-                                    </StackPanel>
-                                    <TextBlock Grid.Row="1" Text="{Binding Path}" Margin="0,18,0,12"
-                                               FontSize="11" Foreground="#718096" TextTrimming="CharacterEllipsis" ToolTip="{Binding Path}" />
-                                    <Grid Grid.Row="2">
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                            <TextBlock Text="{Binding FolderCount}" FontSize="12" FontWeight="SemiBold" Foreground="#3C4A5E" />
-                                            <TextBlock Text=" תיקיות" Margin="4,0,0,0" FontSize="10.5" Foreground="#7A879A" />
-                                            <TextBlock Text=" · " Margin="9,0" Foreground="#C4CED9" />
-                                            <TextBlock Text="{Binding MediaCount}" FontSize="12" FontWeight="SemiBold" Foreground="#3C4A5E" />
-                                            <TextBlock Text=" מדיה" Margin="4,0,0,0" FontSize="10.5" Foreground="#7A879A" />
-                                        </StackPanel>
-                                        <TextBlock Text="פתח ←" HorizontalAlignment="Left" FontSize="11" FontWeight="SemiBold"
-                                                   Foreground="{StaticResource MediaForgeAccentBrush}" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Row="1" Text="{Binding Path}" Margin="0,19,0,14"
+                                                   FontSize="11" Foreground="#718096" TextTrimming="CharacterEllipsis"
+                                                   ToolTip="{Binding Path}" />
+                                        <Grid Grid.Row="2">
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding FolderCount}" FontSize="12.5" FontWeight="SemiBold" Foreground="#3C4A5E" />
+                                                <TextBlock Text=" תיקיות" Margin="4,0,0,0" FontSize="10.5" Foreground="#7A879A" />
+                                                <TextBlock Text="  ·  " Margin="9,0" Foreground="#CBD4DE" />
+                                                <TextBlock Text="{Binding MediaCount}" FontSize="12.5" FontWeight="SemiBold" Foreground="#3C4A5E" />
+                                                <TextBlock Text=" מדיה" Margin="4,0,0,0" FontSize="10.5" Foreground="#7A879A" />
+                                            </StackPanel>
+                                            <TextBlock Text="פתח  ←" HorizontalAlignment="Left" FontSize="11.5"
+                                                       FontWeight="SemiBold" Foreground="{StaticResource MediaForgeAccentBrush}" />
+                                        </Grid>
                                     </Grid>
-                                </Grid>
-                            </Border>
-                        </Button>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
-
-        <Border Grid.Row="2" Visibility="{Binding HasLibrary, Converter={StaticResource InverseBooleanToVisibilityConverter}}"
-                Background="#F9FBFE" BorderBrush="#E2EAF3" BorderThickness="1" CornerRadius="20" Padding="56">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Border Width="92" Height="92" CornerRadius="28" Background="#EAF3FF">
-                    <TextBlock Text="＋" FontSize="42" Foreground="{StaticResource MediaForgeAccentBrush}"
-                               HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
-                <TextBlock Text="הוסף את התיקייה הראשית הראשונה" Margin="0,20,0,0"
-                           FontSize="21" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#172338" />
-                <TextBlock Text="אחרי שתבחר אותה, MediaForge יפתח עבורך סייר קבצים מלא בתוך התיקייה."
-                           Margin="0,8,0,20" FontSize="11.5" Foreground="#7A879A"
-                           HorizontalAlignment="Center" TextAlignment="Center" />
-                <Button Content="בחר תיקייה ראשית" Command="{Binding AddRootFolderCommand}"
-                        Style="{StaticResource MediaForgePrimaryButtonStyle}" MinWidth="170"
-                        HorizontalAlignment="Center" />
-            </StackPanel>
-        </Border>
+                                </Border>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            <Border Visibility="{Binding HasLibrary, Converter={StaticResource InverseBooleanToVisibilityConverter}}"
+                    Background="#F9FBFE" BorderBrush="#E2EAF3" BorderThickness="1"
+                    CornerRadius="21" Padding="60">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border Width="96" Height="96" CornerRadius="30" Background="#EAF3FF">
+                        <TextBlock Text="＋" FontSize="44" Foreground="{StaticResource MediaForgeAccentBrush}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <TextBlock Text="הוסף את התיקייה הראשית הראשונה" Margin="0,22,0,0"
+                               FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#172338" />
+                    <TextBlock Text="אחרי הבחירה תיכנס ישירות לסייר הקבצים של MediaForge."
+                               Margin="0,9,0,22" FontSize="11.5" Foreground="#7A879A"
+                               HorizontalAlignment="Center" TextAlignment="Center" />
+                    <Button Content="בחר תיקייה ראשית" Command="{Binding AddRootFolderCommand}"
+                            Style="{StaticResource MediaForgePrimaryButtonStyle}" MinWidth="174"
+                            HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>
