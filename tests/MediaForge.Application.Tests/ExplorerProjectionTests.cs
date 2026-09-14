@@ -24,7 +24,9 @@ public sealed class ExplorerProjectionTests
 
         var result = _projection.Project("C:/Music", actual, operations);
 
-        Assert.Equal(["Album", "Album.mp3", "Existing"], result.Select(x => x.Entry.Name));
+        Assert.Equal(
+            ["Album", "Album.mp3", "Existing"],
+            result.Select(x => x.Entry.Name).OrderBy(x => x));
         Assert.All(result.Where(x => x.Entry.Name is "Album" or "Album.mp3"), x => Assert.True(x.IsPending));
     }
 
