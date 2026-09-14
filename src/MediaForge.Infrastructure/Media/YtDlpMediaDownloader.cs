@@ -1,4 +1,3 @@
-using MediaForge.Application.Downloads;
 using MediaForge.Core.Enums;
 using MediaForge.Core.Interfaces;
 using MediaForge.Core.Models;
@@ -14,8 +13,7 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
     {
         if (string.IsNullOrWhiteSpace(sourceUrl)) throw new ArgumentException("A source URL is required.", nameof(sourceUrl));
         if (string.IsNullOrWhiteSpace(outputPath)) throw new ArgumentException("An output path is required.", nameof(outputPath));
-
-        var extension = MediaImportService.GetExtension(format);
+        var extension = GetExtension(format);
         var finalPath = Path.GetExtension(outputPath).Equals(extension, StringComparison.OrdinalIgnoreCase) ? outputPath : Path.ChangeExtension(outputPath, extension);
         var stagingBase = finalPath + ".mediaforge-temp";
         var parentDirectory = Path.GetDirectoryName(finalPath) ?? ".";
@@ -26,7 +24,6 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
             progress?.Report(new DownloadProgress(0, "מתחיל הורדה"));
             await _runner.RunAsync(sourceUrl, stagingBase, format,
                 new Progress<double>(percent => progress?.Report(new DownloadProgress(percent, "מוריד"))), cancellationToken).ConfigureAwait(false);
-
             var produced = ResolveProducedPath(stagingBase, extension);
             if (produced is null) throw new FileNotFoundException("ההורדה הסתיימה ללא קובץ פלט תקין.");
             cancellationToken.ThrowIfCancellationRequested();
@@ -44,6 +41,12 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
         catch { TryDeleteMatching(stagingBase); throw; }
     }
 
+    private static string GetExtension(MediaFormat format) => format switch
+    {
+        MediaFormat.Mp3 => ".mp3", MediaFormat.Mp4 => ".mp4", MediaFormat.Wav => ".wav", MediaFormat.M4a => ".m4a",
+        _ => throw new ArgumentOutOfRangeException(nameof(format))
+    };
+
     private static string? ResolveProducedPath(string stagingBase, string extension)
     {
         var expected = stagingBase + extension;
@@ -51,8 +54,7 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
         var directory = Path.GetDirectoryName(stagingBase);
         if (directory is null || !Directory.Exists(directory)) return null;
         var prefix = Path.GetFileName(stagingBase);
-        return Directory.GetFiles(directory, prefix + ".*", SearchOption.TopDirectoryOnly)
-            .FirstOrDefault(path => path.EndsWith(extension, StringComparison.OrdinalIgnoreCase));
+        return Directory.GetFiles(directory, prefix + ".*", SearchOption.TopDirectoryOnly).FirstOrDefault(path => path.EndsWith(extension, StringComparison.OrdinalIgnoreCase));
     }
 
     private static void TryDeleteMatching(string prefix)
