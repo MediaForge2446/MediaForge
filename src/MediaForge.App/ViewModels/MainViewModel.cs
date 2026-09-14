@@ -32,7 +32,28 @@ public partial class MainViewModel : ObservableObject
     public bool HasPendingChanges => PendingCount > 0;
 
     public MainViewModel(LibraryService libraryService, LibraryScanService libraryScanService, IFolderPicker folderPicker, StagingService stagingService, ICommitEngine commitEngine, ExplorerViewModel explorer, DownloadsViewModel downloads, SettingsViewModel settings)
-    { _libraryService = libraryService; _libraryScanService = libraryScanService; _folderPicker = folderPicker; _stagingService = stagingService; _commitEngine = commitEngine; Explorer = explorer; Downloads = downloads; Settings = settings; CurrentPage = this; _stagingService.Changed += OnStagingChanged; }
+    {
+        _libraryService = libraryService;
+        _libraryScanService = libraryScanService;
+        _folderPicker = folderPicker;
+        _stagingService = stagingService;
+        _commitEngine = commitEngine;
+        Explorer = explorer;
+        Downloads = downloads;
+        Settings = settings;
+        CurrentPage = this;
+        _stagingService.Changed += OnStagingChanged;
+        Explorer.AddMediaRequested += OnAddMediaRequested;
+    }
+
+    private void OnAddMediaRequested(string path)
+    {
+        Downloads.SetDestination(path);
+        ActiveSection = "downloads";
+        PageTitle = "הורדת מדיה";
+        CurrentPage = Downloads;
+        StatusText = $"יעד ההורדה: {path}";
+    }
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
@@ -89,7 +110,25 @@ public partial class MainViewModel : ObservableObject
 
     [RelayCommand]
     private async Task SaveChangesAsync(CancellationToken cancellationToken)
-    { if (IsBusy || !HasPendingChanges) return; IsBusy = true; StatusText = "מבצע שינויים בדיסק…"; try { var operations = _stagingService.Operations.ToArray(); var progress = new Progress<CommitProgress>(value => StatusText = value.Percent >= 100 ? "מאמת…" : $"{value.Status} · {value.Percent:0}%"); var result = await _commitEngine.CommitAsync(operations, progress, cancellationToken).ConfigureAwait(true); RefreshPendingCount(); StatusText = result.Success ? "כל השינויים נשמרו ואומתו בדיסק" : $"השמירה הסתיימה עם {result.Items.Count(x => !x.Success)} שגיאות"; await Explorer.ReloadAsync(cancellationToken).ConfigureAwait(true); await RefreshLibraryCoreAsync(cancellationToken).ConfigureAwait(true); } catch (OperationCanceledException) { StatusText = "השמירה בוטלה — שינויים שלא הושלמו נשארו ממתינים"; } catch (Exception ex) { StatusText = $"השמירה נכשלה: {ex.Message}"; } finally { IsBusy = false; } }
+    {
+        if (IsBusy || !HasPendingChanges) return;
+        IsBusy = true; StatusText = "מבצע שינויים בדיסק…";
+        try
+        {
+            var operations = _stagingService.Operations.ToArray();
+            var progress = new Progress<CommitProgress>(value => StatusText = value.Percent >= 100 ? "מאמת…" : $"{value.Status} · {value.Percent:0}%");
+            var result = await _commitEngine.CommitAsync(operations, progress, cancellationToken).ConfigureAwait(true);
+            var successful = result.Items.Where(x => x.Success).Select(x => x.OperationId).ToArray();
+            var failed = result.Items.Where(x => !x.Success).Select(x => x.OperationId).ToArray();
+            await Explorer.ApplyCommitResultsAsync(successful, failed, cancellationToken).ConfigureAwait(true);
+            RefreshPendingCount();
+            StatusText = result.Success ? "כל השינויים נשמרו ואומתו בדיסק" : $"השמירה הסתיימה עם {failed.Length} שגיאות — הפריטים מסומנים באדום";
+            await RefreshLibraryCoreAsync(cancellationToken).ConfigureAwait(true);
+        }
+        catch (OperationCanceledException) { StatusText = "השמירה בוטלה — שינויים שלא הושלמו נשארו ממתינים"; }
+        catch (Exception ex) { StatusText = $"השמירה נכשלה: {ex.Message}"; }
+        finally { IsBusy = false; }
+    }
     public void RefreshPendingCount() { PendingCount = _stagingService.Operations.Count; OnPropertyChanged(nameof(HasPendingChanges)); }
     private void OnStagingChanged(object? sender, EventArgs e) => RefreshPendingCount();
 }
