@@ -57,7 +57,7 @@ public sealed class WorkflowCoverageTests
     [Fact]
     public async Task CommitEngine_ExecutesEveryFileOperation()
     {
-        var fileSystem = new TrackingFileSystem();
+        var fileSystem = new InMemoryFileSystem();
         var staging = new StagingService(new InMemoryStagingRepository(), new StagingHistory());
         await staging.InitializeAsync();
         await fileSystem.CreateDirectoryAsync("C:\\Music");
@@ -131,38 +131,5 @@ public sealed class WorkflowCoverageTests
     {
         public Task DownloadAsync(string sourceUrl, string outputPath, MediaFormat format, IProgress<DownloadProgress>? progress = null, CancellationToken cancellationToken = default)
             => Task.FromException(new InvalidOperationException("Synthetic download failure"));
-    }
-
-    private sealed class TrackingFileSystem : IFileSystem
-    {
-        private readonly HashSet<string> _files = new(StringComparer.OrdinalIgnoreCase);
-        private readonly HashSet<string> _directories = new(StringComparer.OrdinalIgnoreCase);
-
-        public Task<bool> FileExistsAsync(string path, CancellationToken cancellationToken = default) => Task.FromResult(_files.Contains(path));
-        public Task<bool> DirectoryExistsAsync(string path, CancellationToken cancellationToken = default) => Task.FromResult(_directories.Contains(path));
-        public Task CreateDirectoryAsync(string path, CancellationToken cancellationToken = default) { _directories.Add(path); return Task.CompletedTask; }
-
-        public Task DeleteAsync(string path, bool recursive = false, CancellationToken cancellationToken = default)
-        {
-            _files.Remove(path); _directories.Remove(path); return Task.CompletedTask;
-        }
-
-        public Task RenameAsync(string path, string newName, CancellationToken cancellationToken = default)
-        {
-            var directory = Path.GetDirectoryName(path) ?? string.Empty;
-            var destination = Path.Combine(directory, newName);
-            if (_files.Remove(path)) _files.Add(destination);
-            if (_directories.Remove(path)) _directories.Add(destination);
-            return Task.CompletedTask;
-        }
-
-        public Task MoveAsync(string sourcePath, string destinationPath, CancellationToken cancellationToken = default)
-        {
-            if (_files.Remove(sourcePath)) _files.Add(destinationPath);
-            if (_directories.Remove(sourcePath)) _directories.Add(destinationPath);
-            return Task.CompletedTask;
-        }
-
-        public void AddFile(string path) => _files.Add(path);
     }
 }
