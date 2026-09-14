@@ -17,50 +17,112 @@
             <conv:DirectoryGlyphConverter x:Key="DirectoryGlyphConverter" />
             <conv:PendingBrushConverter x:Key="PendingBrushConverter" />
 
-            <SolidColorBrush x:Key="MediaForgeBackgroundBrush" Color="#0F1115" />
-            <SolidColorBrush x:Key="MediaForgeSurfaceBrush" Color="#171A20" />
-            <SolidColorBrush x:Key="MediaForgeSurfaceElevatedBrush" Color="#1E222A" />
-            <SolidColorBrush x:Key="MediaForgeBorderBrush" Color="#2D333D" />
-            <SolidColorBrush x:Key="MediaForgeTextBrush" Color="#F5F7FA" />
-            <SolidColorBrush x:Key="MediaForgeMutedBrush" Color="#9EA5B1" />
-            <SolidColorBrush x:Key="MediaForgeAccentBrush" Color="#4CC2FF" />
-            <SolidColorBrush x:Key="MediaForgePendingBrush" Color="#FFC107" />
-            <SolidColorBrush x:Key="MediaForgeSuccessBrush" Color="#49C97D" />
-            <SolidColorBrush x:Key="MediaForgeErrorBrush" Color="#FF6B6B" />
+            <SolidColorBrush x:Key="MediaForgeBackgroundBrush" Color="#090C10" />
+            <SolidColorBrush x:Key="MediaForgeSurfaceBrush" Color="#11161C" />
+            <SolidColorBrush x:Key="MediaForgeSurfaceElevatedBrush" Color="#171D24" />
+            <SolidColorBrush x:Key="MediaForgeBorderBrush" Color="#28313B" />
+            <SolidColorBrush x:Key="MediaForgeTextBrush" Color="#F4F7FA" />
+            <SolidColorBrush x:Key="MediaForgeMutedBrush" Color="#8B96A3" />
+            <SolidColorBrush x:Key="MediaForgeAccentBrush" Color="#63D7FF" />
+            <SolidColorBrush x:Key="MediaForgePendingBrush" Color="#FFC857" />
+            <SolidColorBrush x:Key="MediaForgeSuccessBrush" Color="#57D391" />
+            <SolidColorBrush x:Key="MediaForgeErrorBrush" Color="#FF7373" />
 
             <Style x:Key="MediaForgeNavButtonStyle" TargetType="Button">
-                <Setter Property="Height" Value="44" />
-                <Setter Property="Margin" Value="8,3" />
+                <Setter Property="Height" Value="46" />
+                <Setter Property="Margin" Value="0,3" />
                 <Setter Property="Padding" Value="14,0" />
-                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 <Setter Property="Background" Value="Transparent" />
-                <Setter Property="Foreground" Value="{StaticResource MediaForgeMutedBrush}" />
+                <Setter Property="Foreground" Value="#8B96A3" />
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="FontSize" Value="13" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="NavBorder" CornerRadius="11" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="NavBorder" Property="Background" Value="#17222B" />
+                                    <Setter Property="Foreground" Value="#DDEAF2" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="NavBorder" Property="Background" Value="#1B2D39" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
             <Style x:Key="MediaForgePrimaryButtonStyle" TargetType="Button">
                 <Setter Property="MinHeight" Value="42" />
-                <Setter Property="Padding" Value="18,0" />
-                <Setter Property="Background" Value="{StaticResource MediaForgeAccentBrush}" />
-                <Setter Property="Foreground" Value="#061018" />
+                <Setter Property="Padding" Value="17,0" />
+                <Setter Property="Background" Value="#63D7FF" />
+                <Setter Property="Foreground" Value="#071117" />
                 <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="FontSize" Value="13" />
+                <Setter Property="FontSize" Value="12.5" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="PrimaryBorder" CornerRadius="11" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="PrimaryBorder" Property="Background" Value="#82E0FF" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="PrimaryBorder" Property="Background" Value="#48C5EE" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="PrimaryBorder" Property="Opacity" Value="0.38" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
             <Style x:Key="MediaForgeSubtleButtonStyle" TargetType="Button">
-                <Setter Property="MinHeight" Value="36" />
+                <Setter Property="MinHeight" Value="38" />
                 <Setter Property="Padding" Value="14,0" />
-                <Setter Property="Background" Value="{StaticResource MediaForgeSurfaceElevatedBrush}" />
-                <Setter Property="Foreground" Value="{StaticResource MediaForgeTextBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource MediaForgeBorderBrush}" />
+                <Setter Property="Background" Value="#171D24" />
+                <Setter Property="Foreground" Value="#E7ECF0" />
+                <Setter Property="BorderBrush" Value="#2B3540" />
                 <Setter Property="BorderThickness" Value="1" />
                 <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="SubtleBorder" CornerRadius="10" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="SubtleBorder" Property="Background" Value="#202A33" />
+                                    <Setter TargetName="SubtleBorder" Property="BorderBrush" Value="#3A4652" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="SubtleBorder" Property="Background" Value="#26323D" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="SubtleBorder" Property="Opacity" Value="0.38" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
             <Style x:Key="MediaForgeDangerButtonStyle" TargetType="Button" BasedOn="{StaticResource MediaForgeSubtleButtonStyle}">
@@ -68,17 +130,18 @@
             </Style>
 
             <Style x:Key="MediaForgeInputStyle" TargetType="TextBox">
-                <Setter Property="MinHeight" Value="38" />
-                <Setter Property="Padding" Value="10,0" />
-                <Setter Property="Background" Value="#12151A" />
+                <Setter Property="MinHeight" Value="40" />
+                <Setter Property="Padding" Value="12,0" />
+                <Setter Property="Background" Value="#11161C" />
                 <Setter Property="Foreground" Value="{StaticResource MediaForgeTextBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource MediaForgeBorderBrush}" />
+                <Setter Property="BorderBrush" Value="#2B3540" />
                 <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
             </Style>
 
             <Style x:Key="MediaForgeInlineInputStyle" TargetType="TextBox" BasedOn="{StaticResource MediaForgeInputStyle}">
-                <Setter Property="MinHeight" Value="30" />
-                <Setter Property="Padding" Value="5,0" />
+                <Setter Property="MinHeight" Value="32" />
+                <Setter Property="Padding" Value="6,0" />
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="FontSize" Value="13" />
@@ -93,9 +156,9 @@
 
             <Style x:Key="MediaForgeComboStyle" TargetType="ComboBox">
                 <Setter Property="Height" Value="42" />
-                <Setter Property="Background" Value="{StaticResource MediaForgeSurfaceElevatedBrush}" />
+                <Setter Property="Background" Value="#171D24" />
                 <Setter Property="Foreground" Value="{StaticResource MediaForgeTextBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource MediaForgeBorderBrush}" />
+                <Setter Property="BorderBrush" Value="#2B3540" />
             </Style>
 
             <Style x:Key="MediaForgeCardStyle" TargetType="Border">
