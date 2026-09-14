@@ -3,5 +3,7 @@ namespace MediaForge.Core.Enums;
 public enum MediaFormat
 {
     Mp3,
-    Mp4
+    Mp4,
+    Wav,
+    M4a
 }
