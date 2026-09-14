@@ -16,13 +16,13 @@ public sealed class MediaImportService
     public MediaImportService(
         IMediaMetadataResolver resolver,
         IStagingService staging,
-        IMediaIndex mediaIndex,
-        IFileSystem fileSystem)
+        IMediaIndex? mediaIndex = null,
+        IFileSystem? fileSystem = null)
     {
         _resolver = resolver;
         _staging = staging;
-        _mediaIndex = mediaIndex;
-        _fileSystem = fileSystem;
+        _mediaIndex = mediaIndex ?? NullMediaIndex.Instance;
+        _fileSystem = fileSystem ?? NullFileSystem.Instance;
     }
 
     public Task<MediaResolveResult> ResolveAsync(string sourceUrl, CancellationToken cancellationToken = default)
@@ -52,16 +52,13 @@ public sealed class MediaImportService
             cancellationToken.ThrowIfCancellationRequested();
             if (string.IsNullOrWhiteSpace(item.VideoId))
                 throw new InvalidOperationException("A media item is missing its source VideoId.");
-
-            if (!usedVideoIds.Add(item.VideoId))
-                continue;
+            if (!usedVideoIds.Add(item.VideoId)) continue;
 
             var indexed = await _mediaIndex.FindByVideoIdAsync(item.VideoId, cancellationToken).ConfigureAwait(false);
             if (indexed is not null)
             {
                 if (await _fileSystem.FileExistsAsync(indexed.PhysicalPath, cancellationToken).ConfigureAwait(false))
                     continue;
-
                 await _mediaIndex.RemoveAsync(item.VideoId, cancellationToken).ConfigureAwait(false);
             }
 
@@ -70,12 +67,22 @@ public sealed class MediaImportService
             var baseName = SanitizeFileName(item.Metadata.Title);
             if (string.IsNullOrWhiteSpace(baseName)) baseName = item.VideoId;
             var extension = GetExtension(format);
-            var fileName = await MakeUniqueAsync(baseName, extension, usedNames, _fileSystem, directory, cancellationToken).ConfigureAwait(false);
+            var fileName = await MakeUniqueAsync(
+                baseName,
+                extension,
+                usedNames,
+                _fileSystem,
+                directory,
+                cancellationToken).ConfigureAwait(false);
             var destinationPath = Path.Combine(directory, fileName);
 
             var operation = new StagingOperation(
-                Guid.NewGuid(), DateTimeOffset.UtcNow, OperationType.Download, destinationPath,
-                nameof(MediaState.Missing), nameof(MediaState.Pending),
+                Guid.NewGuid(),
+                DateTimeOffset.UtcNow,
+                OperationType.Download,
+                destinationPath,
+                nameof(MediaState.Missing),
+                nameof(MediaState.Pending),
                 new StagingPayload(
                     SourceUrl: item.SourceUrl,
                     DestinationPath: destinationPath,
@@ -124,5 +131,26 @@ public sealed class MediaImportService
         foreach (var character in value.Trim()) builder.Append(invalid.Contains(character) ? '_' : character);
         var result = builder.ToString().Trim().TrimEnd('.', ' ');
         return result.Length > 180 ? result[..180].TrimEnd('.', ' ') : result;
+    }
+
+    private sealed class NullMediaIndex : IMediaIndex
+    {
+        public static NullMediaIndex Instance { get; } = new();
+        public IReadOnlyList<MediaIndexEntry> Entries => [];
+        public Task InitializeAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<MediaIndexEntry?> FindByVideoIdAsync(string videoId, CancellationToken cancellationToken = default) => Task.FromResult<MediaIndexEntry?>(null);
+        public Task UpsertAsync(MediaIndexEntry entry, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task RemoveAsync(string videoId, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
+
+    private sealed class NullFileSystem : IFileSystem
+    {
+        public static NullFileSystem Instance { get; } = new();
+        public Task<bool> FileExistsAsync(string path, CancellationToken cancellationToken = default) => Task.FromResult(false);
+        public Task<bool> DirectoryExistsAsync(string path, CancellationToken cancellationToken = default) => Task.FromResult(false);
+        public Task CreateDirectoryAsync(string path, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task DeleteAsync(string path, bool recursive = false, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task RenameAsync(string path, string newName, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task MoveAsync(string sourcePath, string destinationPath, CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 }
