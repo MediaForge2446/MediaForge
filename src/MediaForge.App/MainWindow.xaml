@@ -4,158 +4,63 @@
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  xmlns:vm="clr-namespace:MediaForge.App.ViewModels"
                  xmlns:views="clr-namespace:MediaForge.App.Views"
-                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                 mc:Ignorable="d"
-                 Title="MediaForge"
-                 Width="1480"
-                 Height="920"
-                 MinWidth="1180"
-                 MinHeight="740"
-                 WindowStartupLocation="CenterScreen"
-                 Background="{StaticResource MediaForgeBackgroundBrush}"
-                 Foreground="{StaticResource MediaForgeTextBrush}"
-                 ExtendsContentIntoTitleBar="True"
-                 WindowBackdropType="Mica"
-                 WindowCornerPreference="Round">
-
+                 Title="MediaForge" Width="1480" Height="920" MinWidth="1180" MinHeight="740"
+                 WindowStartupLocation="CenterScreen" Background="{StaticResource MediaForgeBackgroundBrush}"
+                 Foreground="{StaticResource MediaForgeTextBrush}" ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica" WindowCornerPreference="Round">
     <ui:FluentWindow.Resources>
-        <DataTemplate DataType="{x:Type vm:MainViewModel}"><views:LibraryPage /></DataTemplate>
-        <DataTemplate DataType="{x:Type vm:ExplorerViewModel}"><views:ExplorerPage /></DataTemplate>
-        <DataTemplate DataType="{x:Type vm:DownloadsViewModel}"><views:DownloadsPage /></DataTemplate>
-        <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><views:SettingsPage /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:MainViewModel}"><views:LibraryPage/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ExplorerViewModel}"><views:ExplorerPage/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DownloadsViewModel}"><views:DownloadsPage/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><views:SettingsPage/></DataTemplate>
     </ui:FluentWindow.Resources>
-
     <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="52" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="36" />
-        </Grid.RowDefinitions>
-
-        <ui:TitleBar Grid.Row="0" Title="MediaForge" Margin="0,0,0,6"
-                     ShowMinimize="True" ShowMaximize="True" ShowClose="True">
-            <ui:TitleBar.Icon><ui:SymbolIcon Symbol="Fluent24" /></ui:TitleBar.Icon>
-        </ui:TitleBar>
-
-        <Border Grid.Row="1" CornerRadius="18" Background="#11151A" BorderBrush="#2A3038" BorderThickness="1">
+        <Grid.RowDefinitions><RowDefinition Height="52"/><RowDefinition Height="*"/><RowDefinition Height="32"/></Grid.RowDefinitions>
+        <ui:TitleBar Grid.Row="0" Title="MediaForge" Margin="0,0,0,6" ShowMinimize="True" ShowMaximize="True" ShowClose="True"><ui:TitleBar.Icon><ui:SymbolIcon Symbol="Fluent24"/></ui:TitleBar.Icon></ui:TitleBar>
+        <Border Grid.Row="1" CornerRadius="20" Background="#0E1318" BorderBrush="#28313B" BorderThickness="1">
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="264" />
-                    <ColumnDefinition Width="1" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
-                <Border Grid.Column="0" Background="#0D1116" CornerRadius="18,0,0,18">
-                    <Grid Margin="14">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="84" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="108" />
-                        </Grid.RowDefinitions>
-
-                        <Grid Grid.Row="0" Margin="6,6,6,0">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="254"/><ColumnDefinition Width="1"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Background="#0A0F14" CornerRadius="20,0,0,20">
+                    <Grid Margin="16">
+                        <Grid.RowDefinitions><RowDefinition Height="88"/><RowDefinition Height="*"/><RowDefinition Height="112"/></Grid.RowDefinitions>
+                        <Grid Margin="6,6,6,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Width="42" Height="42" CornerRadius="13" Background="#63D7FF" Margin="0,0,11,0">
-                                    <TextBlock Text="M" FontSize="22" FontWeight="Bold" Foreground="#071117"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                </Border>
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="MEDIAFORGE" FontSize="15" FontWeight="Bold" />
-                                    <TextBlock Text="Media workspace" Margin="0,2,0,0" FontSize="10" Foreground="#788290" />
-                                </StackPanel>
+                                <Border Width="46" Height="46" CornerRadius="14" Background="#60CDFF"><TextBlock Text="M" FontSize="23" FontWeight="Bold" Foreground="#061117" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                <StackPanel Margin="12,0,0,0" VerticalAlignment="Center"><TextBlock Text="MEDIAFORGE" FontSize="15" FontWeight="Bold"/><TextBlock Text="Media workspace" Margin="0,3,0,0" FontSize="10" Foreground="#6F7A87"/></StackPanel>
                             </StackPanel>
                         </Grid>
-
-                        <StackPanel Grid.Row="1" Margin="0,12,0,0">
-                            <TextBlock Text="WORKSPACE" Margin="12,0,0,8" FontSize="10" FontWeight="Bold" Foreground="#66717E" />
-
-                            <Button Style="{StaticResource MediaForgeNavButtonStyle}" Command="{Binding NavigateCommand}" CommandParameter="home">
-                                <Grid>
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="34" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                                    <TextBlock Text="⌂" FontSize="19" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="1" Text="הספרייה שלי" VerticalAlignment="Center" />
-                                </Grid>
-                            </Button>
-                            <Button Style="{StaticResource MediaForgeNavButtonStyle}" Command="{Binding NavigateCommand}" CommandParameter="explorer">
-                                <Grid>
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="34" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                                    <TextBlock Text="▦" FontSize="17" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="1" Text="סייר הקבצים" VerticalAlignment="Center" />
-                                </Grid>
-                            </Button>
-                            <Button Style="{StaticResource MediaForgeNavButtonStyle}" Command="{Binding NavigateCommand}" CommandParameter="downloads">
-                                <Grid>
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="34" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                                    <TextBlock Text="↓" FontSize="22" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="1" Text="הורדת מדיה" VerticalAlignment="Center" />
-                                </Grid>
-                            </Button>
-
-                            <Separator Margin="12,18" Background="#252B33" />
-                            <TextBlock Text="SYSTEM" Margin="12,0,0,8" FontSize="10" FontWeight="Bold" Foreground="#66717E" />
-                            <Button Style="{StaticResource MediaForgeNavButtonStyle}" Command="{Binding NavigateCommand}" CommandParameter="settings">
-                                <Grid>
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="34" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                                    <TextBlock Text="⚙" FontSize="17" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="1" Text="הגדרות וכלים" VerticalAlignment="Center" />
-                                </Grid>
-                            </Button>
+                        <StackPanel Grid.Row="1" Margin="0,10,0,0">
+                            <TextBlock Text="WORKSPACE" Margin="12,0,0,9" FontSize="10" FontWeight="Bold" Foreground="#5F6A77"/>
+                            <Button Tag="{Binding ActiveSection, Converter={StaticResource BooleanNotConverter}}" Style="{StaticResource MediaForgeNavButtonStyle}" Command="{Binding NavigateCommand}" CommandParameter="home"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⌂" FontSize="21" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="הספרייה שלי" VerticalAlignment="Center"/></Grid></Button>
+                            <Button Style="{StaticResource MediaForgeNavButtonStyle}" Command="{Binding NavigateCommand}" CommandParameter="explorer"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="▦" FontSize="18" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="סייר הקבצים" VerticalAlignment="Center"/></Grid></Button>
+                            <Button Style="{StaticResource MediaForgeNavButtonStyle}" Command="{Binding NavigateCommand}" CommandParameter="downloads"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="↓" FontSize="23" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="הורדת מדיה" VerticalAlignment="Center"/></Grid></Button>
+                            <Separator Margin="12,18" Background="#202832"/>
+                            <TextBlock Text="SYSTEM" Margin="12,0,0,9" FontSize="10" FontWeight="Bold" Foreground="#5F6A77"/>
+                            <Button Style="{StaticResource MediaForgeNavButtonStyle}" Command="{Binding NavigateCommand}" CommandParameter="settings"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⚙" FontSize="18" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="הגדרות וכלים" VerticalAlignment="Center"/></Grid></Button>
                         </StackPanel>
-
-                        <Border Grid.Row="2" Margin="0,8,0,0" Padding="14" Background="#151B21" CornerRadius="14" BorderBrush="#242B34" BorderThickness="1">
+                        <Border Grid.Row="2" Padding="14" Background="#121920" CornerRadius="15" BorderBrush="#222D36" BorderThickness="1">
                             <StackPanel>
-                                <StackPanel Orientation="Horizontal">
-                                    <Ellipse Width="8" Height="8" Fill="{StaticResource MediaForgeSuccessBrush}" VerticalAlignment="Center" />
-                                    <TextBlock Text=" מערכת תקינה" Margin="8,0,0,0" FontWeight="SemiBold" FontSize="11" />
-                                </StackPanel>
-                                <TextBlock Text="כלים מנוהלים אוטומטית" Margin="0,7,0,0" FontSize="10" Foreground="#87919E" />
-                                <TextBlock Text="yt-dlp  •  FFmpeg" Margin="0,4,0,0" FontSize="10" Foreground="#626D7A" />
+                                <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{StaticResource MediaForgeSuccessBrush}" VerticalAlignment="Center"/><TextBlock Text=" מערכת פעילה" Margin="8,0,0,0" FontWeight="SemiBold" FontSize="11"/></StackPanel>
+                                <TextBlock Text="המצב נקרא ישירות מהדיסק" Margin="0,8,0,0" FontSize="10" Foreground="#87919E"/>
+                                <TextBlock Text="yt-dlp  •  FFmpeg  •  Staging" Margin="0,4,0,0" FontSize="9.5" Foreground="#626D7A"/>
                             </StackPanel>
                         </Border>
                     </Grid>
                 </Border>
-
-                <Border Grid.Column="1" Background="#252B33" />
-
-                <Grid Grid.Column="2" Margin="32,24,32,20" FlowDirection="LeftToRight">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="70" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
+                <Border Grid.Column="1" Background="#252D36"/>
+                <Grid Grid.Column="2" Margin="30,24,30,18">
+                    <Grid.RowDefinitions><RowDefinition Height="76"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                     <Grid Grid.Row="0">
-                        <StackPanel FlowDirection="RightToLeft" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding PageTitle}" FontSize="29" FontWeight="Bold" HorizontalAlignment="Right" />
-                            <TextBlock Text="{Binding StatusText}" Margin="0,4,0,0" FontSize="11" Foreground="#87919E" HorizontalAlignment="Right" />
-                        </StackPanel>
-
+                        <StackPanel FlowDirection="RightToLeft" HorizontalAlignment="Right" VerticalAlignment="Center"><TextBlock Text="{Binding PageTitle}" FontSize="28" FontWeight="Bold"/><TextBlock Text="{Binding StatusText}" Margin="0,4,0,0" FontSize="11" Foreground="#87919E" HorizontalAlignment="Right"/></StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                            <Border Padding="12,8" CornerRadius="12" Background="#171F27" BorderBrush="#2A333D" BorderThickness="1"
-                                    Visibility="{Binding HasPendingChanges, Converter={StaticResource BooleanToVisibilityConverterFallback}}">
-                                <StackPanel Orientation="Horizontal">
-                                    <Ellipse Width="7" Height="7" Fill="{StaticResource MediaForgePendingBrush}" VerticalAlignment="Center" />
-                                    <TextBlock Margin="8,0,0,0" FontSize="11" FontWeight="SemiBold">
-                                        <Run Text="{Binding PendingCount}" /><Run Text="  ממתינים לשמירה" />
-                                    </TextBlock>
-                                </StackPanel>
-                            </Border>
-                            <Button Content="שמור שינויים  →" Command="{Binding SaveChangesCommand}" IsEnabled="{Binding HasPendingChanges}"
-                                    Margin="10,0,0,0" MinHeight="42" Style="{StaticResource MediaForgePrimaryButtonStyle}" />
+                            <Border Padding="12,8" CornerRadius="12" Background="#151D24" BorderBrush="#29333D" BorderThickness="1" Visibility="{Binding HasPendingChanges, Converter={StaticResource BooleanToVisibilityConverterFallback}}"><StackPanel Orientation="Horizontal"><Ellipse Width="7" Height="7" Fill="{StaticResource MediaForgePendingBrush}" VerticalAlignment="Center"/><TextBlock Margin="8,0,0,0" FontSize="11" FontWeight="SemiBold"><Run Text="{Binding PendingCount}"/><Run Text="  ממתינים"/></TextBlock></StackPanel></Border>
+                            <Button Content="שמור שינויים  →" Command="{Binding SaveChangesCommand}" IsEnabled="{Binding HasPendingChanges}" Margin="10,0,0,0" MinHeight="42" Style="{StaticResource MediaForgePrimaryButtonStyle}"/>
                         </StackPanel>
                     </Grid>
-
-                    <Border Grid.Row="1" Background="#0F1318" CornerRadius="16" BorderBrush="#222932" BorderThickness="1" Padding="24">
-                        <ContentControl Content="{Binding CurrentPage}" />
-                    </Border>
+                    <Border Grid.Row="1" Background="#0D1217" CornerRadius="17" BorderBrush="#222B34" BorderThickness="1" Padding="24"><ContentControl Content="{Binding CurrentPage}"/></Border>
                 </Grid>
             </Grid>
         </Border>
-
-        <Grid Grid.Row="2" Margin="6,0">
-            <TextBlock Text="MediaForge  •  Windows 11" FontSize="10" Foreground="#697481" VerticalAlignment="Center" />
-            <TextBlock Text="שינויים בדיסק מתבצעים רק לאחר שמירת השינויים" HorizontalAlignment="Right"
-                       FontSize="10" Foreground="#697481" VerticalAlignment="Center" />
-        </Grid>
+        <Grid Grid.Row="2" Margin="8,0"><TextBlock Text="MediaForge  •  Windows 11" FontSize="10" Foreground="#65717E" VerticalAlignment="Center"/><TextBlock Text="הדיסק משתנה רק לאחר אישור שמירת השינויים" HorizontalAlignment="Right" FontSize="10" Foreground="#65717E" VerticalAlignment="Center"/></Grid>
     </Grid>
 </ui:FluentWindow>
