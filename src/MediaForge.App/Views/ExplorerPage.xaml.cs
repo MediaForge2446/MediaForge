@@ -59,7 +59,7 @@ public partial class ExplorerPage : System.Windows.Controls.UserControl
     {
         if (ViewModel?.SelectedEntry is null) return;
 
-        var result = MessageBox.Show(
+        var result = System.Windows.MessageBox.Show(
             $"למחוק את \"{ViewModel.SelectedEntry.Name}\"?\n\nהפריט יישאר מסומן בצהוב עד שתלחץ על \"שמור שינויים\".",
             "אישור מחיקה",
             MessageBoxButton.YesNo,
@@ -120,7 +120,7 @@ public partial class ExplorerPage : System.Windows.Controls.UserControl
             }
         };
 
-        var panel = new System.Windows.Controls.StackPanel { FlowDirection = FlowDirection.RightToLeft };
+        var panel = new System.Windows.Controls.StackPanel { FlowDirection = System.Windows.FlowDirection.RightToLeft };
         panel.Children.Add(new System.Windows.Controls.TextBlock
         {
             Text = title,
@@ -154,7 +154,7 @@ public partial class ExplorerPage : System.Windows.Controls.UserControl
         var buttons = new System.Windows.Controls.StackPanel
         {
             Orientation = System.Windows.Controls.Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Left,
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
             Margin = new Thickness(0, 18, 0, 0)
         };
 
