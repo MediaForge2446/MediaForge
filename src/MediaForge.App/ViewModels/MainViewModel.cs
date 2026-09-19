@@ -88,6 +88,8 @@ public partial class MainViewModel : ObservableObject
         StatusText = RootFolders.Count == 0 ? "הוסף תיקיית מקור ראשית כדי להתחיל" : "בחר תיקייה ראשית כדי לפתוח את סביבת העבודה";
     }
 
+    public void NavigateHomeFromView() => NavigateHome();
+
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         IsBusy = true;
