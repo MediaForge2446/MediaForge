@@ -60,7 +60,7 @@ public partial class ExplorerPage : System.Windows.Controls.UserControl
         if (ViewModel?.SelectedEntry is null) return;
 
         var result = MessageBox.Show(
-            $"למחוק את "{ViewModel.SelectedEntry.Name}"?\n\nהפריט יישאר מסומן בצהוב עד שתלחץ על "שמור שינויים".",
+            $"למחוק את \"{ViewModel.SelectedEntry.Name}\"?\n\nהפריט יישאר מסומן בצהוב עד שתלחץ על \"שמור שינויים\".",
             "אישור מחיקה",
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
