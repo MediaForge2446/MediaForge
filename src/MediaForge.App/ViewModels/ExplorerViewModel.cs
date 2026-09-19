@@ -197,9 +197,12 @@ public partial class ExplorerViewModel : ObservableObject
 
     [RelayCommand]
     private async Task CreateFolderAsync(CancellationToken cancellationToken)
+        => await CreateFolderWithNameAsync(NewFolderName, cancellationToken).ConfigureAwait(true);
+
+    public async Task CreateFolderWithNameAsync(string? folderName, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(CurrentPath) || string.IsNullOrWhiteSpace(NewFolderName) || IsBusy) return;
-        var name = NewFolderName.Trim();
+        if (string.IsNullOrWhiteSpace(CurrentPath) || string.IsNullOrWhiteSpace(folderName) || IsBusy) return;
+        var name = folderName.Trim();
         if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) { StatusText = "שם התיקייה אינו חוקי"; return; }
         var target = Path.Combine(CurrentPath, name);
         if (_staging.Operations.Any(x => string.Equals(x.Payload?.DirectoryPath, target, StringComparison.OrdinalIgnoreCase)) || Directory.Exists(target))
@@ -223,9 +226,12 @@ public partial class ExplorerViewModel : ObservableObject
 
     [RelayCommand]
     private async Task RenameSelectedAsync(CancellationToken cancellationToken)
+        => await RenameSelectedWithNameAsync(NewName, cancellationToken).ConfigureAwait(true);
+
+    public async Task RenameSelectedWithNameAsync(string? newName, CancellationToken cancellationToken = default)
     {
         var entry = SelectedEntry;
-        var name = NewName.Trim();
+        var name = newName?.Trim() ?? string.Empty;
         if (entry is null || entry.MarkedForDeletion || entry.IsError || string.IsNullOrWhiteSpace(name) || IsBusy) return;
         if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) { StatusText = "השם החדש אינו חוקי"; return; }
         var destination = Path.Combine(Path.GetDirectoryName(entry.FullPath) ?? CurrentPath, name);
