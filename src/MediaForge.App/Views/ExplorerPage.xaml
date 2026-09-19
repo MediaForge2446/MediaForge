@@ -7,6 +7,28 @@
              FlowDirection="RightToLeft"
              Background="Transparent">
 
+    <UserControl.Resources>
+        <Style x:Key="ExplorerEntryBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#E8EDF3"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsPending}" Value="True">
+                    <Setter Property="Background" Value="#FFFCF4"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding MarkedForDeletion}" Value="True">
+                    <Setter Property="Background" Value="#FFF8E8"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsError}" Value="True">
+                    <Setter Property="Background" Value="#FFF3F4"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListViewItem}}" Value="True">
+                    <Setter Property="Background" Value="#EDF5FF"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
     <Grid Margin="28,22,28,22">
         <Grid.RowDefinitions>
             <RowDefinition Height="52"/>
@@ -248,28 +270,8 @@
 
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Border Padding="11,9"
-                                        BorderBrush="#E8EDF3"
-                                        BorderThickness="0,0,0,1">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="Background" Value="#FFFFFF"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsPending}" Value="True">
-                                                    <Setter Property="Background" Value="#FFFCF4"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding MarkedForDeletion}" Value="True">
-                                                    <Setter Property="Background" Value="#FFF8E8"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding IsError}" Value="True">
-                                                    <Setter Property="Background" Value="#FFF3F4"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListViewItem}}" Value="True">
-                                                    <Setter Property="Background" Value="#EDF5FF"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
+                                <Border Style="{StaticResource ExplorerEntryBorderStyle}"
+                                        Padding="11,9">
 
                                     <Grid MinHeight="60">
                                         <Grid.ColumnDefinitions>
