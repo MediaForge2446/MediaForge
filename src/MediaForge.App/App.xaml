@@ -7,7 +7,7 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ui:ThemesDictionary Theme="Dark"/>
+                <ui:ThemesDictionary Theme="Light"/>
                 <ui:ControlsDictionary/>
             </ResourceDictionary.MergedDictionaries>
 
@@ -18,24 +18,27 @@
             <conv:PendingBrushConverter x:Key="PendingBrushConverter"/>
             <conv:StringEqualsConverter x:Key="StringEqualsConverter"/>
 
-            <SolidColorBrush x:Key="MediaForgeBackgroundBrush" Color="#090C10"/>
-            <SolidColorBrush x:Key="MediaForgeSurfaceBrush" Color="#11161C"/>
-            <SolidColorBrush x:Key="MediaForgeSurfaceElevatedBrush" Color="#171D24"/>
-            <SolidColorBrush x:Key="MediaForgeBorderBrush" Color="#28313B"/>
-            <SolidColorBrush x:Key="MediaForgeTextBrush" Color="#F5F7FA"/>
-            <SolidColorBrush x:Key="MediaForgeMutedBrush" Color="#8994A2"/>
-            <SolidColorBrush x:Key="MediaForgeAccentBrush" Color="#60CDFF"/>
-            <SolidColorBrush x:Key="MediaForgePendingBrush" Color="#FFC857"/>
-            <SolidColorBrush x:Key="MediaForgeSuccessBrush" Color="#57D391"/>
-            <SolidColorBrush x:Key="MediaForgeErrorBrush" Color="#FF7373"/>
+            <SolidColorBrush x:Key="MediaForgeBackgroundBrush" Color="#F5F8FC"/>
+            <SolidColorBrush x:Key="MediaForgeSurfaceBrush" Color="#FFFFFF"/>
+            <SolidColorBrush x:Key="MediaForgeSurfaceElevatedBrush" Color="#FBFCFE"/>
+            <SolidColorBrush x:Key="MediaForgeBorderBrush" Color="#DDE5EF"/>
+            <SolidColorBrush x:Key="MediaForgeTextBrush" Color="#182334"/>
+            <SolidColorBrush x:Key="MediaForgeMutedBrush" Color="#738197"/>
+            <SolidColorBrush x:Key="MediaForgeAccentBrush" Color="#2F80ED"/>
+            <SolidColorBrush x:Key="MediaForgeAccentSoftBrush" Color="#EAF3FF"/>
+            <SolidColorBrush x:Key="MediaForgePendingBrush" Color="#E6A700"/>
+            <SolidColorBrush x:Key="MediaForgeSuccessBrush" Color="#2EAF69"/>
+            <SolidColorBrush x:Key="MediaForgeErrorBrush" Color="#D94C59"/>
+            <SolidColorBrush x:Key="MediaForgeDangerSoftBrush" Color="#FFF1F2"/>
+            <SolidColorBrush x:Key="MediaForgePendingSoftBrush" Color="#FFF8E7"/>
 
             <Style x:Key="MediaForgeNavButtonStyle" TargetType="Button">
-                <Setter Property="Height" Value="48"/>
-                <Setter Property="Margin" Value="0,3"/>
-                <Setter Property="Padding" Value="14,0"/>
+                <Setter Property="Height" Value="52"/>
+                <Setter Property="Margin" Value="0,4"/>
+                <Setter Property="Padding" Value="16,0"/>
                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                 <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="Foreground" Value="#8E99A6"/>
+                <Setter Property="Foreground" Value="#6D7A8D"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="FontSize" Value="13"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
@@ -43,20 +46,20 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
-                            <Border x:Name="NavBorder" CornerRadius="12" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <Border x:Name="NavBorder" CornerRadius="14" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
                                 <ContentPresenter VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="NavBorder" Property="Background" Value="#17222B"/>
-                                    <Setter Property="Foreground" Value="#E9F4FA"/>
+                                    <Setter TargetName="NavBorder" Property="Background" Value="#EFF5FD"/>
+                                    <Setter Property="Foreground" Value="#234A7A"/>
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="True">
-                                    <Setter TargetName="NavBorder" Property="Background" Value="#1C303D"/>
+                                    <Setter TargetName="NavBorder" Property="Background" Value="#E4EFFC"/>
                                 </Trigger>
                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="Active">
-                                    <Setter TargetName="NavBorder" Property="Background" Value="#153646"/>
-                                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                                    <Setter TargetName="NavBorder" Property="Background" Value="#E8F2FF"/>
+                                    <Setter Property="Foreground" Value="#1769C2"/>
                                 </DataTrigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -67,8 +70,8 @@
             <Style x:Key="MediaForgePrimaryButtonStyle" TargetType="Button">
                 <Setter Property="MinHeight" Value="42"/>
                 <Setter Property="Padding" Value="18,0"/>
-                <Setter Property="Background" Value="#60CDFF"/>
-                <Setter Property="Foreground" Value="#061117"/>
+                <Setter Property="Background" Value="#2F80ED"/>
+                <Setter Property="Foreground" Value="White"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="FontSize" Value="12.5"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
@@ -76,36 +79,39 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
-                            <Border x:Name="B" CornerRadius="11" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <Border x:Name="B" CornerRadius="12" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#86DEFF"/></Trigger>
-                                <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Background" Value="#43BEEA"/></Trigger>
-                                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="B" Property="Opacity" Value="0.35"/></Trigger>
+                                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#4B92EE"/></Trigger>
+                                <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Background" Value="#236FD1"/></Trigger>
+                                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="B" Property="Opacity" Value="0.42"/></Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
             </Style>
 
-            <Style x:Key="MediaForgeSubtleButtonStyle" TargetType="Button" BasedOn="{StaticResource MediaForgePrimaryButtonStyle}">
-                <Setter Property="MinHeight" Value="38"/>
-                <Setter Property="Background" Value="#171D24"/>
-                <Setter Property="Foreground" Value="#E7ECF0"/>
-                <Setter Property="BorderBrush" Value="#2B3540"/>
+            <Style x:Key="MediaForgeSubtleButtonStyle" TargetType="Button">
+                <Setter Property="MinHeight" Value="40"/>
+                <Setter Property="Padding" Value="15,0"/>
+                <Setter Property="Background" Value="#FFFFFF"/>
+                <Setter Property="Foreground" Value="#344256"/>
+                <Setter Property="BorderBrush" Value="#D7E0EA"/>
                 <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="Padding" Value="14,0"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
-                            <Border x:Name="B" CornerRadius="10" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                            <Border x:Name="B" CornerRadius="11" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#202A33"/><Setter TargetName="B" Property="BorderBrush" Value="#3A4652"/></Trigger>
-                                <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Background" Value="#26323D"/></Trigger>
-                                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="B" Property="Opacity" Value="0.38"/></Trigger>
+                                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#F5F8FC"/><Setter TargetName="B" Property="BorderBrush" Value="#C5D2E1"/></Trigger>
+                                <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Background" Value="#EDF2F7"/></Trigger>
+                                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="B" Property="Opacity" Value="0.4"/></Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
@@ -114,30 +120,48 @@
 
             <Style x:Key="MediaForgeDangerButtonStyle" TargetType="Button" BasedOn="{StaticResource MediaForgeSubtleButtonStyle}">
                 <Setter Property="Foreground" Value="{StaticResource MediaForgeErrorBrush}"/>
+                <Setter Property="Background" Value="{StaticResource MediaForgeDangerSoftBrush}"/>
+                <Setter Property="BorderBrush" Value="#F2CED2"/>
             </Style>
+
             <Style x:Key="MediaForgeInputStyle" TargetType="TextBox">
                 <Setter Property="MinHeight" Value="42"/>
                 <Setter Property="Padding" Value="13,0"/>
-                <Setter Property="Background" Value="#11161C"/>
+                <Setter Property="Background" Value="#FFFFFF"/>
                 <Setter Property="Foreground" Value="{StaticResource MediaForgeTextBrush}"/>
-                <Setter Property="BorderBrush" Value="#2B3540"/>
+                <Setter Property="BorderBrush" Value="#D7E0EA"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
             </Style>
+
             <Style x:Key="MediaForgeInlineInputStyle" TargetType="TextBox" BasedOn="{StaticResource MediaForgeInputStyle}">
-                <Setter Property="MinHeight" Value="32"/><Setter Property="Padding" Value="6,0"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="FontSize" Value="13"/><Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="MinHeight" Value="34"/>
+                <Setter Property="Padding" Value="6,0"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
             </Style>
+
             <Style x:Key="MediaForgePathBoxStyle" TargetType="TextBox" BasedOn="{StaticResource MediaForgeInputStyle}">
-                <Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="FontSize" Value="11"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="FontSize" Value="12"/>
             </Style>
+
             <Style x:Key="MediaForgeComboStyle" TargetType="ComboBox">
-                <Setter Property="Height" Value="42"/><Setter Property="Background" Value="#171D24"/><Setter Property="Foreground" Value="{StaticResource MediaForgeTextBrush}"/><Setter Property="BorderBrush" Value="#2B3540"/>
+                <Setter Property="Height" Value="42"/>
+                <Setter Property="Background" Value="#FFFFFF"/>
+                <Setter Property="Foreground" Value="{StaticResource MediaForgeTextBrush}"/>
+                <Setter Property="BorderBrush" Value="#D7E0EA"/>
+                <Setter Property="FontSize" Value="11.5"/>
             </Style>
+
             <Style x:Key="MediaForgeCardStyle" TargetType="Border">
                 <Setter Property="Background" Value="{StaticResource MediaForgeSurfaceBrush}"/>
                 <Setter Property="BorderBrush" Value="{StaticResource MediaForgeBorderBrush}"/>
                 <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="CornerRadius" Value="16"/>
+                <Setter Property="CornerRadius" Value="18"/>
             </Style>
         </ResourceDictionary>
     </Application.Resources>
