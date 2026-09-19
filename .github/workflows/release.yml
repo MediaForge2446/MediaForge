@@ -1,5 +1,6 @@
 name: Release
 
+# v0.1.0 packaging trigger for the current main codebase.
 on:
   workflow_dispatch:
     inputs:
