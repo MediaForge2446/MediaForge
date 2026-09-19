@@ -34,6 +34,8 @@ public partial class ExplorerViewModel : ObservableObject
     public bool CanGoHome => CanGoUp;
     public bool CanGoBack => _backHistory.Count > 0;
     public bool CanGoForward => _forwardHistory.Count > 0;
+    public bool HasEntries => Entries.Count > 0;
+    public bool HasSelectedEntry => SelectedEntry is not null && !SelectedEntry.MarkedForDeletion && !SelectedEntry.IsError;
 
     public event Action<string>? AddMediaRequested;
 
@@ -72,6 +74,8 @@ public partial class ExplorerViewModel : ObservableObject
                 Entries.Add(new ExplorerEntryViewModel(item.Entry, item.IsPending, item.PendingOperationId, isError) { MarkedForDeletion = item.MarkedForDeletion });
             }
 
+            OnPropertyChanged(nameof(HasEntries));
+            OnPropertyChanged(nameof(HasSelectedEntry));
             StatusText = Entries.Count == 0 ? "התיקייה ריקה" : $"{Entries.Count} פריטים";
             OnPropertyChanged(nameof(CanGoUp));
             OnPropertyChanged(nameof(CanGoHome));
@@ -179,6 +183,9 @@ public partial class ExplorerViewModel : ObservableObject
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
+    partial void OnSelectedEntryChanged(ExplorerEntryViewModel? value)
+        => OnPropertyChanged(nameof(HasSelectedEntry));
+
     [RelayCommand]
     private async Task OpenAsync(ExplorerEntryViewModel? entry, CancellationToken cancellationToken)
     {
@@ -216,12 +223,16 @@ public partial class ExplorerViewModel : ObservableObject
 
     [RelayCommand]
     private async Task DeleteSelectedAsync(CancellationToken cancellationToken)
+        => await DeleteSelectedFromViewAsync(cancellationToken).ConfigureAwait(true);
+
+    public async Task DeleteSelectedFromViewAsync(CancellationToken cancellationToken = default)
     {
         var entry = SelectedEntry;
         if (entry is null || entry.MarkedForDeletion || entry.IsError || IsBusy) return;
         await _staging.StageAsync(CreateOperation(OperationType.Delete, entry.FullPath, new StagingPayload(SourcePath: entry.FullPath, Recursive: entry.IsDirectory, IsDirectory: entry.IsDirectory)), cancellationToken).ConfigureAwait(true);
         StatusText = "המחיקה סומנה לשמירה";
         await ReloadAsync(cancellationToken).ConfigureAwait(true);
+        OnPropertyChanged(nameof(HasSelectedEntry));
     }
 
     [RelayCommand]
