@@ -32,7 +32,7 @@
                                  IsReadOnly="True"
                                  Style="{StaticResource MediaForgePathBoxStyle}"
                                  VerticalContentAlignment="Center"
-                                 TextTrimming="CharacterEllipsis"/>
+                                 />
                     </DockPanel>
                 </Border>
 
