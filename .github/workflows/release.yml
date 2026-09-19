@@ -18,7 +18,7 @@ on:
       - "main"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   package:
@@ -169,15 +169,20 @@ jobs:
           Get-Item $setup | Format-List FullName,Length
 
       - name: Upload installer artifact
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: MediaForge-Setup
           path: installer/output/Setup.exe
           if-no-files-found: error
+          retention-days: 1
 
       - name: Create GitHub release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/v0.1.0'
+        uses: softprops/action-gh-release@v3
         with:
+          tag_name: v0.1.0
+          target_commitish: ${{ github.sha }}
+          name: MediaForge 0.1.0
           files: installer/output/Setup.exe
           generate_release_notes: true
