@@ -256,6 +256,7 @@
                                 <Setter Property="Margin" Value="0"/>
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                                 <Setter Property="Background" Value="Transparent"/>
+                                <EventSetter Event="MouseDoubleClick" Handler="Entry_OnDoubleClick"/>
                                 <Style.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter Property="Background" Value="#F7FAFD"/>
@@ -264,7 +265,6 @@
                                         <Setter Property="Background" Value="#EDF5FF"/>
                                     </Trigger>
                                 </Style.Triggers>
-                                <EventSetter Event="MouseDoubleClick" Handler="Entry_OnDoubleClick"/>
                             </Style>
                         </ListView.ItemContainerStyle>
 
