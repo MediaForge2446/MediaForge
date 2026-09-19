@@ -74,10 +74,9 @@ public partial class DownloadsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void SelectAll(bool? selected)
+    private void SelectAll()
     {
-        var value = selected ?? true;
-        foreach (var item in Items) item.IsSelected = value;
+        foreach (var item in Items) item.IsSelected = true;
     }
 
     [RelayCommand]
