@@ -87,7 +87,7 @@
                         <TextBlock Text="{Binding StatusText}" Margin="0,4,0,0" FontSize="11" Foreground="#7E8A95" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
-                        <Button Content="בחר הכול" Command="{Binding SelectAllCommand}" CommandParameter="True" Style="{StaticResource MediaForgeSubtleButtonStyle}" />
+                        <Button Content="בחר הכול" Command="{Binding SelectAllCommand}" Style="{StaticResource MediaForgeSubtleButtonStyle}" />
                         <Button Content="MP3 לכולם" Command="{Binding Mp3ToAllCommand}" Margin="8,0,0,0" Style="{StaticResource MediaForgeSubtleButtonStyle}" />
                     </StackPanel>
                 </Grid>
