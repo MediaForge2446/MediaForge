@@ -22,7 +22,7 @@ public partial class ExplorerPage : System.Windows.Controls.UserControl
 
     private async void Entry_OnDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (DataContext is not ExplorerViewModel viewModel || sender is not ListViewItem item || item.Content is not ExplorerEntryViewModel entry)
+        if (DataContext is not ExplorerViewModel viewModel || sender is not System.Windows.Controls.ListViewItem item || item.Content is not ExplorerEntryViewModel entry)
             return;
 
         await viewModel.OpenFromDoubleClickAsync(entry);
