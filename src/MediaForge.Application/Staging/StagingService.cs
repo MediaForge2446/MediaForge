@@ -19,7 +19,14 @@ public sealed class StagingService : IStagingService
         _history = history;
     }
 
-    public IReadOnlyList<StagingOperation> Operations => _operations.AsReadOnly();
+    public IReadOnlyList<StagingOperation> Operations
+    {
+        get
+        {
+            lock (_operations)
+                return _operations.ToArray();
+        }
+    }
 
     public event EventHandler? Changed;
 
@@ -32,11 +39,14 @@ public sealed class StagingService : IStagingService
                 return;
 
             var loaded = await _repository.LoadAsync(cancellationToken).ConfigureAwait(false);
-            _operations.Clear();
-            _operations.AddRange(loaded);
-            _history.Clear();
-            foreach (var operation in _operations)
-                _history.Add(operation);
+            lock (_operations)
+            {
+                _operations.Clear();
+                _operations.AddRange(loaded);
+                _history.Clear();
+                foreach (var operation in _operations)
+                    _history.Add(operation);
+            }
 
             _initialized = true;
         }
@@ -64,6 +74,55 @@ public sealed class StagingService : IStagingService
             await PersistAsync(cancellationToken).ConfigureAwait(false);
             Changed?.Invoke(this, EventArgs.Empty);
             return operation;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    public async Task<IReadOnlyList<StagingOperation>> StageManyAsync(
+        IReadOnlyCollection<StagingOperation> operations,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(operations);
+        if (operations.Count == 0)
+            return [];
+
+        await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
+
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var additions = operations.ToArray();
+            if (additions.Any(x => x is null))
+                throw new ArgumentException("A staging operation cannot be null.", nameof(operations));
+
+            var duplicateIds = additions
+                .GroupBy(x => x.OperationId)
+                .FirstOrDefault(x => x.Count() > 1);
+            if (duplicateIds is not null || additions.Any(x => _operations.Any(existing => existing.OperationId == x.OperationId)))
+                throw new InvalidOperationException("A staging operation with the same ID already exists.");
+
+            _operations.AddRange(additions);
+            foreach (var operation in additions)
+                _history.Add(operation);
+
+            try
+            {
+                await PersistAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                foreach (var operation in additions)
+                    _operations.RemoveAll(x => x.OperationId == operation.OperationId);
+                foreach (var operation in additions.Reverse())
+                    _history.TryUndo(operation.OperationId, out _);
+                throw;
+            }
+
+            Changed?.Invoke(this, EventArgs.Empty);
+            return additions;
         }
         finally
         {
@@ -106,6 +165,36 @@ public sealed class StagingService : IStagingService
             await PersistAsync(cancellationToken).ConfigureAwait(false);
             if (removed > 0)
                 Changed?.Invoke(this, EventArgs.Empty);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    public async Task CompleteManyAsync(
+        IReadOnlyCollection<Guid> operationIds,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(operationIds);
+        if (operationIds.Count == 0)
+            return;
+
+        await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
+
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var ids = operationIds.ToHashSet();
+            var removed = _operations.RemoveAll(x => ids.Contains(x.OperationId));
+            foreach (var operationId in ids)
+                _history.TryUndo(operationId, out _);
+
+            if (removed > 0)
+            {
+                await PersistAsync(cancellationToken).ConfigureAwait(false);
+                Changed?.Invoke(this, EventArgs.Empty);
+            }
         }
         finally
         {

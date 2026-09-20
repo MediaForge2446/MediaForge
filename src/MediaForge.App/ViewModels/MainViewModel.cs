@@ -235,7 +235,17 @@ public partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(HasPendingChanges));
     }
 
-    private void OnStagingChanged(object? sender, EventArgs e) => RefreshPendingCount();
+    private void OnStagingChanged(object? sender, EventArgs e)
+    {
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher is null || dispatcher.CheckAccess())
+        {
+            RefreshPendingCount();
+            return;
+        }
+
+        _ = dispatcher.InvokeAsync(RefreshPendingCount);
+    }
 }
 
 public sealed partial class RootFolderViewModel : ObservableObject

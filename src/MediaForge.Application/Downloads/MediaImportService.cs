@@ -50,22 +50,27 @@ public sealed class MediaImportService
         foreach (var item in items)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
             if (string.IsNullOrWhiteSpace(item.VideoId))
                 throw new InvalidOperationException("A media item is missing its source VideoId.");
-            if (!usedVideoIds.Add(item.VideoId)) continue;
+
+            if (!usedVideoIds.Add(item.VideoId))
+                continue;
 
             var indexed = await _mediaIndex.FindByVideoIdAsync(item.VideoId, cancellationToken).ConfigureAwait(false);
             if (indexed is not null)
             {
                 if (await _fileSystem.FileExistsAsync(indexed.PhysicalPath, cancellationToken).ConfigureAwait(false))
                     continue;
+
                 await _mediaIndex.RemoveAsync(item.VideoId, cancellationToken).ConfigureAwait(false);
             }
 
-            var format = item.DesiredFormat;
-            if (!Enum.IsDefined(format)) format = defaultFormat;
+            var format = Enum.IsDefined(item.DesiredFormat) ? item.DesiredFormat : defaultFormat;
             var baseName = SanitizeFileName(item.Metadata.Title);
-            if (string.IsNullOrWhiteSpace(baseName)) baseName = item.VideoId;
+            if (string.IsNullOrWhiteSpace(baseName))
+                baseName = item.VideoId;
+
             var extension = GetExtension(format);
             var fileName = await MakeUniqueAsync(
                 baseName,
@@ -74,9 +79,9 @@ public sealed class MediaImportService
                 _fileSystem,
                 directory,
                 cancellationToken).ConfigureAwait(false);
-            var destinationPath = Path.Combine(directory, fileName);
 
-            var operation = new StagingOperation(
+            var destinationPath = Path.Combine(directory, fileName);
+            staged.Add(new StagingOperation(
                 Guid.NewGuid(),
                 DateTimeOffset.UtcNow,
                 OperationType.Download,
@@ -87,12 +92,13 @@ public sealed class MediaImportService
                     SourceUrl: item.SourceUrl,
                     DestinationPath: destinationPath,
                     DesiredFormat: format,
-                    VideoId: item.VideoId));
-
-            await _staging.StageAsync(operation, cancellationToken).ConfigureAwait(false);
-            staged.Add(operation);
+                    VideoId: item.VideoId)));
         }
 
+        if (staged.Count == 0)
+            return staged;
+
+        await _staging.StageManyAsync(staged, cancellationToken).ConfigureAwait(false);
         return staged;
     }
 

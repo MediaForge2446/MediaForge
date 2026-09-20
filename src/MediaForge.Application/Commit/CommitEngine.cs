@@ -81,6 +81,8 @@ public sealed class CommitEngine : ICommitEngine
             progress,
             cancellationToken).ConfigureAwait(false)).ToArray();
 
+        var successfulOperationIds = new List<Guid>();
+
         foreach (var result in results.Where(x => x.Success))
         {
             var operation = operations.First(x => x.OperationId == result.OperationId);
@@ -110,8 +112,11 @@ public sealed class CommitEngine : ICommitEngine
                     cancellationToken).ConfigureAwait(false);
             }
 
-            await _staging.CompleteAsync(result.OperationId, cancellationToken).ConfigureAwait(false);
+            successfulOperationIds.Add(result.OperationId);
         }
+
+        if (successfulOperationIds.Count > 0)
+            await _staging.CompleteManyAsync(successfulOperationIds, cancellationToken).ConfigureAwait(false);
 
         return results;
     }
