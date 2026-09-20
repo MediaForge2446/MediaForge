@@ -22,7 +22,6 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _pageTitle = "הבית";
     [ObservableProperty] private string _activeSection = "home";
     [ObservableProperty] private bool _isBusy;
-    [ObservableProperty] private bool _isMediaDialogOpen;
     [ObservableProperty] private string _statusText = "מוכן";
     [ObservableProperty] private int _pendingCount;
     [ObservableProperty] private object? _currentPage;
@@ -57,31 +56,17 @@ public partial class MainViewModel : ObservableObject
 
         _stagingService.Changed += OnStagingChanged;
         Explorer.AddMediaRequested += OnAddMediaRequested;
-        Downloads.MediaStaged += OnMediaStagedAsync;
     }
 
     private void OnAddMediaRequested(string path)
     {
         Downloads.PrepareForFolder(path);
-        IsMediaDialogOpen = true;
         StatusText = $"הוספת מדיה אל {path}";
     }
-
-    private async Task OnMediaStagedAsync()
-    {
-        IsMediaDialogOpen = false;
-        RefreshPendingCount();
-        await Explorer.RefreshFromStagingAsync().ConfigureAwait(true);
-        StatusText = "כל השירים נוספו לשינויים ממתינים — הדיסק עדיין לא השתנה";
-    }
-
-    [RelayCommand]
-    private void CloseMediaDialog() => IsMediaDialogOpen = false;
 
     [RelayCommand]
     private void NavigateHome()
     {
-        IsMediaDialogOpen = false;
         ActiveSection = "home";
         PageTitle = "הבית";
         CurrentPage = this;
