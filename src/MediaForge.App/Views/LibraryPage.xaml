@@ -7,10 +7,10 @@
              FlowDirection="RightToLeft"
              Background="Transparent">
 
-    <Grid Margin="40,34,40,30">
+    <Grid Margin="42,34,42,30">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="14"/>
+            <RowDefinition Height="24"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -20,7 +20,7 @@
                            FontSize="30"
                            FontWeight="Bold"
                            Foreground="#172338"/>
-                <TextBlock Text="התיקיות הראשיות שלך"
+                <TextBlock Text="בחר תיקייה ראשית כדי להיכנס לסביבת העבודה שלך"
                            Margin="0,6,0,0"
                            FontSize="12.5"
                            Foreground="#748198"/>
@@ -28,151 +28,155 @@
 
             <Button Content="＋  הוסף תיקייה ראשית"
                     Command="{Binding AddRootFolderCommand}"
-                    MinWidth="190"
+                    MinWidth="194"
                     MinHeight="46"
                     HorizontalAlignment="Left"
                     Style="{StaticResource MediaForgePrimaryButtonStyle}"/>
         </Grid>
 
-        <Border Grid.Row="2"
-                Background="#FFFFFF"
-                BorderBrush="#DFE6EF"
-                BorderThickness="1"
-                CornerRadius="16"
-                Padding="8">
+        <Grid Grid.Row="2">
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding RootFolders}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding DataContext.OpenRootFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}"
+                                    HorizontalContentAlignment="Stretch"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Padding="0"
+                                    Margin="0,0,0,10">
 
-            <Grid>
-                <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Disabled">
+                                <Border Background="#FFFFFF"
+                                        BorderBrush="#DEE5EE"
+                                        BorderThickness="1"
+                                        CornerRadius="16"
+                                        Padding="20">
 
-                    <ItemsControl ItemsSource="{Binding RootFolders}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Command="{Binding DataContext.OpenRootFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                        CommandParameter="{Binding}"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Padding="0"
-                                        HorizontalContentAlignment="Stretch">
+                                    <Grid MinHeight="94">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="62"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="260"/>
+                                            <ColumnDefinition Width="28"/>
+                                        </Grid.ColumnDefinitions>
 
-                                    <Border Padding="18"
-                                            Margin="0,0,0,2"
-                                            Background="#FFFFFF"
-                                            CornerRadius="12">
-
-                                        <Grid MinHeight="88">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="68"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="210"/>
-                                                <ColumnDefinition Width="42"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <Border Width="50"
-                                                    Height="50"
-                                                    CornerRadius="14"
-                                                    Background="#EDF4FF"
-                                                    VerticalAlignment="Center">
-                                                <TextBlock Text="▣"
-                                                           FontSize="22"
-                                                           Foreground="{StaticResource MediaForgeAccentBrush}"
-                                                           HorizontalAlignment="Center"
-                                                           VerticalAlignment="Center"/>
-                                            </Border>
-
-                                            <StackPanel Grid.Column="1"
-                                                        Margin="8,0,20,0"
-                                                        VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}"
-                                                           FontSize="15"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="#213047"
-                                                           TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{Binding Path}"
-                                                           Margin="0,4,0,0"
-                                                           FontSize="10.5"
-                                                           Foreground="#8491A3"
-                                                           TextTrimming="CharacterEllipsis"
-                                                           ToolTip="{Binding Path}"/>
-                                            </StackPanel>
-
-                                            <StackPanel Grid.Column="2"
-                                                        VerticalAlignment="Center"
-                                                        HorizontalAlignment="Right">
-                                                <TextBlock Text="{Binding ScanSummary}"
-                                                           FontSize="10.5"
-                                                           Foreground="#69778B"
-                                                           HorizontalAlignment="Right"/>
-                                                <TextBlock Text="{Binding ScanStatus}"
-                                                           Margin="0,5,0,0"
-                                                           FontSize="10"
-                                                           Foreground="#2E9E68"
-                                                           HorizontalAlignment="Right"/>
-                                            </StackPanel>
-
-                                            <TextBlock Grid.Column="3"
-                                                       Text="‹"
-                                                       FontSize="25"
-                                                       Foreground="#A1ADBD"
+                                        <Border Width="50"
+                                                Height="50"
+                                                CornerRadius="14"
+                                                Background="#EDF4FF"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="▣"
+                                                       FontSize="21"
+                                                       Foreground="{StaticResource MediaForgeAccentBrush}"
                                                        HorizontalAlignment="Center"
                                                        VerticalAlignment="Center"/>
-                                        </Grid>
-                                    </Border>
+                                        </Border>
 
-                                    <Button.Style>
-                                        <Style TargetType="Button">
-                                            <Setter Property="Background" Value="Transparent"/>
-                                            <Setter Property="BorderThickness" Value="0"/>
+                                        <StackPanel Grid.Column="1"
+                                                    Margin="10,0,24,0"
+                                                    VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name}"
+                                                       FontSize="15.5"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#203049"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Path}"
+                                                       Margin="0,5,0,0"
+                                                       FontSize="10.5"
+                                                       Foreground="#8491A3"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       ToolTip="{Binding Path}"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2"
+                                                    VerticalAlignment="Center"
+                                                    HorizontalAlignment="Right">
+                                            <TextBlock Text="{Binding ScanSummary}"
+                                                       FontSize="10.5"
+                                                       Foreground="#68778B"
+                                                       HorizontalAlignment="Right"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                            <StackPanel Orientation="Horizontal"
+                                                        HorizontalAlignment="Right"
+                                                        Margin="0,6,0,0">
+                                                <Ellipse Width="7"
+                                                         Height="7"
+                                                         Fill="{StaticResource MediaForgeSuccessBrush}"
+                                                         Margin="0,0,6,0"
+                                                         VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding ScanStatus}"
+                                                           FontSize="10"
+                                                           Foreground="#2E9E68"/>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Column="3"
+                                                   Text="‹"
+                                                   FontSize="24"
+                                                   Foreground="#A6B1BF"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="#FFFFFF"/>
+                                            <Setter Property="BorderBrush" Value="#DEE5EE"/>
                                             <Style.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="#F7FAFD"/>
+                                                    <Setter Property="Background" Value="#FBFDFF"/>
+                                                    <Setter Property="BorderBrush" Value="#BFD7F5"/>
                                                 </Trigger>
                                                 <Trigger Property="IsPressed" Value="True">
-                                                    <Setter Property="Background" Value="#F0F5FA"/>
+                                                    <Setter Property="Background" Value="#F4F8FD"/>
                                                 </Trigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </Button.Style>
-                                </Button>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
+                                    </Border.Style>
+                                </Border>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
 
-                <Border Visibility="{Binding HasLibrary, Converter={StaticResource InverseBooleanToVisibilityConverter}}"
-                        Background="#FAFCFE"
-                        CornerRadius="12">
-                    <StackPanel HorizontalAlignment="Center"
-                                VerticalAlignment="Center">
-                        <Border Width="78"
-                                Height="78"
-                                CornerRadius="24"
-                                Background="#EDF4FF">
-                            <TextBlock Text="＋"
-                                       FontSize="34"
-                                       Foreground="{StaticResource MediaForgeAccentBrush}"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="עדיין אין תיקיות ראשיות"
-                                   Margin="0,18,0,0"
-                                   FontSize="20"
-                                   FontWeight="SemiBold"
-                                   Foreground="#1C2A40"
-                                   HorizontalAlignment="Center"/>
-                        <TextBlock Text="בחר תיקייה מהמחשב כדי להתחיל לעבוד."
-                                   Margin="0,7,0,18"
-                                   FontSize="11.5"
-                                   Foreground="#7B889B"
-                                   HorizontalAlignment="Center"/>
-                        <Button Content="בחר תיקייה ראשית"
-                                Command="{Binding AddRootFolderCommand}"
-                                Style="{StaticResource MediaForgePrimaryButtonStyle}"
-                                MinWidth="170"
-                                HorizontalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
-        </Border>
+            <Border Visibility="{Binding HasLibrary, Converter={StaticResource InverseBooleanToVisibilityConverter}}"
+                    Background="#FFFFFF"
+                    BorderBrush="#DEE5EE"
+                    BorderThickness="1"
+                    CornerRadius="18">
+                <StackPanel HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                    <Border Width="82"
+                            Height="82"
+                            CornerRadius="25"
+                            Background="#EDF4FF">
+                        <TextBlock Text="＋"
+                                   FontSize="36"
+                                   Foreground="{StaticResource MediaForgeAccentBrush}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="עדיין אין תיקיות ראשיות"
+                               Margin="0,18,0,0"
+                               FontSize="20"
+                               FontWeight="SemiBold"
+                               Foreground="#1C2A40"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="בחר תיקייה מהמחשב כדי להתחיל לעבוד."
+                               Margin="0,7,0,18"
+                               FontSize="11.5"
+                               Foreground="#7B889B"
+                               HorizontalAlignment="Center"/>
+                    <Button Content="בחר תיקייה ראשית"
+                            Command="{Binding AddRootFolderCommand}"
+                            Style="{StaticResource MediaForgePrimaryButtonStyle}"
+                            MinWidth="172"
+                            HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>
