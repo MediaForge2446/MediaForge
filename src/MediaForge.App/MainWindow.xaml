@@ -31,9 +31,6 @@
                      ShowMinimize="True"
                      ShowMaximize="True"
                      ShowClose="True">
-            <ui:TitleBar.Icon>
-                <ui:SymbolIcon Symbol="Fluent24"/>
-            </ui:TitleBar.Icon>
         </ui:TitleBar>
 
         <Border Margin="10,56,10,10"
