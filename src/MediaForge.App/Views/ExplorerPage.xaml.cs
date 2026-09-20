@@ -70,7 +70,22 @@ public partial class ExplorerPage : System.Windows.Controls.UserControl
     }
 
     private void AddMediaButton_OnClick(object sender, RoutedEventArgs e)
-        => ViewModel?.RequestAddMediaToCurrentFolder();
+    {
+        if (ViewModel is null || MainModel is null || string.IsNullOrWhiteSpace(ViewModel.CurrentPath))
+            return;
+
+        MainModel.Downloads.PrepareForFolder(ViewModel.CurrentPath);
+
+        if (Application.Current.Windows.OfType<AddMediaWindow>().Any())
+            return;
+
+        var dialog = new AddMediaWindow(MainModel.Downloads)
+        {
+            Owner = Window.GetWindow(this)
+        };
+        dialog.Show();
+        dialog.Activate();
+    }
 
     private async void FolderTree_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
     {
