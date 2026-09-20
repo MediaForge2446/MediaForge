@@ -76,7 +76,7 @@ public partial class ExplorerPage : System.Windows.Controls.UserControl
 
         MainModel.Downloads.PrepareForFolder(ViewModel.CurrentPath);
 
-        if (Application.Current.Windows.OfType<AddMediaWindow>().Any())
+        if (System.Windows.Application.Current.Windows.OfType<AddMediaWindow>().Any())
             return;
 
         var dialog = new AddMediaWindow(MainModel.Downloads)
