@@ -40,3 +40,38 @@ jobs:
 
       - name: Verify WPF publish configuration
         run: dotnet publish src/MediaForge.App/MediaForge.App.csproj --configuration Release --runtime win-x64 --self-contained true --no-restore --output artifacts/app-check
+
+      - name: WPF startup smoke test
+        shell: pwsh
+        env:
+          MEDIAFORGE_CI_SMOKE: "1"
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'artifacts/app-check/MediaForge.exe'
+          $failureLog = Join-Path $env:TEMP 'MediaForge.StartupSmoke.txt'
+          if (Test-Path $failureLog) { Remove-Item $failureLog -Force }
+
+          $process = Start-Process -FilePath $exe -PassThru
+          try {
+            $deadline = (Get-Date).AddSeconds(15)
+            do {
+              Start-Sleep -Milliseconds 500
+              if ($process.HasExited) { break }
+            } while ((Get-Date) -lt $deadline)
+
+            if ($process.HasExited) {
+              if (Test-Path $failureLog) {
+                Write-Host "MediaForge startup smoke test failed:"
+                Get-Content $failureLog
+              } else {
+                Write-Host "MediaForge exited during startup with code $($process.ExitCode)."
+              }
+              throw "MediaForge did not remain running for the startup smoke window."
+            }
+
+            Write-Host "MediaForge startup smoke test passed."
+          }
+          finally {
+            if (-not $process.HasExited) {
+              Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+            }
+          }
