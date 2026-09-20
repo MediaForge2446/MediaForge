@@ -76,13 +76,14 @@ public sealed class StagingService : IStagingService
             }
 
             await PersistAsync(cancellationToken).ConfigureAwait(false);
-            Changed?.Invoke(this, EventArgs.Empty);
-            return operation;
         }
         finally
         {
             _gate.Release();
         }
+
+        Changed?.Invoke(this, EventArgs.Empty);
+        return operation;
     }
 
     public async Task<IReadOnlyList<StagingOperation>> StageManyAsync(
@@ -95,10 +96,11 @@ public sealed class StagingService : IStagingService
 
         await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
 
+        StagingOperation[] additions;
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            var additions = operations.ToArray();
+            additions = operations.ToArray();
             if (additions.Any(x => x is null))
                 throw new ArgumentException("A staging operation cannot be null.", nameof(operations));
 
@@ -130,20 +132,21 @@ public sealed class StagingService : IStagingService
                 }
                 throw;
             }
-
-            Changed?.Invoke(this, EventArgs.Empty);
-            return additions;
         }
         finally
         {
             _gate.Release();
         }
+
+        Changed?.Invoke(this, EventArgs.Empty);
+        return additions;
     }
 
     public async Task<bool> UndoAsync(Guid operationId, CancellationToken cancellationToken = default)
     {
         await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
 
+        var changed = false;
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
@@ -155,22 +158,27 @@ public sealed class StagingService : IStagingService
 
                 _operations.RemoveAt(index);
                 _history.TryUndo(operationId, out _);
+                changed = true;
             }
 
             await PersistAsync(cancellationToken).ConfigureAwait(false);
-            Changed?.Invoke(this, EventArgs.Empty);
-            return true;
         }
         finally
         {
             _gate.Release();
         }
+
+        if (changed)
+            Changed?.Invoke(this, EventArgs.Empty);
+
+        return changed;
     }
 
     public async Task CompleteAsync(Guid operationId, CancellationToken cancellationToken = default)
     {
         await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
 
+        var changed = false;
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
@@ -181,14 +189,16 @@ public sealed class StagingService : IStagingService
                 _history.TryUndo(operationId, out _);
             }
 
+            changed = removed > 0;
             await PersistAsync(cancellationToken).ConfigureAwait(false);
-            if (removed > 0)
-                Changed?.Invoke(this, EventArgs.Empty);
         }
         finally
         {
             _gate.Release();
         }
+
+        if (changed)
+            Changed?.Invoke(this, EventArgs.Empty);
     }
 
     public async Task CompleteManyAsync(
@@ -201,6 +211,7 @@ public sealed class StagingService : IStagingService
 
         await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
 
+        var changed = false;
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
@@ -213,16 +224,17 @@ public sealed class StagingService : IStagingService
                     _history.TryUndo(operationId, out _);
             }
 
-            if (removed > 0)
-            {
+            changed = removed > 0;
+            if (changed)
                 await PersistAsync(cancellationToken).ConfigureAwait(false);
-                Changed?.Invoke(this, EventArgs.Empty);
-            }
         }
         finally
         {
             _gate.Release();
         }
+
+        if (changed)
+            Changed?.Invoke(this, EventArgs.Empty);
     }
 
     public async Task ClearAsync(CancellationToken cancellationToken = default)
@@ -239,12 +251,13 @@ public sealed class StagingService : IStagingService
             }
 
             await PersistAsync(cancellationToken).ConfigureAwait(false);
-            Changed?.Invoke(this, EventArgs.Empty);
         }
         finally
         {
             _gate.Release();
         }
+
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 
     private async Task EnsureInitializedAsync(CancellationToken cancellationToken)
