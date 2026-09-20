@@ -85,9 +85,6 @@
                                        Foreground="#9AA5B4"
                                        TextTrimming="CharacterEllipsis"
                                        ToolTip="{Binding Downloads.DestinationDirectory}"/>
-                                       Margin="0,5,0,0"
-                                       FontSize="10.5"
-                                       Foreground="#758297"/>
                         </StackPanel>
                         <Button Content="✕"
                                 Command="{Binding CloseMediaDialogCommand}"
