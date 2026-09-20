@@ -21,6 +21,17 @@ public sealed class YtDlpArgumentBuilderTests
     }
 
     [Fact]
+    public void Mp3UsesCompact128KAudioQuality()
+    {
+        var args = YtDlpArgumentBuilder.Build(@"C:\temp\song.tmp", @"C:\tools\ffmpeg.exe", MediaFormat.Mp3);
+
+        var qualityIndex = Array.IndexOf(args.ToArray(), "--audio-quality");
+
+        Assert.True(qualityIndex >= 0);
+        Assert.Equal(YtDlpArgumentBuilder.DefaultMp3AudioQuality, args[qualityIndex + 1]);
+    }
+
+    [Fact]
     public void Mp4UsesMp4VideoAndMerge()
     {
         var args = YtDlpArgumentBuilder.Build(@"C:\\temp\\video.tmp", @"C:\\tools\\ffmpeg.exe", MediaFormat.Mp4);
