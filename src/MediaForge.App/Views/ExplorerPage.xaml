@@ -65,6 +65,18 @@
         <!-- Toolbar -->
         <Grid Grid.Row="1" Margin="0,10,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Border Margin="0,0,8,0"
+                        Background="{StaticResource MediaForgePendingSoftBrush}"
+                        BorderBrush="#E6D38D"
+                        BorderThickness="1"
+                        CornerRadius="9"
+                        Padding="9,5"
+                        VerticalAlignment="Center">
+                    <TextBlock Text="{Binding DataContext.PendingCount, RelativeSource={RelativeSource AncestorType=Window}, StringFormat={}{0} שינויים ממתינים}"
+                               FontSize="9.5"
+                               FontWeight="SemiBold"
+                               Foreground="#9B7800"/>
+                </Border>
                 <Button Content="＋  הוסף תיקייה"
                         Click="AddFolderButton_OnClick"
                         MinWidth="142"
@@ -150,18 +162,56 @@
                         </TreeView.ItemContainerStyle>
                         <TreeView.ItemTemplate>
                             <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                                <Border Padding="8,7"
-                                        CornerRadius="8">
-                                    <StackPanel Orientation="Horizontal">
+                                <Border Padding="9,8"
+                                        CornerRadius="9">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsPending}" Value="True">
+                                                    <Setter Property="Background" Value="{StaticResource MediaForgePendingSoftBrush}"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding MarkedForDeletion}" Value="True">
+                                                    <Setter Property="Background" Value="#FFF0D0"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
                                         <TextBlock Text="▣"
                                                    Margin="0,0,8,0"
                                                    FontSize="14"
                                                    Foreground="{StaticResource MediaForgeAccentBrush}"/>
-                                        <TextBlock Text="{Binding Name}"
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Name}"
                                                    FontSize="12"
                                                    Foreground="#3B4A60"
                                                    TextTrimming="CharacterEllipsis"/>
-                                    </StackPanel>
+                                        <Ellipse Grid.Column="2"
+                                                 Width="7"
+                                                 Height="7"
+                                                 Margin="8,0,0,0">
+                                            <Ellipse.Style>
+                                                <Style TargetType="Ellipse">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Setter Property="Fill" Value="{StaticResource MediaForgePendingBrush}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsPending}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding MarkedForDeletion}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Ellipse.Style>
+                                        </Ellipse>
+                                    </Grid>
                                 </Border>
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>
@@ -247,21 +297,25 @@
 
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Padding="10,8"
-                                            BorderBrush="#E8EDF3"
-                                            BorderThickness="0,0,0,1">
+                                    <Border Padding="12,9">
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Setter Property="Background" Value="#FFFFFF"/>
+                                                <Setter Property="BorderBrush" Value="#E7ECF2"/>
+                                                <Setter Property="BorderThickness" Value="1"/>
+                                                <Setter Property="CornerRadius" Value="10"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsPending}" Value="True">
-                                                        <Setter Property="Background" Value="#FFF9EC"/>
+                                                        <Setter Property="Background" Value="#FFFBF2"/>
+                                                        <Setter Property="BorderBrush" Value="#E3C96F"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding MarkedForDeletion}" Value="True">
-                                                        <Setter Property="Background" Value="#FFF4DD"/>
+                                                        <Setter Property="Background" Value="#FFF6E4"/>
+                                                        <Setter Property="BorderBrush" Value="#DDB35B"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding IsError}" Value="True">
-                                                        <Setter Property="Background" Value="#FFF1F3"/>
+                                                        <Setter Property="Background" Value="#FFF2F4"/>
+                                                        <Setter Property="BorderBrush" Value="#E0AEB7"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
