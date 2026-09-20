@@ -80,7 +80,12 @@ public partial class ExplorerViewModel : ObservableObject
 
             OnPropertyChanged(nameof(HasEntries));
             OnPropertyChanged(nameof(HasSelectedEntry));
-            StatusText = Entries.Count == 0 ? "התיקייה ריקה" : $"{Entries.Count} פריטים";
+            var pendingCount = projected.Count(x => x.IsPending);
+            StatusText = Entries.Count == 0
+                ? "התיקייה ריקה"
+                : pendingCount > 0
+                    ? $"{Entries.Count} פריטים · {pendingCount} שינויים ממתינים"
+                    : $"{Entries.Count} פריטים";
             OnPropertyChanged(nameof(CanGoUp));
             OnPropertyChanged(nameof(CanGoHome));
             OnPropertyChanged(nameof(CanGoBack));
@@ -117,10 +122,18 @@ public partial class ExplorerViewModel : ObservableObject
         if (depth >= 4) return;
         try
         {
-            var entries = await _explorer.ListAsync(node.FullPath, cancellationToken).ConfigureAwait(true);
-            foreach (var entry in entries.Where(x => x.IsDirectory).OrderBy(x => x.Name, StringComparer.CurrentCultureIgnoreCase))
+            var actualEntries = await _explorer.ListAsync(node.FullPath, cancellationToken).ConfigureAwait(true);
+            var projectedEntries = _projection.Project(node.FullPath, actualEntries, _staging.Operations);
+
+            foreach (var item in projectedEntries.Where(x => x.Entry.IsDirectory)
+                         .OrderBy(x => x.Entry.Name, StringComparer.CurrentCultureIgnoreCase))
             {
-                var child = new ExplorerTreeNodeViewModel(entry.Name, entry.FullPath);
+                var child = new ExplorerTreeNodeViewModel(
+                    item.Entry.Name,
+                    item.Entry.FullPath,
+                    item.IsPending,
+                    item.MarkedForDeletion);
+
                 node.Children.Add(child);
                 await PopulateTreeAsync(child, depth + 1, cancellationToken).ConfigureAwait(true);
             }
@@ -329,12 +342,21 @@ public sealed partial class ExplorerTreeNodeViewModel : ObservableObject
     public string Name { get; }
     public string FullPath { get; }
     public ObservableCollection<ExplorerTreeNodeViewModel> Children { get; } = [];
-    [ObservableProperty] private bool _isExpanded;
 
-    public ExplorerTreeNodeViewModel(string name, string fullPath)
+    [ObservableProperty] private bool _isExpanded;
+    [ObservableProperty] private bool _isPending;
+    [ObservableProperty] private bool _markedForDeletion;
+
+    public ExplorerTreeNodeViewModel(
+        string name,
+        string fullPath,
+        bool isPending = false,
+        bool markedForDeletion = false)
     {
         Name = name;
         FullPath = fullPath;
+        _isPending = isPending;
+        _markedForDeletion = markedForDeletion;
     }
 }
 

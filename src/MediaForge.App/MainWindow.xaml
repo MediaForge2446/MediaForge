@@ -49,8 +49,10 @@
               Visibility="{Binding IsMediaDialogOpen, Converter={StaticResource BooleanToVisibilityConverterFallback}}"
               Background="#4D182338">
 
-            <Border Width="900"
-                    Height="660"
+            <Border Width="820"
+                    Height="590"
+                    MaxWidth="900"
+                    MaxHeight="650"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Background="#FFFFFF"
@@ -70,10 +72,19 @@
                     <Grid Grid.Row="0">
                         <StackPanel HorizontalAlignment="Right">
                             <TextBlock Text="הוסף מדיה"
-                                       FontSize="22"
+                                       FontSize="24"
                                        FontWeight="Bold"
                                        Foreground="#172338"/>
-                            <TextBlock Text="הדבק קישור לשיר או playlist. ההוספה נשארת ממתינה עד לשמירה."
+                            <TextBlock Text="שיר בודד או playlist — הכול יתווסף יחד לשינויים הממתינים."
+                                       Margin="0,6,0,0"
+                                       FontSize="10.5"
+                                       Foreground="#758297"/>
+                            <TextBlock Text="{Binding Downloads.DestinationDirectory}"
+                                       Margin="0,4,0,0"
+                                       FontSize="9.5"
+                                       Foreground="#9AA5B4"
+                                       TextTrimming="CharacterEllipsis"
+                                       ToolTip="{Binding Downloads.DestinationDirectory}"/>
                                        Margin="0,5,0,0"
                                        FontSize="10.5"
                                        Foreground="#758297"/>
@@ -86,8 +97,14 @@
                                 Style="{StaticResource MediaForgeSubtleButtonStyle}"/>
                     </Grid>
 
-                    <Grid Grid.Row="1"
-                          Margin="0,12,0,8">
+                    <Border Grid.Row="1"
+                            Margin="0,14,0,10"
+                            Background="#F8FAFD"
+                            BorderBrush="#E0E7EF"
+                            BorderThickness="1"
+                            CornerRadius="13"
+                            Padding="8">
+                        <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="120"/>
@@ -97,14 +114,16 @@
                                  Style="{StaticResource MediaForgeInputStyle}"
                                  ToolTip="קישור YouTube או playlist"/>
 
-                        <Button Grid.Column="1"
-                                Content="בדוק קישור"
-                                Command="{Binding Downloads.ResolveCommand}"
-                                Margin="10,0,0,0"
-                                Style="{StaticResource MediaForgePrimaryButtonStyle}"/>
-                    </Grid>
+                            <Button Grid.Column="1"
+                                    Content="בדוק קישור"
+                                    Command="{Binding Downloads.ResolveCommand}"
+                                    Margin="10,0,0,0"
+                                    MinWidth="116"
+                                    Style="{StaticResource MediaForgePrimaryButtonStyle}"/>
+                        </Grid>
+                    </Border>
 
-                    <Grid Grid.Row="2">
+                    <Grid Grid.Row="2" Margin="0,2,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="42"/>
                             <RowDefinition Height="*"/>
@@ -118,7 +137,12 @@
                                 <TextBlock Text="{Binding Downloads.StatusText}"
                                            Margin="0,3,0,0"
                                            FontSize="9.5"
-                                           Foreground="#7A879A"/>
+                                           Foreground="#6F7E92"
+                                           TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding Downloads.SelectedCount, StringFormat={}{0} שירים נבחרו}"
+                                           Margin="0,3,0,0"
+                                           FontSize="9"
+                                           Foreground="{StaticResource MediaForgeAccentBrush}"/>
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal"
@@ -128,18 +152,20 @@
                                           Width="105"
                                           Style="{StaticResource MediaForgeComboStyle}"/>
                                 <Button Content="בחר הכול"
+                                        IsEnabled="{Binding Downloads.HasItems}"
                                         Command="{Binding Downloads.SelectAllCommand}"
                                         Margin="8,0,0,0"
                                         Style="{StaticResource MediaForgeSubtleButtonStyle}"/>
                                 <Button Content="MP3 לכולם"
                                         Command="{Binding Downloads.Mp3ToAllCommand}"
+                                        IsEnabled="{Binding Downloads.HasItems}"
                                         Margin="8,0,0,0"
                                         Style="{StaticResource MediaForgeSubtleButtonStyle}"/>
                             </StackPanel>
                         </Grid>
 
                         <Border Grid.Row="1"
-                                Margin="0,8,0,0"
+                                Margin="0,10,0,0"
                                 Background="#F8FAFD"
                                 BorderBrush="#E1E8F0"
                                 BorderThickness="1"
@@ -263,7 +289,7 @@
                                    ToolTip="{Binding Downloads.DestinationDirectory}"/>
                         <Button Content="הוסף שירים"
                                 Command="{Binding Downloads.StageSelectedCommand}"
-                                IsEnabled="{Binding Downloads.HasItems}"
+                                IsEnabled="{Binding Downloads.HasSelection}"
                                 MinWidth="130"
                                 HorizontalAlignment="Left"
                                 Style="{StaticResource MediaForgePrimaryButtonStyle}"/>

@@ -23,6 +23,8 @@ public partial class DownloadsViewModel : ObservableObject
     public ObservableCollection<ResolvedMediaItemViewModel> Items { get; } = [];
     public IReadOnlyList<MediaFormat> Formats { get; } = [MediaFormat.Mp3, MediaFormat.Mp4, MediaFormat.Wav, MediaFormat.M4a];
     public bool HasItems => Items.Count > 0;
+    public int SelectedCount => Items.Count(x => x.IsSelected);
+    public bool HasSelection => SelectedCount > 0;
     public event Func<Task>? MediaStaged;
 
     public DownloadsViewModel(MediaImportService importService, IFolderPicker folderPicker)
@@ -47,8 +49,34 @@ public partial class DownloadsViewModel : ObservableObject
         SourceUrl = string.Empty;
         CollectionTitle = string.Empty;
         StatusText = "הדבק קישור כדי להתחיל";
+        UnsubscribeItems();
         Items.Clear();
+        NotifySelectionState();
+    }
+
+    private void NotifySelectionState()
+    {
         OnPropertyChanged(nameof(HasItems));
+        OnPropertyChanged(nameof(SelectedCount));
+        OnPropertyChanged(nameof(HasSelection));
+    }
+
+    private void SubscribeItem(ResolvedMediaItemViewModel item)
+        => item.PropertyChanged += OnMediaItemPropertyChanged;
+
+    private void UnsubscribeItems()
+    {
+        foreach (var item in Items)
+            item.PropertyChanged -= OnMediaItemPropertyChanged;
+    }
+
+    private void OnMediaItemPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ResolvedMediaItemViewModel.IsSelected))
+        {
+            OnPropertyChanged(nameof(SelectedCount));
+            OnPropertyChanged(nameof(HasSelection));
+        }
     }
 
     [RelayCommand]
@@ -56,17 +84,26 @@ public partial class DownloadsViewModel : ObservableObject
     {
         if (IsBusy || string.IsNullOrWhiteSpace(SourceUrl)) return;
         IsBusy = true;
+        UnsubscribeItems();
         Items.Clear();
         CollectionTitle = string.Empty;
         StatusText = "בודק קישור ומביא פרטי מדיה…";
-        OnPropertyChanged(nameof(HasItems));
+        NotifySelectionState();
         try
         {
             var result = await _importService.ResolveAsync(SourceUrl.Trim(), cancellationToken).ConfigureAwait(true);
             CollectionTitle = result.CollectionTitle ?? string.Empty;
-            foreach (var item in result.Items) Items.Add(new ResolvedMediaItemViewModel(item, Formats));
-            StatusText = result.IsPlaylist ? $"נמצאו {Items.Count} פריטים בפלייליסט" : "נמצא שיר אחד";
-            OnPropertyChanged(nameof(HasItems));
+            foreach (var item in result.Items)
+            {
+                var itemViewModel = new ResolvedMediaItemViewModel(item, Formats);
+                SubscribeItem(itemViewModel);
+                Items.Add(itemViewModel);
+            }
+
+            StatusText = result.IsPlaylist
+                ? $"נמצאו {Items.Count} שירים · נבחרו {SelectedCount}"
+                : "נמצא שיר אחד";
+            NotifySelectionState();
         }
         catch (OperationCanceledException) { StatusText = "הפעולה בוטלה"; }
         catch (Exception ex) { StatusText = $"לא ניתן לקרוא את הקישור: {ex.Message}"; }
@@ -76,7 +113,11 @@ public partial class DownloadsViewModel : ObservableObject
     [RelayCommand]
     private void SelectAll()
     {
-        foreach (var item in Items) item.IsSelected = true;
+        foreach (var item in Items)
+            item.IsSelected = true;
+
+        StatusText = $"נבחרו {SelectedCount} מתוך {Items.Count} שירים";
+        NotifySelectionState();
     }
 
     [RelayCommand]
@@ -87,8 +128,10 @@ public partial class DownloadsViewModel : ObservableObject
             item.DesiredFormat = MediaFormat.Mp3;
             item.IsSelected = true;
         }
+
         SelectedFormat = MediaFormat.Mp3;
-        StatusText = "כל הפריטים הוגדרו כ־MP3";
+        StatusText = $"כל {SelectedCount} השירים הוגדרו כ־MP3";
+        NotifySelectionState();
     }
 
     [RelayCommand]
