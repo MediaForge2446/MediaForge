@@ -129,9 +129,6 @@
                                                     <Setter Property="Background" Value="#FBFDFF"/>
                                                     <Setter Property="BorderBrush" Value="#BFD7F5"/>
                                                 </Trigger>
-                                                <Trigger Property="IsPressed" Value="True">
-                                                    <Setter Property="Background" Value="#F4F8FD"/>
-                                                </Trigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
