@@ -75,6 +75,13 @@ public partial class App : System.Windows.Application
         }
         catch (Exception ex)
         {
+            if (IsCiSmokeMode())
+            {
+                WriteSmokeFailure(ex);
+                Shutdown(-1);
+                return;
+            }
+
             System.Windows.MessageBox.Show(
                 $"MediaForge could not start.\n\n{ex.Message}",
                 "MediaForge",
@@ -86,12 +93,39 @@ public partial class App : System.Windows.Application
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
+        if (IsCiSmokeMode())
+        {
+            WriteSmokeFailure(e.Exception);
+            e.Handled = true;
+            Shutdown(-1);
+            return;
+        }
+
         System.Windows.MessageBox.Show(
             $"MediaForge encountered an unexpected error.\n\n{e.Exception.Message}",
             "MediaForge",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
         e.Handled = true;
+    }
+
+    private static bool IsCiSmokeMode()
+        => string.Equals(
+            Environment.GetEnvironmentVariable("MEDIAFORGE_CI_SMOKE"),
+            "1",
+            StringComparison.Ordinal);
+
+    private static void WriteSmokeFailure(Exception exception)
+    {
+        try
+        {
+            var path = Path.Combine(Path.GetTempPath(), "MediaForge.StartupSmoke.txt");
+            File.WriteAllText(path, exception.ToString());
+        }
+        catch
+        {
+            // Never allow diagnostic logging to mask the original startup failure.
+        }
     }
 
     private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e) => e.SetObserved();
