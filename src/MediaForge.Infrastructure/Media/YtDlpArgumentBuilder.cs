@@ -5,6 +5,9 @@ namespace MediaForge.Infrastructure.Media;
 /// <summary>Builds deterministic yt-dlp arguments so format behavior can be tested without network access.</summary>
 public static class YtDlpArgumentBuilder
 {
+    // Balanced default for everyday listening: good enough quality while keeping MP3 files compact.
+    public const string DefaultMp3AudioQuality = "128K";
+
     public static IReadOnlyList<string> Build(string outputPath, string ffmpegPath, MediaFormat format)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
@@ -32,7 +35,7 @@ public static class YtDlpArgumentBuilder
                     _ => "m4a"
                 });
                 arguments.Add("--audio-quality");
-                arguments.Add("0");
+                arguments.Add(format == MediaFormat.Mp3 ? DefaultMp3AudioQuality : "0");
                 if (format is MediaFormat.Mp3 or MediaFormat.M4a)
                 {
                     arguments.Add("--embed-thumbnail");
