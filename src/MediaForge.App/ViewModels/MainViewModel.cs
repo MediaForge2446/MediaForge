@@ -57,7 +57,7 @@ public partial class MainViewModel : ObservableObject
 
         _stagingService.Changed += OnStagingChanged;
         Explorer.AddMediaRequested += OnAddMediaRequested;
-        Downloads.MediaStaged += OnMediaStaged;
+        Downloads.MediaStaged += OnMediaStagedAsync;
     }
 
     private void OnAddMediaRequested(string path)
@@ -67,12 +67,12 @@ public partial class MainViewModel : ObservableObject
         StatusText = $"הוספת מדיה אל {path}";
     }
 
-    private async void OnMediaStaged()
+    private async Task OnMediaStagedAsync()
     {
         IsMediaDialogOpen = false;
         RefreshPendingCount();
-        await Explorer.ReloadAsync().ConfigureAwait(true);
-        StatusText = "השירים נוספו כשינויים ממתינים — הדיסק עדיין לא השתנה";
+        await Explorer.RefreshFromStagingAsync().ConfigureAwait(true);
+        StatusText = "כל השירים נוספו לשינויים ממתינים — הדיסק עדיין לא השתנה";
     }
 
     [RelayCommand]
@@ -238,13 +238,30 @@ public partial class MainViewModel : ObservableObject
     private void OnStagingChanged(object? sender, EventArgs e)
     {
         var dispatcher = System.Windows.Application.Current?.Dispatcher;
-        if (dispatcher is null || dispatcher.CheckAccess())
+        if (dispatcher is null)
+            return;
+
+        if (dispatcher.CheckAccess())
         {
-            RefreshPendingCount();
+            _ = RefreshAfterStagingChangedAsync();
             return;
         }
 
-        _ = dispatcher.InvokeAsync(RefreshPendingCount);
+        _ = dispatcher.InvokeAsync(() => _ = RefreshAfterStagingChangedAsync());
+    }
+
+    private async Task RefreshAfterStagingChangedAsync()
+    {
+        try
+        {
+            RefreshPendingCount();
+            if (ActiveSection == "explorer" && !string.IsNullOrWhiteSpace(Explorer.CurrentPath))
+                await Explorer.RefreshFromStagingAsync().ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"רענון השינויים נכשל: {ex.Message}";
+        }
     }
 }
 

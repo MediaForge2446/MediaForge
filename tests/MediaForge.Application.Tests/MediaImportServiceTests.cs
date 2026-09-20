@@ -47,6 +47,29 @@ public sealed class MediaImportServiceTests
         Assert.EndsWith("A_B (2).mp3", staged[1].Payload!.DestinationPath, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task StageDownloadsAsync_StagesEntirePlaylistWithOneRepositoryWrite()
+    {
+        var repository = new InMemoryStagingRepository();
+        var staging = new StagingService(repository, new StagingHistory());
+        await staging.InitializeAsync();
+
+        var items = Enumerable.Range(1, 5)
+            .Select(i => new ResolvedMediaItem(
+                $"video-{i}",
+                $"https://youtube.test/video-{i}",
+                new MediaMetadata($"Song {i}")))
+            .ToArray();
+
+        var service = new MediaImportService(new FakeResolver(items), staging);
+        var staged = await service.StageDownloadsAsync(items, @"C:\Media", MediaFormat.Mp3);
+
+        Assert.Equal(5, staged.Count);
+        Assert.Equal(5, staging.Operations.Count);
+        Assert.Equal(1, repository.SaveCount);
+        Assert.Equal(5, repository.LastSavedOperationCount);
+    }
+
     private sealed class FakeResolver : IMediaMetadataResolver
     {
         private readonly IReadOnlyList<ResolvedMediaItem> _items;

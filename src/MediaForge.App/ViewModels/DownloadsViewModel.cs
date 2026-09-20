@@ -23,7 +23,7 @@ public partial class DownloadsViewModel : ObservableObject
     public ObservableCollection<ResolvedMediaItemViewModel> Items { get; } = [];
     public IReadOnlyList<MediaFormat> Formats { get; } = [MediaFormat.Mp3, MediaFormat.Mp4, MediaFormat.Wav, MediaFormat.M4a];
     public bool HasItems => Items.Count > 0;
-    public event Action? MediaStaged;
+    public event Func<Task>? MediaStaged;
 
     public DownloadsViewModel(MediaImportService importService, IFolderPicker folderPicker)
     {
@@ -108,7 +108,8 @@ public partial class DownloadsViewModel : ObservableObject
             StatusText = staged.Count == selected.Length
                 ? $"{staged.Count} שירים נוספו לשינויים הממתינים"
                 : $"{staged.Count} שירים נוספו; כפילויות דולגו";
-            MediaStaged?.Invoke();
+            if (MediaStaged is { } handler)
+                await handler().ConfigureAwait(true);
         }
         catch (OperationCanceledException) { StatusText = "הפעולה בוטלה"; }
         catch (Exception ex) { StatusText = $"לא ניתן להוסיף את השירים: {ex.Message}"; }

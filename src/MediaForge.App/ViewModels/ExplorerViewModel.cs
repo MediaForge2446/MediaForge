@@ -17,6 +17,7 @@ public partial class ExplorerViewModel : ObservableObject
     private readonly HashSet<Guid> _failedOperationIds = [];
     private readonly Stack<string> _backHistory = [];
     private readonly Stack<string> _forwardHistory = [];
+    private readonly SemaphoreSlim _reloadGate = new(1, 1);
     private bool _historyNavigation;
 
     [ObservableProperty] private string _rootPath = string.Empty;
@@ -61,10 +62,13 @@ public partial class ExplorerViewModel : ObservableObject
 
     public async Task ReloadAsync(CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(CurrentPath) || IsBusy) return;
-        IsBusy = true;
+        if (string.IsNullOrWhiteSpace(CurrentPath))
+            return;
+
+        await _reloadGate.WaitAsync(cancellationToken).ConfigureAwait(true);
         try
         {
+            IsBusy = true;
             var entries = await _explorer.ListAsync(CurrentPath, cancellationToken).ConfigureAwait(true);
             var projected = _projection.Project(CurrentPath, entries, _staging.Operations);
             Entries.Clear();
@@ -84,7 +88,17 @@ public partial class ExplorerViewModel : ObservableObject
         }
         catch (OperationCanceledException) { StatusText = "הפעולה בוטלה"; }
         catch (Exception ex) { StatusText = ex.Message; }
-        finally { IsBusy = false; }
+        finally
+        {
+            IsBusy = false;
+            _reloadGate.Release();
+        }
+    }
+
+    public async Task RefreshFromStagingAsync(CancellationToken cancellationToken = default)
+    {
+        await BuildFolderTreeAsync(cancellationToken).ConfigureAwait(true);
+        await ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
     private async Task BuildFolderTreeAsync(CancellationToken cancellationToken)

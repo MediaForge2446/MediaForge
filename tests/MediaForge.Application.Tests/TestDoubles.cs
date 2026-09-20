@@ -7,12 +7,16 @@ namespace MediaForge.Application.Tests;
 internal sealed class InMemoryStagingRepository : IStagingRepository
 {
     private IReadOnlyList<StagingOperation> _operations = [];
+    public int SaveCount { get; private set; }
+    public int LastSavedOperationCount { get; private set; }
 
     public Task<IReadOnlyList<StagingOperation>> LoadAsync(CancellationToken cancellationToken = default)
         => Task.FromResult(_operations);
 
     public Task SaveAsync(IReadOnlyList<StagingOperation> operations, CancellationToken cancellationToken = default)
     {
+        SaveCount++;
+        LastSavedOperationCount = operations.Count;
         _operations = operations.ToArray();
         return Task.CompletedTask;
     }
