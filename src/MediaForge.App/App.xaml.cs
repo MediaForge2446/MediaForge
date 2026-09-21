@@ -9,6 +9,7 @@ using MediaForge.Application.Library;
 using MediaForge.Application.Staging;
 using MediaForge.App.Services;
 using MediaForge.App.ViewModels;
+using MediaForge.App.Views;
 using MediaForge.Core.Interfaces;
 using MediaForge.Core.State;
 using MediaForge.Infrastructure.FileSystem;
@@ -30,6 +31,23 @@ public partial class App : System.Windows.Application
         {
             var paths = new LocalAppPaths();
             var store = new AtomicJsonStore();
+
+            if (!IsCiSmokeMode())
+            {
+                var termsAcceptance = new TermsAcceptanceService(store, paths);
+                if (!await termsAcceptance.HasAcceptedCurrentTermsAsync())
+                {
+                    var termsWindow = new TermsWindow();
+                    var accepted = termsWindow.ShowDialog() == true;
+                    if (!accepted)
+                    {
+                        Shutdown(0);
+                        return;
+                    }
+
+                    await termsAcceptance.AcceptCurrentTermsAsync();
+                }
+            }
             var libraryRepository = new JsonLibraryRepository(store, paths);
             var stagingRepository = new JsonStagingRepository(store, paths);
             var libraryService = new LibraryService(libraryRepository);
