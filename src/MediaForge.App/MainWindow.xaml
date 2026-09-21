@@ -27,138 +27,72 @@
         </DataTemplate>
     </Window.Resources>
 
-    <Border Margin="14"
+    <Border Margin="12"
             Background="#FFFFFF"
-            BorderBrush="#DAE3EC"
+            BorderBrush="#D9E2EC"
             BorderThickness="1"
             CornerRadius="22">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="78"/>
+                <RowDefinition Height="76"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="36"/>
+                <RowDefinition Height="38"/>
             </Grid.RowDefinitions>
 
             <Border Grid.Row="0"
                     Background="#FFFFFF"
-                    BorderBrush="#E6ECF2"
+                    BorderBrush="#E3EAF1"
                     BorderThickness="0,0,0,1"
                     CornerRadius="22,22,0,0">
-                <Grid Margin="20,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0"
-                                Orientation="Horizontal"
+                <Grid Margin="22,0">
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Left"
                                 VerticalAlignment="Center">
-                        <Image Width="42"
-                               Height="42"
+                        <Image Width="44"
+                               Height="44"
                                Source="{StaticResource MediaForgeIconImage}"
                                Stretch="Uniform"/>
-                        <StackPanel Margin="12,0,0,0"
+                        <StackPanel Margin="11,0,0,0"
                                     VerticalAlignment="Center">
                             <TextBlock Text="MediaForge"
                                        FontSize="17"
                                        FontWeight="Bold"
                                        Foreground="#12233D"/>
                             <TextBlock Text="Media, organized."
-                                       Margin="0,1,0,0"
+                                       Margin="0,2,0,0"
                                        FontSize="9.5"
-                                       Foreground="#8290A3"/>
+                                       Foreground="#8491A4"/>
                         </StackPanel>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1"
-                                Orientation="Horizontal"
-                                HorizontalAlignment="Center"
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
                                 VerticalAlignment="Center">
-                        <Button Content="בית"
-                                Command="{Binding NavigateHomeCommand}"
-                                >
-                            <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource MediaForgeNavButtonStyle}">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ActiveSection}" Value="home">
-                                            <Setter Property="Background" Value="#EEF4FF"/>
-                                            <Setter Property="Foreground" Value="#1E5FDB"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Button Content="סייר"
-                                Command="{Binding NavigateExplorerCommand}"
-                                Margin="6,0,0,0">
-                            <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource MediaForgeNavButtonStyle}">
-                                    <Setter Property="IsEnabled" Value="{Binding HasLibrary}"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ActiveSection}" Value="explorer">
-                                            <Setter Property="Background" Value="#EEF4FF"/>
-                                            <Setter Property="Foreground" Value="#1E5FDB"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Button Content="הגדרות"
-                                Command="{Binding NavigateSettingsCommand}"
-                                Margin="6,0,0,0">
-                            <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource MediaForgeNavButtonStyle}">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ActiveSection}" Value="settings">
-                                            <Setter Property="Background" Value="#EEF4FF"/>
-                                            <Setter Property="Foreground" Value="#1E5FDB"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="2"
-                                Orientation="Horizontal"
-                                VerticalAlignment="Center">
-                        <Border Padding="11,8"
-                                Background="#F3F8F5"
-                                BorderBrush="#D5EBDD"
+                        <Border Padding="12,8"
+                                Background="#F2F8F5"
+                                BorderBrush="#D4EBDD"
                                 BorderThickness="1"
                                 CornerRadius="11">
                             <StackPanel Orientation="Horizontal">
-                                <Ellipse Width="7" Height="7"
+                                <Ellipse Width="7"
+                                         Height="7"
                                          Fill="{StaticResource MediaForgeSuccessBrush}"
                                          VerticalAlignment="Center"/>
-                                <TextBlock Text="מוכן"
+                                <TextBlock Text="עדכונים דרך Microsoft Store"
                                            Margin="7,0,0,0"
-                                           FontSize="10"
+                                           FontSize="9.5"
                                            FontWeight="SemiBold"
-                                           Foreground="#2A7856"/>
+                                           Foreground="#2A7655"/>
                             </StackPanel>
                         </Border>
 
-                        <Border Margin="8,0,0,0"
-                                Padding="11,8"
-                                Background="{StaticResource MediaForgePendingSoftBrush}"
-                                BorderBrush="#E8D69A"
-                                BorderThickness="1"
-                                CornerRadius="11"
-                                Visibility="{Binding HasPendingChanges, Converter={StaticResource BooleanToVisibilityConverterFallback}}">
-                            <TextBlock Text="{Binding PendingCount, StringFormat={}{0} שינויים}"
-                                       FontSize="10"
-                                       FontWeight="SemiBold"
-                                       Foreground="#976F00"/>
-                        </Border>
-
-                        <Button Content="שמור שינויים"
-                                Command="{Binding SaveChangesCommand}"
-                                Margin="8,0,0,0"
-                                MinWidth="126"
-                                Visibility="{Binding HasPendingChanges, Converter={StaticResource BooleanToVisibilityConverterFallback}}"
-                                Style="{StaticResource MediaForgePrimaryButtonStyle}"/>
+                        <Button Content="⚙"
+                                Command="{Binding NavigateSettingsCommand}"
+                                ToolTip="הגדרות"
+                                Margin="9,0,0,0"
+                                Width="42"
+                                Height="42"
+                                Style="{StaticResource MediaForgeSubtleButtonStyle}"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -170,20 +104,20 @@
 
             <Border Grid.Row="2"
                     Background="#F8FAFD"
-                    BorderBrush="#E6EDF4"
+                    BorderBrush="#E5EBF2"
                     BorderThickness="0,1,0,0"
                     CornerRadius="0,0,22,22">
-                <Grid Margin="20,0">
+                <Grid Margin="22,0">
                     <TextBlock Text="{Binding StatusText}"
-                               Foreground="#6C7A8E"
-                               FontSize="10.5"
                                VerticalAlignment="Center"
+                               FontSize="10"
+                               Foreground="#6E7D91"
                                TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Text="שינויים נשארים בטיוטה עד שמירה"
+                    <TextBlock Text="MediaForge"
                                HorizontalAlignment="Left"
-                               Foreground="#96A1B0"
+                               VerticalAlignment="Center"
                                FontSize="9.5"
-                               VerticalAlignment="Center"/>
+                               Foreground="#A0AAB8"/>
                 </Grid>
             </Border>
         </Grid>
