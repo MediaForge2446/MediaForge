@@ -144,9 +144,6 @@
                                                         HorizontalAlignment="Right"
                                                         Margin="0,6,0,0">
                                                 <Ellipse Width="7" Height="7"
-                                                         Fill="{Binding Exists, Converter={StaticResource BooleanToVisibilityConverterFallback}}"
-                                                         Visibility="Collapsed"/>
-                                                <Ellipse Width="7" Height="7"
                                                          Fill="{StaticResource MediaForgeSuccessBrush}"
                                                          Margin="0,0,6,0"
                                                          VerticalAlignment="Center"/>
