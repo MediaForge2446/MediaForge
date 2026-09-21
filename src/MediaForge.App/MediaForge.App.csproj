@@ -11,16 +11,8 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>MediaForge</AssemblyName>
     <RootNamespace>MediaForge.App</RootNamespace>
-    <ApplicationIcon>Assets\MediaForge.ico</ApplicationIcon>
   </PropertyGroup>
 
-  <Target Name="PrepareBrandingAssets" BeforeTargets="PrepareResources">
-    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\..\build\PrepareBranding.ps1&quot; -RepositoryRoot &quot;$(MSBuildProjectDirectory)\..\..&quot;" />
-  </Target>
-
-  <ItemGroup>
-    <Resource Include="Assets\MediaForge.png" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
