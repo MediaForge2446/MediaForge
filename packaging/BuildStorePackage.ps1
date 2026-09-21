@@ -94,6 +94,8 @@ $manifest = $manifest.Replace("__PUBLISHER_DISPLAY_NAME__", $PublisherDisplayNam
 $manifest = $manifest.Replace("__VERSION__", $version4)
 Set-Content -Path $manifestPath -Value $manifest -Encoding UTF8
 
+New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
+
 # Build the optional public-symbol archive used by Partner Center for crash
 # analytics. PDBs are deliberately removed from the MSIX payload.
 $appSym = $null
@@ -128,7 +130,6 @@ if ($symbolFiles.Count -gt 0) {
     Write-Warning "No PDB files were produced. The Store upload will not include crash-analysis symbols."
 }
 
-New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
 $output = Join-Path $OutputDirectory "MediaForge.msix"
 if (Test-Path $output) { Remove-Item $output -Force }
 
