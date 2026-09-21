@@ -4,45 +4,26 @@
              FlowDirection="RightToLeft"
              Background="Transparent">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="40,30,40,28">
-            <Grid Margin="0,0,0,20">
-                <StackPanel HorizontalAlignment="Right">
-                    <TextBlock Text="הגדרות"
-                               FontSize="28"
-                               FontWeight="Bold"
-                               Foreground="#16273F"/>
-                    <TextBlock Text="כל מה שצריך כדי לשמור על סביבת הורדה יציבה, קלה ועדכנית."
-                               Margin="0,6,0,0"
-                               FontSize="12"
-                               Foreground="#7C899B"/>
-                </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="42,34,42,34">
 
-                <Border HorizontalAlignment="Left"
-                        Padding="11,8"
-                        Background="#F1F7F4"
-                        BorderBrush="#D5EBDD"
-                        BorderThickness="1"
-                        CornerRadius="11">
-                    <StackPanel Orientation="Horizontal">
-                        <Ellipse Width="7"
-                                 Height="7"
-                                 Fill="{StaticResource MediaForgeSuccessBrush}"
-                                 VerticalAlignment="Center"/>
-                        <TextBlock Text="סביבת העבודה מוכנה"
-                                   Margin="7,0,0,0"
-                                   FontSize="10"
-                                   FontWeight="SemiBold"
-                                   Foreground="#2B7655"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
+            <StackPanel HorizontalAlignment="Right">
+                <TextBlock Text="הגדרות"
+                           FontSize="30"
+                           FontWeight="Bold"
+                           Foreground="#15253B"/>
+                <TextBlock Text="פשוט, שקט ומוכן לעבודה."
+                           Margin="0,6,0,0"
+                           FontSize="12.5"
+                           Foreground="#778499"/>
+            </StackPanel>
 
-            <Grid>
+            <Grid Margin="0,22,0,0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.1*"/>
+                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="14"/>
-                    <ColumnDefinition Width="0.9*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
                 <Border Grid.Column="0"
@@ -50,78 +31,62 @@
                         Style="{StaticResource MediaForgeCardStyle}">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
-                            <Border Width="42"
-                                    Height="42"
-                                    CornerRadius="13"
+                            <Border Width="46"
+                                    Height="46"
+                                    CornerRadius="14"
                                     Background="#0B1833">
-                                <Image Width="32"
-                                       Height="32"
+                                <Image Width="38"
+                                       Height="38"
                                        Source="{StaticResource MediaForgeIconImage}"
                                        Stretch="Uniform"/>
                             </Border>
-                            <StackPanel Margin="11,0,0,0">
-                                <TextBlock Text="כלי מדיה"
-                                           FontSize="17"
+                            <StackPanel Margin="12,0,0,0"
+                                        VerticalAlignment="Center">
+                                <TextBlock Text="MediaForge"
+                                           FontSize="18"
                                            FontWeight="SemiBold"
-                                           Foreground="#26364D"/>
-                                <TextBlock Text="yt-dlp + FFmpeg"
+                                           Foreground="#1D2C42"/>
+                                <TextBlock Text="סביבת עבודה לניהול המדיה שלך"
                                            Margin="0,3,0,0"
                                            FontSize="10"
-                                           Foreground="#8491A3"/>
+                                           Foreground="#8592A4"/>
                             </StackPanel>
                         </StackPanel>
 
-                        <Border Margin="0,18,0,14"
-                                Padding="13"
-                                Background="#F6F9FC"
-                                BorderBrush="#E2E9F1"
+                        <Border Margin="0,20,0,0"
+                                Padding="14"
+                                Background="#F2F8F5"
+                                BorderBrush="#D4EBDD"
                                 BorderThickness="1"
                                 CornerRadius="12">
-                            <TextBlock Text="{Binding ToolStatus}"
-                                       FontSize="10.5"
-                                       FontWeight="SemiBold"
-                                       Foreground="#44556D"
-                                       TextWrapping="Wrap"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="8"
+                                         Height="8"
+                                         Fill="{StaticResource MediaForgeSuccessBrush}"
+                                         VerticalAlignment="Center"/>
+                                <StackPanel Margin="9,0,0,0">
+                                    <TextBlock Text="עדכונים מנוהלים דרך Microsoft Store"
+                                               FontSize="11"
+                                               FontWeight="SemiBold"
+                                               Foreground="#286E50"/>
+                                    <TextBlock Text="אין צורך להוריד מתקינים חדשים או לחפש גרסאות ידנית."
+                                               Margin="0,4,0,0"
+                                               FontSize="9.5"
+                                               Foreground="#6D877B"/>
+                                </StackPanel>
+                            </StackPanel>
                         </Border>
 
-                        <Grid Margin="0,0,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="72"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="yt-dlp"
-                                       FontWeight="SemiBold"
-                                       Foreground="#3B4A60"/>
-                            <TextBlock Grid.Column="1"
-                                       Text="{Binding YtDlpPath}"
-                                       FontSize="9.5"
-                                       Foreground="#7D899B"
-                                       TextTrimming="CharacterEllipsis"
-                                       ToolTip="{Binding YtDlpPath}"/>
-                        </Grid>
-
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="72"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="FFmpeg"
-                                       FontWeight="SemiBold"
-                                       Foreground="#3B4A60"/>
-                            <TextBlock Grid.Column="1"
-                                       Text="{Binding FfmpegPath}"
-                                       FontSize="9.5"
-                                       Foreground="#7D899B"
-                                       TextTrimming="CharacterEllipsis"
-                                       ToolTip="{Binding FfmpegPath}"/>
-                        </Grid>
-
-                        <Button Content="אמת ועדכן כלים"
-                                Command="{Binding VerifyToolsCommand}"
-                                Margin="0,18,0,0"
-                                HorizontalAlignment="Right"
-                                MinWidth="140"
-                                Style="{StaticResource MediaForgePrimaryButtonStyle}"/>
+                        <TextBlock Text="מסלול הפצה יחיד"
+                                   Margin="0,18,0,0"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"
+                                   Foreground="#718096"/>
+                        <TextBlock Text="Microsoft Store"
+                                   Margin="0,4,0,0"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Foreground="#25354C"/>
                     </StackPanel>
                 </Border>
 
@@ -129,103 +94,146 @@
                         Padding="20"
                         Style="{StaticResource MediaForgeCardStyle}">
                     <StackPanel>
-                        <TextBlock Text="איכות וגודל"
+                        <TextBlock Text="איכות מדיה"
                                    Style="{StaticResource MediaForgeSectionTitleStyle}"/>
-                        <TextBlock Text="ברירת המחדל של MediaForge מיועדת להאזנה יומיומית ולשמירה על נפח סביר."
+                        <TextBlock Text="MediaForge נבנה להאזנה יומיומית טובה בלי לבזבז נפח מיותר."
                                    Margin="0,6,0,0"
                                    FontSize="10.5"
                                    Foreground="#7C899B"
                                    TextWrapping="Wrap"/>
 
-                        <Border Margin="0,18,0,9"
-                                Padding="13"
+                        <Border Margin="0,18,0,8"
+                                Padding="14"
                                 Background="#F1F6FF"
                                 BorderBrush="#D8E5FB"
                                 BorderThickness="1"
                                 CornerRadius="12">
-                            <StackPanel>
-                                <TextBlock Text="MP3"
-                                           FontSize="13"
-                                           FontWeight="SemiBold"
-                                           Foreground="#265EA8"/>
-                                <TextBlock Text="128 kbps · Stereo"
-                                           Margin="0,3,0,0"
-                                           FontSize="10.5"
-                                           Foreground="#6980A0"/>
-                            </StackPanel>
+                            <Grid>
+                                <StackPanel HorizontalAlignment="Right">
+                                    <TextBlock Text="MP3"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="#245EA7"/>
+                                    <TextBlock Text="128 kbps · Stereo"
+                                               Margin="0,3,0,0"
+                                               FontSize="10"
+                                               Foreground="#7087A6"/>
+                                </StackPanel>
+                                <Border HorizontalAlignment="Left"
+                                        Background="#E4EEFF"
+                                        CornerRadius="9"
+                                        Padding="8,4">
+                                    <TextBlock Text="ברירת מחדל"
+                                               FontSize="9"
+                                               FontWeight="SemiBold"
+                                               Foreground="#356AAE"/>
+                                </Border>
+                            </Grid>
                         </Border>
 
-                        <Border Padding="13"
-                                Background="#F8FAFD"
-                                BorderBrush="#E3EAF2"
-                                BorderThickness="1"
-                                CornerRadius="12">
-                            <StackPanel>
-                                <TextBlock Text="Staging"
-                                           FontSize="11.5"
-                                           FontWeight="SemiBold"
-                                           Foreground="#3D4D63"/>
-                                <TextBlock Text="הורדות, יצירה, שינוי שם ומחיקה נכתבים למחשב רק לאחר שמירה."
-                                           Margin="0,4,0,0"
-                                           FontSize="10"
-                                           Foreground="#7C899B"
-                                           TextWrapping="Wrap"/>
-                            </StackPanel>
-                        </Border>
+                        <TextBlock Text="היתרון"
+                                   Margin="0,10,0,0"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"
+                                   Foreground="#718096"/>
+                        <TextBlock Text="קבצים קומפקטיים שמתאימים לאחסון ספריית מוזיקה גדולה."
+                                   Margin="0,4,0,0"
+                                   FontSize="10.5"
+                                   Foreground="#69788D"
+                                   TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
             </Grid>
 
             <Border Margin="0,16,0,0"
-                    Padding="18"
+                    Padding="20"
                     Style="{StaticResource MediaForgeCardStyle}">
                 <StackPanel>
-                    <TextBlock Text="אמינות ותחזוקה"
+                    <TextBlock Text="תחזוקה שקטה"
                                Style="{StaticResource MediaForgeSectionTitleStyle}"/>
-                    <TextBlock Text="הגיבויים האטומיים והמדד המקומי שומרים על מצב הספרייה במקרה של הפסקת פעולה או כשל בהורדה."
+                    <TextBlock Text="MediaForge מטפל ברכיבי ההורדה מאחורי הקלעים כדי שהמשתמש יוכל להתמקד בספרייה."
                                Margin="0,6,0,0"
                                FontSize="10.5"
                                Foreground="#7C899B"
                                TextWrapping="Wrap"/>
-                    <Grid Margin="0,15,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
 
-                        <Border Padding="12"
-                                Margin="0,0,7,0"
-                                Background="#F3F8F5"
-                                CornerRadius="10">
-                            <TextBlock Text="✓ שמירה אטומית"
-                                       FontSize="10"
-                                       FontWeight="SemiBold"
-                                       Foreground="#2B7655"/>
+                    <UniformGrid Columns="3"
+                                 Margin="0,16,0,0">
+                        <Border Margin="0,0,7,0"
+                                Padding="14"
+                                Background="#F7FAFD"
+                                CornerRadius="11">
+                            <StackPanel>
+                                <TextBlock Text="✓"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource MediaForgeSuccessBrush}"/>
+                                <TextBlock Text="שמירה אטומית"
+                                           Margin="0,5,0,0"
+                                           FontSize="10.5"
+                                           FontWeight="SemiBold"
+                                           Foreground="#34445B"/>
+                                <TextBlock Text="מצב הספרייה נשמר בצורה בטוחה."
+                                           Margin="0,3,0,0"
+                                           FontSize="9"
+                                           Foreground="#8490A2"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
                         </Border>
-                        <Border Grid.Column="1"
-                                Padding="12"
-                                Margin="4,0"
-                                Background="#F3F8F5"
-                                CornerRadius="10">
-                            <TextBlock Text="✓ שינויים ממתינים"
-                                       FontSize="10"
-                                       FontWeight="SemiBold"
-                                       Foreground="#2B7655"/>
+
+                        <Border Margin="4,0"
+                                Padding="14"
+                                Background="#F7FAFD"
+                                CornerRadius="11">
+                            <StackPanel>
+                                <TextBlock Text="✓"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource MediaForgeSuccessBrush}"/>
+                                <TextBlock Text="Staging"
+                                           Margin="0,5,0,0"
+                                           FontSize="10.5"
+                                           FontWeight="SemiBold"
+                                           Foreground="#34445B"/>
+                                <TextBlock Text="שינויים נשארים בטיוטה עד שמירה."
+                                           Margin="0,3,0,0"
+                                           FontSize="9"
+                                           Foreground="#8490A2"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
                         </Border>
-                        <Border Grid.Column="2"
-                                Padding="12"
-                                Margin="7,0,0,0"
-                                Background="#F3F8F5"
-                                CornerRadius="10">
-                            <TextBlock Text="✓ הורדות ברקע"
-                                       FontSize="10"
-                                       FontWeight="SemiBold"
-                                       Foreground="#2B7655"/>
+
+                        <Border Margin="7,0,0,0"
+                                Padding="14"
+                                Background="#F7FAFD"
+                                CornerRadius="11">
+                            <StackPanel>
+                                <TextBlock Text="✓"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource MediaForgeSuccessBrush}"/>
+                                <TextBlock Text="הורדות ברקע"
+                                           Margin="0,5,0,0"
+                                           FontSize="10.5"
+                                           FontWeight="SemiBold"
+                                           Foreground="#34445B"/>
+                                <TextBlock Text="ה־UI נשאר זמין בזמן העבודה."
+                                           Margin="0,3,0,0"
+                                           FontSize="9"
+                                           Foreground="#8490A2"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
                         </Border>
-                    </Grid>
+                    </UniformGrid>
                 </StackPanel>
             </Border>
+
+            <Button Content="←  חזרה לבית"
+                    Command="{Binding DataContext.NavigateHomeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    HorizontalAlignment="Right"
+                    Margin="0,16,0,0"
+                    MinWidth="130"
+                    Style="{StaticResource MediaForgeSubtleButtonStyle}"/>
         </StackPanel>
     </ScrollViewer>
 </UserControl>
