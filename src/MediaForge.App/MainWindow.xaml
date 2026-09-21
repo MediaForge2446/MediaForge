@@ -77,7 +77,7 @@
                                 VerticalAlignment="Center">
                         <Button Content="בית"
                                 Command="{Binding NavigateHomeCommand}"
-                                Style="{StaticResource MediaForgeNavButtonStyle}">
+                                >
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource MediaForgeNavButtonStyle}">
                                     <Style.Triggers>
@@ -91,7 +91,6 @@
                         </Button>
                         <Button Content="סייר"
                                 Command="{Binding NavigateExplorerCommand}"
-                                Style="{StaticResource MediaForgeNavButtonStyle}"
                                 Margin="6,0,0,0">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource MediaForgeNavButtonStyle}">
