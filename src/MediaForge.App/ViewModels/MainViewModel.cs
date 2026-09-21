@@ -248,6 +248,35 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task DiscardPendingChangesAsync(CancellationToken cancellationToken)
+    {
+        if (IsBusy || !HasPendingChanges)
+            return;
+
+        IsBusy = true;
+        StatusText = "מבטל את כל השינויים הממתינים…";
+        try
+        {
+            await _stagingService.ClearAsync(cancellationToken).ConfigureAwait(true);
+            RefreshPendingCount();
+            await Explorer.RefreshFromStagingAsync(cancellationToken).ConfigureAwait(true);
+            StatusText = "כל השינויים הממתינים בוטלו";
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText = "הפעולה בוטלה";
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"לא ניתן לבטל את השינויים: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
     private async Task UndoPendingAsync(Guid? operationId, CancellationToken cancellationToken)
     {
         if (operationId is not Guid id || IsBusy) return;
