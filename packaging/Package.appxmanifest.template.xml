@@ -38,7 +38,7 @@
     <Application
       Id="MediaForge"
       Executable="MediaForge.exe"
-      EntryPoint="$targetentrypoint$"
+      EntryPoint="Windows.FullTrustApplication"
       uap10:RuntimeBehavior="packagedClassicApp"
       uap10:TrustLevel="mediumIL">
 
