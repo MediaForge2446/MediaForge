@@ -58,6 +58,11 @@ jobs:
       - name: Restore
         run: dotnet restore MediaForge.sln --runtime win-x64
 
+      - name: Prepare MediaForge branding
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File build\PrepareBranding.ps1 -RepositoryRoot $env:GITHUB_WORKSPACE
+
       - name: Publish self-contained x64
         run: dotnet publish src/MediaForge.App/MediaForge.App.csproj --configuration Release --runtime win-x64 --self-contained true --no-restore --output publish
 
@@ -110,6 +115,263 @@ jobs:
           $ffmpeg = Join-Path $env:GITHUB_WORKSPACE 'publish\tools\ffmpeg\bin\ffmpeg.exe'
           if (-not (Test-Path $yt)) { throw 'Bundled yt-dlp.exe is missing.' }
           if (-not (Test-Path $ffmpeg)) { throw 'Bundled ffmpeg.exe is missing.' }
+
+      - name: Sign Windows binaries when configured
+        shell: pwsh
+        env:
+          SIGNING_CERT_BASE64: ${{ secrets.MEDIAFORGE_SIGNING_CERT_BASE64 }}
+          SIGNING_CERT_PASSWORD: ${{ secrets.MEDIAFORGE_SIGNING_CERT_PASSWORD }}
+          SIGNING_TIMESTAMP_URL: ${{ secrets.MEDIAFORGE_SIGNING_TIMESTAMP_URL }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:SIGNING_CERT_BASE64)) {
+            Write-Host "Code signing is not configured for this repository. Continuing with an unsigned build."
+            exit 0
+          }
+
+          $certPath = Join-Path $env:RUNNER_TEMP 'MediaForge-signing.pfx'
+          [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($env:SIGNING_CERT_BASE64))
+
+          $signtool = Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -match '\\x64\\signtool\.exe        shell: pwsh
+        run: |
+          winget install --id JRSoftware.InnoSetup.7 -e --accept-package-agreements --accept-source-agreements --disable-interactivity
+
+      - name: Build Setup.exe
+        shell: pwsh
+        env:
+          MEDIAFORGE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          $isccPath = $null
+          $uninstallRegistry = @(
+            'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+            'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*',
+            'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*'
+          )
+          foreach ($path in $uninstallRegistry) {
+            $entry = Get-ItemProperty $path -ErrorAction SilentlyContinue |
+              Where-Object { $_.DisplayName -like 'Inno Setup*' -and $_.InstallLocation } |
+              Select-Object -First 1
+            if ($entry) {
+              $candidate = Join-Path $entry.InstallLocation 'ISCC.exe'
+              if (Test-Path $candidate) { $isccPath = $candidate; break }
+            }
+          }
+
+          if (-not $isccPath) {
+            $knownPaths = @(
+              'C:\Program Files\Inno Setup 7\ISCC.exe',
+              'C:\Program Files (x86)\Inno Setup 7\ISCC.exe',
+              'C:\Program Files\Inno Setup 6\ISCC.exe',
+              'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+            )
+            $isccPath = $knownPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
+          }
+
+          if (-not $isccPath) {
+            $isccPath = Get-ChildItem 'C:\ProgramData\Chocolatey\bin' -Filter ISCC.exe -ErrorAction SilentlyContinue |
+              Select-Object -ExpandProperty FullName -First 1
+          }
+
+          if (-not $isccPath) {
+            throw 'Inno Setup compiler ISCC.exe was not found.'
+          }
+
+          Write-Host "Using Inno Setup compiler: $isccPath"
+          & $isccPath "/DMyAppVersion=$env:MEDIAFORGE_VERSION" 'installer\MediaForge.iss'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Sign Setup.exe when configured
+        shell: pwsh
+        env:
+          SIGNING_CERT_BASE64: ${{ secrets.MEDIAFORGE_SIGNING_CERT_BASE64 }}
+          SIGNING_CERT_PASSWORD: ${{ secrets.MEDIAFORGE_SIGNING_CERT_PASSWORD }}
+          SIGNING_TIMESTAMP_URL: ${{ secrets.MEDIAFORGE_SIGNING_TIMESTAMP_URL }}
+        run: |
+          $setup = Join-Path $env:GITHUB_WORKSPACE 'installer\output\Setup.exe'
+          if ([string]::IsNullOrWhiteSpace($env:SIGNING_CERT_BASE64)) {
+            Write-Host "Setup.exe remains unsigned because no code-signing certificate is configured."
+            exit 0
+          }
+
+          $certPath = Join-Path $env:RUNNER_TEMP 'MediaForge-signing.pfx'
+          [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($env:SIGNING_CERT_BASE64))
+
+          $signtool = Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -match '\\x64\\signtool\.exe        shell: pwsh
+        run: |
+          $setup = Join-Path $env:GITHUB_WORKSPACE 'installer\output\Setup.exe'
+          if (-not (Test-Path $setup)) { throw 'Setup.exe was not created.' }
+          Get-Item $setup | Format-List FullName,Length
+          $signature = Get-AuthenticodeSignature $setup
+          Write-Host "Setup.exe signature status: $($signature.Status)"
+          if ($signature.Status -eq 'Valid') {
+            Write-Host "Signed by: $($signature.SignerCertificate.Subject)"
+          } else {
+            Write-Host "Setup.exe is not signed in this build. Configure MEDIAFORGE_SIGNING_CERT_BASE64 and MEDIAFORGE_SIGNING_CERT_PASSWORD for production signing."
+          }
+
+      - name: Upload installer artifact
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaForge-Setup
+          path: installer/output/Setup.exe
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Create GitHub release
+        if: github.ref == 'refs/heads/v0.1.0'
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v0.1.0
+          target_commitish: ${{ github.sha }}
+          name: MediaForge 0.1.0
+          files: installer/output/Setup.exe
+          generate_release_notes: true
+ } |
+            Select-Object -First 1 -ExpandProperty FullName
+          if (-not $signtool) { throw "Windows SDK SignTool was not found." }
+
+          $timestamp = if ([string]::IsNullOrWhiteSpace($env:SIGNING_TIMESTAMP_URL)) { 'http://timestamp.digicert.com' } else { $env:SIGNING_TIMESTAMP_URL }
+          $targets = @(
+            (Join-Path $env:GITHUB_WORKSPACE 'publish\MediaForge.exe'),
+            (Join-Path $env:GITHUB_WORKSPACE 'publish\tools\yt-dlp.exe'),
+            (Join-Path $env:GITHUB_WORKSPACE 'publish\tools\ffmpeg\bin\ffmpeg.exe')
+          ) | Where-Object { Test-Path $_ }
+
+          foreach ($target in $targets) {
+            & $signtool sign /f $certPath /p $env:SIGNING_CERT_PASSWORD /fd SHA256 /tr $timestamp /td SHA256 /d "MediaForge" $target
+            if ($LASTEXITCODE -ne 0) { throw "Signing failed for $target." }
+          }
+
+          Remove-Item $certPath -Force -ErrorAction SilentlyContinue
+
+      - name: Install Inno Setup 7
+        shell: pwsh
+        run: |
+          winget install --id JRSoftware.InnoSetup.7 -e --accept-package-agreements --accept-source-agreements --disable-interactivity
+
+      - name: Build Setup.exe
+        shell: pwsh
+        env:
+          MEDIAFORGE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          $isccPath = $null
+          $uninstallRegistry = @(
+            'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+            'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*',
+            'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*'
+          )
+          foreach ($path in $uninstallRegistry) {
+            $entry = Get-ItemProperty $path -ErrorAction SilentlyContinue |
+              Where-Object { $_.DisplayName -like 'Inno Setup*' -and $_.InstallLocation } |
+              Select-Object -First 1
+            if ($entry) {
+              $candidate = Join-Path $entry.InstallLocation 'ISCC.exe'
+              if (Test-Path $candidate) { $isccPath = $candidate; break }
+            }
+          }
+
+          if (-not $isccPath) {
+            $knownPaths = @(
+              'C:\Program Files\Inno Setup 7\ISCC.exe',
+              'C:\Program Files (x86)\Inno Setup 7\ISCC.exe',
+              'C:\Program Files\Inno Setup 6\ISCC.exe',
+              'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+            )
+            $isccPath = $knownPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
+          }
+
+          if (-not $isccPath) {
+            $isccPath = Get-ChildItem 'C:\ProgramData\Chocolatey\bin' -Filter ISCC.exe -ErrorAction SilentlyContinue |
+              Select-Object -ExpandProperty FullName -First 1
+          }
+
+          if (-not $isccPath) {
+            throw 'Inno Setup compiler ISCC.exe was not found.'
+          }
+
+          Write-Host "Using Inno Setup compiler: $isccPath"
+          & $isccPath "/DMyAppVersion=$env:MEDIAFORGE_VERSION" 'installer\MediaForge.iss'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Verify Setup.exe
+        shell: pwsh
+        run: |
+          $setup = Join-Path $env:GITHUB_WORKSPACE 'installer\output\Setup.exe'
+          if (-not (Test-Path $setup)) { throw 'Setup.exe was not created.' }
+          Get-Item $setup | Format-List FullName,Length
+
+      - name: Upload installer artifact
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaForge-Setup
+          path: installer/output/Setup.exe
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Create GitHub release
+        if: github.ref == 'refs/heads/v0.1.0'
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v0.1.0
+          target_commitish: ${{ github.sha }}
+          name: MediaForge 0.1.0
+          files: installer/output/Setup.exe
+          generate_release_notes: true
+ } |
+            Select-Object -First 1 -ExpandProperty FullName
+          if (-not $signtool) { throw "Windows SDK SignTool was not found." }
+
+          $timestamp = if ([string]::IsNullOrWhiteSpace($env:SIGNING_TIMESTAMP_URL)) { 'http://timestamp.digicert.com' } else { $env:SIGNING_TIMESTAMP_URL }
+          & $signtool sign /f $certPath /p $env:SIGNING_CERT_PASSWORD /fd SHA256 /tr $timestamp /td SHA256 /d "MediaForge Setup" $setup
+          if ($LASTEXITCODE -ne 0) { throw "Signing failed for Setup.exe." }
+
+          Remove-Item $certPath -Force -ErrorAction SilentlyContinue
+
+      - name: Verify Setup.exe
+        shell: pwsh
+        run: |
+          $setup = Join-Path $env:GITHUB_WORKSPACE 'installer\output\Setup.exe'
+          if (-not (Test-Path $setup)) { throw 'Setup.exe was not created.' }
+          Get-Item $setup | Format-List FullName,Length
+
+      - name: Upload installer artifact
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaForge-Setup
+          path: installer/output/Setup.exe
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Create GitHub release
+        if: github.ref == 'refs/heads/v0.1.0'
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v0.1.0
+          target_commitish: ${{ github.sha }}
+          name: MediaForge 0.1.0
+          files: installer/output/Setup.exe
+          generate_release_notes: true
+ } |
+            Select-Object -First 1 -ExpandProperty FullName
+          if (-not $signtool) { throw "Windows SDK SignTool was not found." }
+
+          $timestamp = if ([string]::IsNullOrWhiteSpace($env:SIGNING_TIMESTAMP_URL)) { 'http://timestamp.digicert.com' } else { $env:SIGNING_TIMESTAMP_URL }
+          $targets = @(
+            (Join-Path $env:GITHUB_WORKSPACE 'publish\MediaForge.exe'),
+            (Join-Path $env:GITHUB_WORKSPACE 'publish\tools\yt-dlp.exe'),
+            (Join-Path $env:GITHUB_WORKSPACE 'publish\tools\ffmpeg\bin\ffmpeg.exe')
+          ) | Where-Object { Test-Path $_ }
+
+          foreach ($target in $targets) {
+            & $signtool sign /f $certPath /p $env:SIGNING_CERT_PASSWORD /fd SHA256 /tr $timestamp /td SHA256 /d "MediaForge" $target
+            if ($LASTEXITCODE -ne 0) { throw "Signing failed for $target." }
+          }
+
+          Remove-Item $certPath -Force -ErrorAction SilentlyContinue
 
       - name: Install Inno Setup 7
         shell: pwsh
