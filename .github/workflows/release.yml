@@ -122,27 +122,41 @@ jobs:
           if (-not (Test-Path "$env:GITHUB_WORKSPACE\publish\tools\yt-dlp.exe")) { throw 'yt-dlp.exe is missing.' }
           if (-not (Test-Path "$env:GITHUB_WORKSPACE\publish\tools\ffmpeg\bin\ffmpeg.exe")) { throw 'ffmpeg.exe is missing.' }
 
+      - name: Acquire pinned Windows SDK packaging tool
+        shell: pwsh
+        run: |
+          $version = '10.0.28000.2705'
+          $package = "microsoft.windows.sdk.buildtools.$version.nupkg"
+          $url = "https://api.nuget.org/v3-flatcontainer/microsoft.windows.sdk.buildtools/$version/$package"
+          $archive = Join-Path $env:RUNNER_TEMP $package
+          $extract = Join-Path $env:RUNNER_TEMP 'MediaForgeWindowsSdkBuildTools'
+
+          Invoke-WebRequest -Uri $url -OutFile $archive
+          if (Test-Path $extract) { Remove-Item $extract -Recurse -Force }
+          New-Item -ItemType Directory -Force -Path $extract | Out-Null
+          Expand-Archive -Path $archive -DestinationPath $extract -Force
+
+          $makeAppx = Get-ChildItem -Path $extract -Recurse -Filter 'MakeAppx.exe' -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1 -ExpandProperty FullName
+
+          if (-not $makeAppx) { throw "Pinned Windows SDK BuildTools package did not contain MakeAppx.exe." }
+
+          "MAKEAPPX_PATH=$makeAppx" >> $env:GITHUB_ENV
+          Write-Host "Using MakeAppx: $makeAppx"
+
       - name: Build Microsoft Store MSIX
         shell: pwsh
         env:
           VERSION: ${{ steps.version.outputs.version }}
-        run: powershell -NoProfile -ExecutionPolicy Bypass -File packaging\BuildStorePackage.ps1 -PublishDirectory "$env:GITHUB_WORKSPACE\publish" -OutputDirectory "$env:GITHUB_WORKSPACE\artifacts" -Version "$env:VERSION" -IdentityName "$env:MSIX_IDENTITY_NAME" -Publisher "$env:MSIX_PUBLISHER" -PublisherDisplayName "$env:MSIX_PUBLISHER_DISPLAY_NAME"
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File packaging\BuildStorePackage.ps1 -PublishDirectory "$env:GITHUB_WORKSPACE\publish" -OutputDirectory "$env:GITHUB_WORKSPACE\artifacts" -Version "$env:VERSION" -MakeAppxPath "$env:MAKEAPPX_PATH" -IdentityName "$env:MSIX_IDENTITY_NAME" -Publisher "$env:MSIX_PUBLISHER" -PublisherDisplayName "$env:MSIX_PUBLISHER_DISPLAY_NAME"
 
       - name: Validate MSIX package structure
         shell: pwsh
         run: |
           $msix = Join-Path $env:GITHUB_WORKSPACE 'artifacts\MediaForge.msix'
-          $makeAppxCandidates = @(
-            (Get-Command MakeAppx.exe -ErrorAction SilentlyContinue).Source
-            (Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\bin" -Recurse -Filter MakeAppx.exe -ErrorAction SilentlyContinue |
-              Sort-Object FullName -Descending |
-              Select-Object -First 1 -ExpandProperty FullName)
-            (Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\App Certification Kit" -Filter MakeAppx.exe -ErrorAction SilentlyContinue |
-              Select-Object -First 1 -ExpandProperty FullName)
-          )
-          $makeAppx = $makeAppxCandidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
-
-          if (-not $makeAppx) { throw 'MakeAppx.exe not found.' }
+          $makeAppx = $env:MAKEAPPX_PATH
+          if (-not $makeAppx -or -not (Test-Path $makeAppx)) { throw "MakeAppx tool path is invalid: $makeAppx" }
 
           $validation = Join-Path $env:RUNNER_TEMP 'MediaForgeMsixValidation'
           if (Test-Path $validation) { Remove-Item $validation -Recurse -Force }
