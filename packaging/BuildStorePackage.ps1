@@ -94,17 +94,8 @@ $manifest = $manifest.Replace("__PUBLISHER_DISPLAY_NAME__", $PublisherDisplayNam
 $manifest = $manifest.Replace("__VERSION__", $version4)
 Set-Content -Path $manifestPath -Value $manifest -Encoding UTF8
 
-New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
-$output = Join-Path $OutputDirectory "MediaForge.msix"
-if (Test-Path $output) { Remove-Item $output -Force }
-
-& $makeAppx pack /d $stage /p $output /o
-if ($LASTEXITCODE -ne 0) {
-    throw "MakeAppx failed with exit code $LASTEXITCODE."
-}
-
 # Build the optional public-symbol archive used by Partner Center for crash
-# analytics. Keep PDBs outside the MSIX so they are never shipped to customers.
+# analytics. PDBs are deliberately removed from the MSIX payload.
 $appSym = $null
 $symbolFiles = @(Get-ChildItem -Path $PublishDirectory -Recurse -Filter "*.pdb" -File -ErrorAction SilentlyContinue)
 if ($symbolFiles.Count -gt 0) {
@@ -113,17 +104,37 @@ if ($symbolFiles.Count -gt 0) {
     New-Item -ItemType Directory -Force -Path $symbolStage | Out-Null
 
     foreach ($symbol in $symbolFiles) {
-        Copy-Item $symbol.FullName (Join-Path $symbolStage $symbol.Name) -Force
+        $targetSymbol = Join-Path $symbolStage $symbol.Name
+        Copy-Item $symbol.FullName $targetSymbol -Force
     }
 
     $appSym = Join-Path $OutputDirectory "MediaForge.appxsym"
     if (Test-Path $appSym) { Remove-Item $appSym -Force }
-    Compress-Archive -Path (Join-Path $symbolStage "*") -DestinationPath $appSym -CompressionLevel Optimal
-    Remove-Item $symbolStage -Recurse -Force
 
+    # Compress-Archive only accepts .zip destinations on PowerShell. Create a
+    # temporary ZIP, then rename it to Partner Center's .appxsym extension.
+    $symbolZip = Join-Path $env:RUNNER_TEMP "MediaForge.appxsym.zip"
+    if (Test-Path $symbolZip) { Remove-Item $symbolZip -Force }
+    Compress-Archive -Path (Join-Path $symbolStage "*") -DestinationPath $symbolZip -CompressionLevel Optimal
+    Move-Item -Path $symbolZip -Destination $appSym -Force
+
+    # Never ship raw PDBs inside the customer package.
+    Get-ChildItem -Path $stage -Recurse -Filter "*.pdb" -File -ErrorAction SilentlyContinue |
+        Remove-Item -Force
+
+    Remove-Item $symbolStage -Recurse -Force
     Write-Host "Created public symbols: $appSym"
 } else {
     Write-Warning "No PDB files were produced. The Store upload will not include crash-analysis symbols."
+}
+
+New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
+$output = Join-Path $OutputDirectory "MediaForge.msix"
+if (Test-Path $output) { Remove-Item $output -Force }
+
+& $makeAppx pack /d $stage /p $output /o
+if ($LASTEXITCODE -ne 0) {
+    throw "MakeAppx failed with exit code $LASTEXITCODE."
 }
 
 # Partner Center accepts an .msixupload container. It is a ZIP containing the
