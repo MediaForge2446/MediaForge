@@ -4,6 +4,7 @@
         xmlns:vm="clr-namespace:MediaForge.App.ViewModels"
         xmlns:views="clr-namespace:MediaForge.App.Views"
         Title="MediaForge"
+        Icon="/MediaForge.App;component/Assets/MediaForge.ico"
         Width="1480"
         Height="900"
         MinWidth="1120"
@@ -43,17 +44,10 @@
                     <StackPanel Orientation="Horizontal"
                                 VerticalAlignment="Center"
                                 HorizontalAlignment="Left">
-                        <Border Width="34"
-                                Height="34"
-                                CornerRadius="10"
-                                Background="#2563EB">
-                            <TextBlock Text="M"
-                                       FontSize="17"
-                                       FontWeight="Bold"
-                                       Foreground="White"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"/>
-                        </Border>
+                        <Image Width="34"
+                               Height="34"
+                               Source="/MediaForge.App;component/Assets/MediaForge.png"
+                               Stretch="Uniform"/>
                         <StackPanel Margin="11,0,0,0"
                                     VerticalAlignment="Center">
                             <TextBlock Text="MediaForge"
