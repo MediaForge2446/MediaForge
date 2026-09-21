@@ -43,10 +43,8 @@ New-Item -ItemType Directory -Force -Path $stage | Out-Null
 
 Copy-Item (Join-Path $PublishDirectory "*") $stage -Recurse -Force
 
-# FFmpeg's source/archive layout contains headers, import libraries and development
-# metadata that are not required at runtime. Keep only the executable DLL set and
-# license text to make the Store package materially smaller without changing the
-# runtime path expected by ManagedToolManager.
+# Trim FFmpeg's development-only folders while preserving the runtime bin folder
+# and the root license/notice files required for a distributable build.
 $ffmpeg = Join-Path $stage "tools\ffmpeg"
 $ffmpegBin = Join-Path $ffmpeg "bin"
 if (-not (Test-Path (Join-Path $ffmpegBin "ffmpeg.exe"))) {
@@ -54,6 +52,7 @@ if (-not (Test-Path (Join-Path $ffmpegBin "ffmpeg.exe"))) {
 }
 
 Get-ChildItem -Path $ffmpeg -Directory -Force -ErrorAction SilentlyContinue |
+    Where-Object { -not $_.Name.Equals("bin", [StringComparison]::OrdinalIgnoreCase) } |
     Remove-Item -Recurse -Force
 
 Get-ChildItem -Path $ffmpegBin -File -Force -ErrorAction SilentlyContinue |
@@ -62,6 +61,10 @@ Get-ChildItem -Path $ffmpegBin -File -Force -ErrorAction SilentlyContinue |
         $_.Extension -notin @(".exe", ".dll")
     } |
     Remove-Item -Force
+
+if (-not (Test-Path (Join-Path $ffmpegBin "ffmpeg.exe"))) {
+    throw "FFmpeg runtime was removed unexpectedly while trimming the package."
+}
 
 $branding = Join-Path $PublishDirectory "Assets\MediaForge.png"
 if (-not (Test-Path $branding)) {
