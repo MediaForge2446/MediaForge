@@ -116,39 +116,6 @@ jobs:
           if (-not (Test-Path $yt)) { throw 'Bundled yt-dlp.exe is missing.' }
           if (-not (Test-Path $ffmpeg)) { throw 'Bundled ffmpeg.exe is missing.' }
 
-      - name: Sign Windows binaries when configured
-        shell: pwsh
-        env:
-          SIGNING_CERT_BASE64: ${{ secrets.MEDIAFORGE_SIGNING_CERT_BASE64 }}
-          SIGNING_CERT_PASSWORD: ${{ secrets.MEDIAFORGE_SIGNING_CERT_PASSWORD }}
-          SIGNING_TIMESTAMP_URL: ${{ secrets.MEDIAFORGE_SIGNING_TIMESTAMP_URL }}
-        run: |
-          if ([string]::IsNullOrWhiteSpace($env:SIGNING_CERT_BASE64)) {
-            Write-Host "Code signing is not configured. Continuing with an unsigned build."
-            exit 0
-          }
-
-          $certPath = Join-Path $env:RUNNER_TEMP 'MediaForge-signing.pfx'
-          [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($env:SIGNING_CERT_BASE64))
-
-          $signtool = Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe -ErrorAction SilentlyContinue |
-            Select-Object -First 1 -ExpandProperty FullName
-          if (-not $signtool) { throw "Windows SDK SignTool was not found." }
-
-          $timestamp = if ([string]::IsNullOrWhiteSpace($env:SIGNING_TIMESTAMP_URL)) { 'http://timestamp.digicert.com' } else { $env:SIGNING_TIMESTAMP_URL }
-          $targets = @(
-            (Join-Path $env:GITHUB_WORKSPACE 'publish\MediaForge.exe'),
-            (Join-Path $env:GITHUB_WORKSPACE 'publish\tools\yt-dlp.exe'),
-            (Join-Path $env:GITHUB_WORKSPACE 'publish\tools\ffmpeg\bin\ffmpeg.exe')
-          ) | Where-Object { Test-Path $_ }
-
-          foreach ($target in $targets) {
-            & $signtool sign /f $certPath /p $env:SIGNING_CERT_PASSWORD /fd SHA256 /tr $timestamp /td SHA256 /d "MediaForge" $target
-            if ($LASTEXITCODE -ne 0) { throw "Signing failed for $target." }
-          }
-
-          Remove-Item $certPath -Force -ErrorAction SilentlyContinue
-
       - name: Install Inno Setup 7
         shell: pwsh
         run: |
@@ -198,32 +165,6 @@ jobs:
           & $isccPath "/DMyAppVersion=$env:MEDIAFORGE_VERSION" 'installer\MediaForge.iss'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Sign Setup.exe when configured
-        shell: pwsh
-        env:
-          SIGNING_CERT_BASE64: ${{ secrets.MEDIAFORGE_SIGNING_CERT_BASE64 }}
-          SIGNING_CERT_PASSWORD: ${{ secrets.MEDIAFORGE_SIGNING_CERT_PASSWORD }}
-          SIGNING_TIMESTAMP_URL: ${{ secrets.MEDIAFORGE_SIGNING_TIMESTAMP_URL }}
-        run: |
-          $setup = Join-Path $env:GITHUB_WORKSPACE 'installer\output\Setup.exe'
-          if ([string]::IsNullOrWhiteSpace($env:SIGNING_CERT_BASE64)) {
-            Write-Host "Setup.exe remains unsigned because no code-signing certificate is configured."
-            exit 0
-          }
-
-          $certPath = Join-Path $env:RUNNER_TEMP 'MediaForge-signing.pfx'
-          [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($env:SIGNING_CERT_BASE64))
-
-          $signtool = Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe -ErrorAction SilentlyContinue |
-            Select-Object -First 1 -ExpandProperty FullName
-          if (-not $signtool) { throw "Windows SDK SignTool was not found." }
-
-          $timestamp = if ([string]::IsNullOrWhiteSpace($env:SIGNING_TIMESTAMP_URL)) { 'http://timestamp.digicert.com' } else { $env:SIGNING_TIMESTAMP_URL }
-          & $signtool sign /f $certPath /p $env:SIGNING_CERT_PASSWORD /fd SHA256 /tr $timestamp /td SHA256 /d "MediaForge Setup" $setup
-          if ($LASTEXITCODE -ne 0) { throw "Signing failed for Setup.exe." }
-
-          Remove-Item $certPath -Force -ErrorAction SilentlyContinue
-
       - name: Verify Setup.exe
         shell: pwsh
         run: |
@@ -235,7 +176,7 @@ jobs:
           if ($signature.Status -eq 'Valid') {
             Write-Host "Signed by: $($signature.SignerCertificate.Subject)"
           } else {
-            Write-Host "Setup.exe is unsigned in this build. Configure MEDIAFORGE_SIGNING_CERT_BASE64 and MEDIAFORGE_SIGNING_CERT_PASSWORD for production signing."
+            Write-Host "Setup.exe is unsigned. Production distribution should use a trusted code-signing certificate."
           }
 
       - name: Upload installer artifact
