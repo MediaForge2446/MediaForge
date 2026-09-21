@@ -223,13 +223,11 @@ jobs:
 
           Write-Host 'Previous MediaForge package artifacts have been pruned.'
 
-      - name: Upload MSIX artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: MediaForge-MSIX
-          path: artifacts/MediaForge.msix
-          if-no-files-found: error
-          retention-days: 3
+      - name: Report package sizes
+        shell: pwsh
+        run: |
+          Get-Item "$env:GITHUB_WORKSPACE\artifacts\MediaForge.msix", "$env:GITHUB_WORKSPACE\artifacts\MediaForge.msixupload" |
+            Select-Object Name,Length,FullName | Format-Table -AutoSize
 
       - name: Validate Store submission container
         shell: pwsh
