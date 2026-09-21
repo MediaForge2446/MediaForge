@@ -210,12 +210,6 @@ jobs:
 
           Write-Host 'Previous MediaForge package artifacts have been pruned.'
 
-        uses: actions/upload-artifact@v4
-        with:
-          name: MediaForge-MSIX
-          path: artifacts/MediaForge.msix
-          if-no-files-found: error
-          retention-days: 3
 
       - name: Validate Store submission container
         shell: pwsh
@@ -245,5 +239,5 @@ jobs:
           name: MediaForge-Store-Upload
           path: artifacts/MediaForge.msixupload
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 3
 
