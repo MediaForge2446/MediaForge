@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using MediaForge.Infrastructure.Persistence;
 
 namespace MediaForge.App.Services;
