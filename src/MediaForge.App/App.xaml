@@ -29,6 +29,43 @@
                 <GradientStop Color="#A341FF" Offset="1"/>
             </LinearGradientBrush>
 
+            <DrawingImage x:Key="MediaForgeIconImage">
+                <DrawingImage.Drawing>
+                    <DrawingGroup>
+                        <GeometryDrawing Brush="#07122D">
+                            <GeometryDrawing.Geometry>
+                                <RectangleGeometry Rect="0,0,64,64" RadiusX="14" RadiusY="14"/>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Pen>
+                                <Pen Thickness="8" LineJoin="Round" Brush="{StaticResource MediaForgeAccentGradient}"/>
+                            </GeometryDrawing.Pen>
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="13,47">
+                                        <LineSegment Point="13,21"/>
+                                        <LineSegment Point="32,39"/>
+                                        <LineSegment Point="51,21"/>
+                                        <LineSegment Point="51,47"/>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing Brush="{StaticResource MediaForgeAccentGradient}">
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="26,39" IsClosed="True">
+                                        <LineSegment Point="26,50"/>
+                                        <LineSegment Point="40,44.5"/>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+
             <Style TargetType="{x:Type Window}">
                 <Setter Property="FontFamily" Value="Segoe UI"/>
                 <Setter Property="FontSize" Value="13"/>
