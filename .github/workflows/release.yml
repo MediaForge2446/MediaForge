@@ -124,7 +124,7 @@ jobs:
           SIGNING_TIMESTAMP_URL: ${{ secrets.MEDIAFORGE_SIGNING_TIMESTAMP_URL }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:SIGNING_CERT_BASE64)) {
-            Write-Host "Code signing is not configured for this repository. Continuing with an unsigned build."
+            Write-Host "Code signing is not configured. Continuing with an unsigned build."
             exit 0
           }
 
@@ -132,7 +132,8 @@ jobs:
           [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($env:SIGNING_CERT_BASE64))
 
           $signtool = Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe -ErrorAction SilentlyContinue |
-            Where-Object { $_.FullName -match '\\x64\\signtool\.exe        shell: pwsh
+            Where-Object { $_.FullName -match '\\x64\\signtool\.exe
+        shell: pwsh
         run: |
           winget install --id JRSoftware.InnoSetup.7 -e --accept-package-agreements --accept-source-agreements --disable-interactivity
 
@@ -197,7 +198,8 @@ jobs:
           [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($env:SIGNING_CERT_BASE64))
 
           $signtool = Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe -ErrorAction SilentlyContinue |
-            Where-Object { $_.FullName -match '\\x64\\signtool\.exe        shell: pwsh
+            Where-Object { $_.FullName -match '\\x64\\signtool\.exe
+        shell: pwsh
         run: |
           $setup = Join-Path $env:GITHUB_WORKSPACE 'installer\output\Setup.exe'
           if (-not (Test-Path $setup)) { throw 'Setup.exe was not created.' }
@@ -207,7 +209,7 @@ jobs:
           if ($signature.Status -eq 'Valid') {
             Write-Host "Signed by: $($signature.SignerCertificate.Subject)"
           } else {
-            Write-Host "Setup.exe is not signed in this build. Configure MEDIAFORGE_SIGNING_CERT_BASE64 and MEDIAFORGE_SIGNING_CERT_PASSWORD for production signing."
+            Write-Host "Setup.exe is unsigned in this build. Configure MEDIAFORGE_SIGNING_CERT_BASE64 and MEDIAFORGE_SIGNING_CERT_PASSWORD for production signing."
           }
 
       - name: Upload installer artifact
@@ -230,6 +232,7 @@ jobs:
           generate_release_notes: true
  } |
             Select-Object -First 1 -ExpandProperty FullName
+
           if (-not $signtool) { throw "Windows SDK SignTool was not found." }
 
           $timestamp = if ([string]::IsNullOrWhiteSpace($env:SIGNING_TIMESTAMP_URL)) { 'http://timestamp.digicert.com' } else { $env:SIGNING_TIMESTAMP_URL }
@@ -322,6 +325,7 @@ jobs:
           generate_release_notes: true
  } |
             Select-Object -First 1 -ExpandProperty FullName
+
           if (-not $signtool) { throw "Windows SDK SignTool was not found." }
 
           $timestamp = if ([string]::IsNullOrWhiteSpace($env:SIGNING_TIMESTAMP_URL)) { 'http://timestamp.digicert.com' } else { $env:SIGNING_TIMESTAMP_URL }
@@ -357,6 +361,7 @@ jobs:
           generate_release_notes: true
  } |
             Select-Object -First 1 -ExpandProperty FullName
+
           if (-not $signtool) { throw "Windows SDK SignTool was not found." }
 
           $timestamp = if ([string]::IsNullOrWhiteSpace($env:SIGNING_TIMESTAMP_URL)) { 'http://timestamp.digicert.com' } else { $env:SIGNING_TIMESTAMP_URL }
