@@ -135,7 +135,7 @@ jobs:
 
           if (-not $makeAppx) {
             Write-Host "MakeAppx was not present. Installing Microsoft Windows SDK 10.0.26100."
-            winget install --id Microsoft.WindowsSDK.10.0.26100 --exact --silent --accept-source-agreements --accept-package-agreements
+            winget install --id Microsoft.WindowsSDK.10.0.26100 --exact --silent --accept-source-agreements --accept-package-agreements --disable-interactivity
             $makeAppx = foreach ($pattern in $paths) {
               Get-ChildItem -Path $pattern -File -ErrorAction SilentlyContinue
             } | Sort-Object FullName -Descending | Select-Object -First 1
