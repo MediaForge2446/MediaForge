@@ -122,33 +122,6 @@ jobs:
           if (-not (Test-Path "$env:GITHUB_WORKSPACE\publish\tools\yt-dlp.exe")) { throw 'yt-dlp.exe is missing.' }
           if (-not (Test-Path "$env:GITHUB_WORKSPACE\publish\tools\ffmpeg\bin\ffmpeg.exe")) { throw 'ffmpeg.exe is missing.' }
 
-      - name: Ensure Windows SDK packaging tools
-        shell: pwsh
-        run: |
-          $paths = @(
-            "$env:ProgramFiles(x86)\Windows Kits\10\bin\*\x64\MakeAppx.exe",
-            "$env:ProgramFiles(x86)\Windows Kits\10\App Certification Kit\MakeAppx.exe"
-          )
-          $makeAppx = foreach ($pattern in $paths) {
-            Get-ChildItem -Path $pattern -File -ErrorAction SilentlyContinue
-          } | Sort-Object FullName -Descending | Select-Object -First 1
-
-          if (-not $makeAppx) {
-            Write-Host "MakeAppx was not present. Installing Microsoft Windows SDK 10.0.26100."
-            winget install --id Microsoft.WindowsSDK.10.0.26100 --exact --silent --accept-source-agreements --accept-package-agreements --disable-interactivity
-            $makeAppx = foreach ($pattern in $paths) {
-              Get-ChildItem -Path $pattern -File -ErrorAction SilentlyContinue
-            } | Sort-Object FullName -Descending | Select-Object -First 1
-          }
-
-          if (-not $makeAppx) {
-            Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10" -Recurse -Filter MakeAppx.exe -ErrorAction SilentlyContinue | Select-Object -First 20 -ExpandProperty FullName
-            throw "MakeAppx.exe could not be located after Windows SDK installation."
-          }
-
-          "MAKEAPPX_PATH=$($makeAppx.FullName)" >> $env:GITHUB_ENV
-          Write-Host "Using MakeAppx: $($makeAppx.FullName)"
-
       - name: Build Microsoft Store MSIX
         shell: pwsh
         env:
@@ -159,9 +132,15 @@ jobs:
         shell: pwsh
         run: |
           $msix = Join-Path $env:GITHUB_WORKSPACE 'artifacts\MediaForge.msix'
-          $makeAppx = Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\bin" -Recurse -Filter MakeAppx.exe -ErrorAction SilentlyContinue |
-            Sort-Object FullName -Descending |
-            Select-Object -First 1 -ExpandProperty FullName
+          $makeAppxCandidates = @(
+            (Get-Command MakeAppx.exe -ErrorAction SilentlyContinue).Source
+            (Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\bin" -Recurse -Filter MakeAppx.exe -ErrorAction SilentlyContinue |
+              Sort-Object FullName -Descending |
+              Select-Object -First 1 -ExpandProperty FullName)
+            (Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\App Certification Kit" -Filter MakeAppx.exe -ErrorAction SilentlyContinue |
+              Select-Object -First 1 -ExpandProperty FullName)
+          )
+          $makeAppx = $makeAppxCandidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
 
           if (-not $makeAppx) { throw 'MakeAppx.exe not found.' }
 
@@ -190,3 +169,12 @@ jobs:
           path: artifacts/MediaForge.msix
           if-no-files-found: error
           retention-days: 7
+
+      - name: Upload Store submission container
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaForge-Store-Upload
+          path: artifacts/MediaForge.msixupload
+          if-no-files-found: error
+          retention-days: 7
+
