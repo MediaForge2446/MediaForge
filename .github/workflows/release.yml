@@ -1,4 +1,4 @@
-name: Release
+name: Microsoft Store Package
 
 on:
   workflow_dispatch:
@@ -6,10 +6,8 @@ on:
       version:
         description: "MediaForge version"
         required: true
-        default: "0.1.0"
+        default: "0.2.0"
   push:
-    branches:
-      - "v0.1.0"
     tags:
       - "v*"
   pull_request:
@@ -17,13 +15,13 @@ on:
       - "main"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  package:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.ref == 'v0.1.0'
+  package-msix:
+    if: github.event_name != 'pull_request'
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       YTDLP_VERSION: "2026.08.19"
       YTDLP_URL: "https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp.exe"
@@ -32,6 +30,9 @@ jobs:
       FFMPEG_URL: "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-11-13-20/ffmpeg-n9.0.1-29-gad500d59cb-win64-gpl-shared-9.0.zip"
       FFMPEG_ARCHIVE_NAME: "ffmpeg-n9.0.1-29-gad500d59cb-win64-gpl-shared-9.0.zip"
       FFMPEG_RELEASE_API: "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/tags/autobuild-2026-09-11-13-20"
+      MSIX_IDENTITY_NAME: \${{ vars.MEDIAFORGE_STORE_IDENTITY_NAME || 'MediaForge' }}
+      MSIX_PUBLISHER: \${{ vars.MEDIAFORGE_STORE_PUBLISHER || 'CN=MediaForge' }}
+      MSIX_PUBLISHER_DISPLAY_NAME: \${{ vars.MEDIAFORGE_STORE_PUBLISHER_DISPLAY_NAME || 'MediaForge' }}
 
     steps:
       - name: Checkout
@@ -41,13 +42,18 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          if ('${{ github.event_name }}' -eq 'push') {
-            $version = '${{ github.ref_name }}'.TrimStart('v')
-          } elseif ('${{ github.event_name }}' -eq 'pull_request') {
-            $version = '0.1.0'
+          if ('\${{ github.event_name }}' -eq 'workflow_dispatch') {
+            $version = '\${{ github.event.inputs.version }}'
+          } elseif ('\${{ github.ref_type }}' -eq 'tag') {
+            $version = '\${{ github.ref_name }}'.TrimStart('v')
           } else {
-            $version = '${{ github.event.inputs.version }}'
+            $version = '0.2.0'
           }
+
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') {
+            throw "Version must use MAJOR.MINOR.PATCH format."
+          }
+
           "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Setup .NET 8
@@ -60,8 +66,7 @@ jobs:
 
       - name: Prepare MediaForge branding
         shell: pwsh
-        run: |
-          powershell -NoProfile -ExecutionPolicy Bypass -File build\PrepareBranding.ps1 -RepositoryRoot $env:GITHUB_WORKSPACE
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File build\PrepareBranding.ps1 -RepositoryRoot $env:GITHUB_WORKSPACE
 
       - name: Publish self-contained x64
         run: dotnet publish src/MediaForge.App/MediaForge.App.csproj --configuration Release --runtime win-x64 --self-contained true --no-restore --output publish
@@ -88,9 +93,7 @@ jobs:
           $release = Invoke-RestMethod -Uri $env:FFMPEG_RELEASE_API -Headers @{ 'Accept' = 'application/vnd.github+json' }
           $asset = $release.assets | Where-Object { $_.name -eq $env:FFMPEG_ARCHIVE_NAME } | Select-Object -First 1
           if (-not $asset) { throw "FFmpeg release asset '$env:FFMPEG_ARCHIVE_NAME' was not found." }
-          if (-not $asset.digest -or $asset.digest -notmatch '^sha256:([0-9a-fA-F]{64})$') {
-            throw "FFmpeg release asset does not expose a SHA-256 digest."
-          }
+          if (-not $asset.digest -or $asset.digest -notmatch '^sha256:([0-9a-fA-F]{64})$') { throw "FFmpeg release asset does not expose a SHA-256 digest." }
 
           $expected = $Matches[1].ToLowerInvariant()
           $actual = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
@@ -100,100 +103,57 @@ jobs:
           Expand-Archive -Path $archive -DestinationPath $extract -Force
           $root = Get-ChildItem -Path $extract -Directory | Select-Object -First 1
           if (-not $root) { throw "FFmpeg archive layout is invalid." }
-          $ffmpegBin = Join-Path $root.FullName 'bin'
-          if (-not (Test-Path (Join-Path $ffmpegBin 'ffmpeg.exe'))) { throw "FFmpeg executable missing." }
+
           $destination = Join-Path $tools 'ffmpeg'
           if (Test-Path $destination) { Remove-Item $destination -Recurse -Force }
           Copy-Item -Path $root.FullName -Destination $destination -Recurse -Force
           Remove-Item $archive -Force
           Remove-Item $extract -Recurse -Force
 
-      - name: Verify bundled tool layout
+      - name: Verify bundled tools
         shell: pwsh
         run: |
-          $yt = Join-Path $env:GITHUB_WORKSPACE 'publish\tools\yt-dlp.exe'
-          $ffmpeg = Join-Path $env:GITHUB_WORKSPACE 'publish\tools\ffmpeg\bin\ffmpeg.exe'
-          if (-not (Test-Path $yt)) { throw 'Bundled yt-dlp.exe is missing.' }
-          if (-not (Test-Path $ffmpeg)) { throw 'Bundled ffmpeg.exe is missing.' }
+          if (-not (Test-Path "$env:GITHUB_WORKSPACE\publish\tools\yt-dlp.exe")) { throw 'yt-dlp.exe is missing.' }
+          if (-not (Test-Path "$env:GITHUB_WORKSPACE\publish\tools\ffmpeg\bin\ffmpeg.exe")) { throw 'ffmpeg.exe is missing.' }
 
-      - name: Install Inno Setup 7
-        shell: pwsh
-        run: |
-          winget install --id JRSoftware.InnoSetup.7 -e --accept-package-agreements --accept-source-agreements --disable-interactivity
-
-      - name: Build Setup.exe
+      - name: Build Microsoft Store MSIX
         shell: pwsh
         env:
-          MEDIAFORGE_VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          $isccPath = $null
-          $uninstallRegistry = @(
-            'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
-            'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*',
-            'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*'
-          )
-          foreach ($path in $uninstallRegistry) {
-            $entry = Get-ItemProperty $path -ErrorAction SilentlyContinue |
-              Where-Object { $_.DisplayName -like 'Inno Setup*' -and $_.InstallLocation } |
-              Select-Object -First 1
-            if ($entry) {
-              $candidate = Join-Path $entry.InstallLocation 'ISCC.exe'
-              if (Test-Path $candidate) { $isccPath = $candidate; break }
-            }
-          }
+          VERSION: \${{ steps.version.outputs.version }}
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File packaging\BuildStorePackage.ps1 -PublishDirectory "$env:GITHUB_WORKSPACE\publish" -OutputDirectory "$env:GITHUB_WORKSPACE\artifacts" -Version "$env:VERSION" -IdentityName "$env:MSIX_IDENTITY_NAME" -Publisher "$env:MSIX_PUBLISHER" -PublisherDisplayName "$env:MSIX_PUBLISHER_DISPLAY_NAME"
 
-          if (-not $isccPath) {
-            $knownPaths = @(
-              'C:\Program Files\Inno Setup 7\ISCC.exe',
-              'C:\Program Files (x86)\Inno Setup 7\ISCC.exe',
-              'C:\Program Files\Inno Setup 6\ISCC.exe',
-              'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
-            )
-            $isccPath = $knownPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
-          }
-
-          if (-not $isccPath) {
-            $isccPath = Get-ChildItem 'C:\ProgramData\Chocolatey\bin' -Filter ISCC.exe -ErrorAction SilentlyContinue |
-              Select-Object -ExpandProperty FullName -First 1
-          }
-
-          if (-not $isccPath) {
-            throw 'Inno Setup compiler ISCC.exe was not found.'
-          }
-
-          Write-Host "Using Inno Setup compiler: $isccPath"
-          & $isccPath "/DMyAppVersion=$env:MEDIAFORGE_VERSION" 'installer\MediaForge.iss'
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-      - name: Verify Setup.exe
+      - name: Validate MSIX package structure
         shell: pwsh
         run: |
-          $setup = Join-Path $env:GITHUB_WORKSPACE 'installer\output\Setup.exe'
-          if (-not (Test-Path $setup)) { throw 'Setup.exe was not created.' }
-          Get-Item $setup | Format-List FullName,Length
-          $signature = Get-AuthenticodeSignature $setup
-          Write-Host "Setup.exe signature status: $($signature.Status)"
-          if ($signature.Status -eq 'Valid') {
-            Write-Host "Signed by: $($signature.SignerCertificate.Subject)"
-          } else {
-            Write-Host "Setup.exe is unsigned. Production distribution should use a trusted code-signing certificate."
-          }
+          $msix = Join-Path $env:GITHUB_WORKSPACE 'artifacts\MediaForge.msix'
+          $makeAppx = Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\bin" -Recurse -Filter MakeAppx.exe -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1 -ExpandProperty FullName
 
-      - name: Upload installer artifact
-        continue-on-error: true
+          if (-not $makeAppx) { throw 'MakeAppx.exe not found.' }
+
+          $validation = Join-Path $env:RUNNER_TEMP 'MediaForgeMsixValidation'
+          if (Test-Path $validation) { Remove-Item $validation -Recurse -Force }
+          & $makeAppx unpack /p $msix /d $validation
+          if ($LASTEXITCODE -ne 0) { throw 'MSIX unpack validation failed.' }
+
+          $manifest = Join-Path $validation 'AppxManifest.xml'
+          if (-not (Test-Path $manifest)) { throw 'AppxManifest.xml is missing from the package.' }
+
+          [xml]$xml = Get-Content -Raw -Encoding UTF8 $manifest
+          $identity = $xml.Package.Identity
+          $application = $xml.Package.Applications.Application
+
+          if (-not $identity) { throw 'Package identity is missing.' }
+          if (-not $application) { throw 'Application entry is missing.' }
+          if ($identity.ProcessorArchitecture -ne 'x64') { throw 'Package is not x64.' }
+
+          Write-Host "Validated package identity: $($identity.Name) $($identity.Version)"
+
+      - name: Upload MSIX artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MediaForge-Setup
-          path: installer/output/Setup.exe
+          name: MediaForge-MSIX
+          path: artifacts/MediaForge.msix
           if-no-files-found: error
-          retention-days: 1
-
-      - name: Create GitHub release
-        if: github.ref == 'refs/heads/v0.1.0'
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: v0.1.0
-          target_commitish: ${{ github.sha }}
-          name: MediaForge 0.1.0
-          files: installer/output/Setup.exe
-          generate_release_notes: true
+          retention-days: 7
