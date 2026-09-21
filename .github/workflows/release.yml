@@ -107,9 +107,9 @@ jobs:
           $checksumUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/$env:FFMPEG_RELEASE/checksums.sha256"
           $checksumText = (Invoke-WebRequest -Uri $checksumUrl -UseBasicParsing).Content
           $checksumLine = $checksumText -split "\r?\n" |
-            Where-Object { $_ -match ("\s" + [regex]::Escape($env:FFMPEG_ARCHIVE_NAME) + "$") } |
+            Where-Object { $_.TrimEnd().EndsWith($env:FFMPEG_ARCHIVE_NAME, [StringComparison]::Ordinal) } |
             Select-Object -First 1
-          if (-not $checksumLine -or $checksumLine -notmatch '^([0-9a-fA-F]{64})\s+') {
+          if (-not $checksumLine -or $checksumLine -notmatch '^\s*([0-9a-fA-F]{64})\s+') {
             throw "FFmpeg checksum manifest does not contain '$env:FFMPEG_ARCHIVE_NAME'."
           }
 
