@@ -101,19 +101,13 @@ jobs:
 
           Invoke-WebRequest -Uri $env:FFMPEG_URL -OutFile $archive
 
-          # Read the publisher's signed checksum manifest instead of the GitHub REST
-          # API. This avoids runner-side API rate limits while retaining SHA-256
-          # verification against the exact pinned release artifact.
-          $checksumUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/$env:FFMPEG_RELEASE/checksums.sha256"
-          $checksumText = (Invoke-WebRequest -Uri $checksumUrl -UseBasicParsing).Content
-          $checksumLine = $checksumText -split "\r?\n" |
-            Where-Object { $_ -match ("\s" + [regex]::Escape($env:FFMPEG_ARCHIVE_NAME) + "$") } |
-            Select-Object -First 1
-          if (-not $checksumLine -or $checksumLine -notmatch '^([0-9a-fA-F]{64})\s+') {
-            throw "FFmpeg checksum manifest does not contain '$env:FFMPEG_ARCHIVE_NAME'."
+          # Verify the exact immutable release asset against the digest pinned in
+          # this workflow so packaging is independent of runtime GitHub API calls.
+          $expected = $env:FFMPEG_SHA256.ToLowerInvariant()
+          if ($expected -notmatch '^[0-9a-f]{64}$') {
+            throw "FFmpeg SHA-256 pin is invalid."
           }
 
-          $expected = $Matches[1].ToLowerInvariant()
           $actual = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
           if ($actual -ne $expected) { throw "FFmpeg SHA-256 verification failed." }
 
