@@ -79,7 +79,7 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          dotnet publish src/MediaForge.App/MediaForge.App.csproj --configuration Release --runtime win-x64 --self-contained true --no-restore --output publish -p:Version=$env:VERSION -p:AssemblyVersion=$env:VERSION.0 -p:FileVersion=$env:VERSION.0 -p:InformationalVersion=$env:VERSION
+          dotnet publish src/MediaForge.App/MediaForge.App.csproj --configuration Release --runtime win-x64 --self-contained true --no-restore --output publish -p:Version=$env:VERSION -p:AssemblyVersion=$($env:VERSION).0 -p:FileVersion=$($env:VERSION).0 -p:InformationalVersion=$env:VERSION
 
       - name: Download and verify yt-dlp
         shell: pwsh
@@ -188,14 +188,6 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Upload Store submission container
-        uses: actions/upload-artifact@v4
-        with:
-          name: MediaForge-Store-Upload
-          path: artifacts/MediaForge.msixupload
-          if-no-files-found: error
-          retention-days: 7
-
       - name: Validate Store submission container
         shell: pwsh
         run: |
@@ -217,4 +209,12 @@ jobs:
           }
 
           Get-ChildItem $inspection -File | Format-Table Name,Length -AutoSize
+
+      - name: Upload Store submission container
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaForge-Store-Upload
+          path: artifacts/MediaForge.msixupload
+          if-no-files-found: error
+          retention-days: 7
 
