@@ -1,3 +1,8 @@
+# Build a Store-ready MSIX package and .msixupload container.
+#
+# The MSIX is intentionally unsigned in CI. Microsoft signs the package as part
+# of the Microsoft Store submission/certification flow.
+
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string]$PublishDirectory,
@@ -75,17 +80,54 @@ if ($LASTEXITCODE -ne 0) {
     throw "MakeAppx failed with exit code $LASTEXITCODE."
 }
 
-# Partner Center recommends an .msixupload file for Store submissions.
-# Public symbols are optional and can be added later when crash analytics symbols are available.
+# Build the optional public-symbol archive used by Partner Center for crash
+# analytics. Keep PDBs outside the MSIX so they are never shipped to customers.
+$appSym = $null
+$symbolFiles = @(Get-ChildItem -Path $PublishDirectory -Recurse -Filter "*.pdb" -File -ErrorAction SilentlyContinue)
+if ($symbolFiles.Count -gt 0) {
+    $symbolStage = Join-Path $env:RUNNER_TEMP "MediaForgeSymbols"
+    if (Test-Path $symbolStage) { Remove-Item $symbolStage -Recurse -Force }
+    New-Item -ItemType Directory -Force -Path $symbolStage | Out-Null
+
+    foreach ($symbol in $symbolFiles) {
+        Copy-Item $symbol.FullName (Join-Path $symbolStage $symbol.Name) -Force
+    }
+
+    $appSym = Join-Path $OutputDirectory "MediaForge.appxsym"
+    if (Test-Path $appSym) { Remove-Item $appSym -Force }
+    Compress-Archive -Path (Join-Path $symbolStage "*") -DestinationPath $appSym -CompressionLevel Optimal
+    Remove-Item $symbolStage -Recurse -Force
+
+    Write-Host "Created public symbols: $appSym"
+} else {
+    Write-Warning "No PDB files were produced. The Store upload will not include crash-analysis symbols."
+}
+
+# Partner Center accepts an .msixupload container. It is a ZIP containing the
+# MSIX plus the optional .appxsym symbol archive.
 $upload = Join-Path $OutputDirectory "MediaForge.msixupload"
 if (Test-Path $upload) { Remove-Item $upload -Force }
+
+$uploadStage = Join-Path $env:RUNNER_TEMP "MediaForgeStoreUpload"
+if (Test-Path $uploadStage) { Remove-Item $uploadStage -Recurse -Force }
+New-Item -ItemType Directory -Force -Path $uploadStage | Out-Null
+
+Copy-Item $output (Join-Path $uploadStage "MediaForge.msix") -Force
+if ($appSym) {
+    Copy-Item $appSym (Join-Path $uploadStage "MediaForge.appxsym") -Force
+}
 
 $tempZip = Join-Path $env:RUNNER_TEMP "MediaForge.msixupload.zip"
 if (Test-Path $tempZip) { Remove-Item $tempZip -Force }
 
-Compress-Archive -Path $output -DestinationPath $tempZip -CompressionLevel Optimal
+Compress-Archive -Path (Join-Path $uploadStage "*") -DestinationPath $tempZip -CompressionLevel Optimal
 Move-Item -Path $tempZip -Destination $upload -Force
+
+Remove-Item $uploadStage -Recurse -Force
 
 Write-Host "Created MSIX: $output"
 Write-Host "Created Store upload package: $upload"
 Get-Item $output,$upload | Format-Table FullName,Length -AutoSize
+if ($appSym) {
+    Get-Item $appSym | Format-Table FullName,Length -AutoSize
+}
