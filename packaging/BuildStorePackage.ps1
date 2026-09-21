@@ -12,13 +12,14 @@ $ErrorActionPreference = "Stop"
 
 function Find-MakeAppx {
     $candidates = @(
+        $env:MAKEAPPX_PATH
         (Get-Command MakeAppx.exe -ErrorAction SilentlyContinue).Source
-        (Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin" -Recurse -Filter "MakeAppx.exe" -ErrorAction SilentlyContinue |
+        (Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\bin" -Recurse -Filter "MakeAppx.exe" -ErrorAction SilentlyContinue |
             Sort-Object FullName -Descending |
             Select-Object -First 1 -ExpandProperty FullName)
-        (Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\App Certification Kit" -Filter "MakeAppx.exe" -ErrorAction SilentlyContinue |
+        (Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\App Certification Kit" -Filter "MakeAppx.exe" -ErrorAction SilentlyContinue |
             Select-Object -First 1 -ExpandProperty FullName)
-    ) | Where-Object { $_ } | Select-Object -First 1
+    ) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
 }
 
 if (-not (Test-Path $PublishDirectory)) {
