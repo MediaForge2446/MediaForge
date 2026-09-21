@@ -4,7 +4,6 @@
         xmlns:vm="clr-namespace:MediaForge.App.ViewModels"
         xmlns:views="clr-namespace:MediaForge.App.Views"
         Title="MediaForge"
-        Icon="{StaticResource MediaForgeIconImage}"
         Width="1480"
         Height="900"
         MinWidth="1120"
