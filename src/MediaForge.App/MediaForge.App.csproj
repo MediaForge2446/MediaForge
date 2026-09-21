@@ -22,4 +22,10 @@
     <ProjectReference Include="..\MediaForge.Application\MediaForge.Application.csproj" />
     <ProjectReference Include="..\MediaForge.Infrastructure\MediaForge.Infrastructure.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\MediaForge.png"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
