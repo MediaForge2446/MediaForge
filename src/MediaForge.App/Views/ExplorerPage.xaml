@@ -90,29 +90,57 @@
                             Click="AddMediaButton_OnClick"
                             Margin="7,0,0,0"
                             MinWidth="126"
-                            Style="{StaticResource MediaForgeSubtleButtonStyle}"/>
+                            Style="{StaticResource MediaForgePrimaryButtonStyle}"/>
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center">
-                    <Border Padding="10,6"
-                            Background="#F7FAFD"
-                            BorderBrush="#E2E9F1"
+                    <Border Padding="0"
+                            Background="#FFFFFF"
+                            BorderBrush="#D8E2EC"
                             BorderThickness="1"
-                            CornerRadius="9">
-                        <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="7" Height="7"
-                                     Fill="{StaticResource MediaForgeSuccessBrush}"
-                                     VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding StatusText}"
-                                       Margin="7,0,0,0"
-                                       FontSize="9.5"
-                                       Foreground="#68778C"
-                                       MaxWidth="420"
-                                       TextTrimming="CharacterEllipsis"/>
-                        </StackPanel>
+                            CornerRadius="10"
+                            Width="230"
+                            Height="40">
+                        <DockPanel>
+                            <TextBlock Text="⌕"
+                                       DockPanel.Dock="Right"
+                                       Margin="0,0,8,0"
+                                       FontSize="17"
+                                       Foreground="#8190A2"
+                                       VerticalAlignment="Center"/>
+                            <TextBox Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource MediaForgePathBoxStyle}"
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     Padding="4,0"
+                                     ToolTip="חיפוש בתיקייה"/>
+                        </DockPanel>
                     </Border>
+
+                    <ComboBox ItemsSource="{Binding SortOptions}"
+                              SelectedItem="{Binding SortMode}"
+                              Width="120"
+                              Height="40"
+                              Margin="7,0,0,0"
+                              Style="{StaticResource MediaForgeComboStyle}"/>
+
+                    <Button Content="↻"
+                            Command="{Binding RefreshCurrentFolderCommand}"
+                            Width="42"
+                            Height="40"
+                            Margin="7,0,0,0"
+                            Style="{StaticResource MediaForgeSubtleButtonStyle}"
+                            ToolTip="רענן"/>
+                    <Button Content="↗"
+                            Command="{Binding OpenInWindowsExplorerCommand}"
+                            IsEnabled="{Binding HasSelectedEntry}"
+                            Width="42"
+                            Height="40"
+                            Margin="6,0,0,0"
+                            Style="{StaticResource MediaForgeSubtleButtonStyle}"
+                            ToolTip="פתח בסייר Windows"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -274,7 +302,7 @@
                     </Grid>
 
                     <Grid Grid.Row="2">
-                        <ListView ItemsSource="{Binding Entries}"
+                        <ListView ItemsSource="{Binding FilteredEntries}"
                                   SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
                                   BorderThickness="0"
                                   Background="Transparent"
