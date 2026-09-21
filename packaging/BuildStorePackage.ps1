@@ -12,6 +12,7 @@ param(
     [string]$IdentityName = "MediaForge",
     [string]$Publisher = "CN=MediaForge",
     [string]$PublisherDisplayName = "MediaForge"
+    [bool]$IncludeSymbols = $true
 )
 
 $ErrorActionPreference = "Stop"
@@ -100,7 +101,7 @@ New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
 # analytics. PDBs are deliberately removed from the MSIX payload.
 $appSym = $null
 $symbolFiles = @(Get-ChildItem -Path $PublishDirectory -Recurse -Filter "*.pdb" -File -ErrorAction SilentlyContinue)
-if ($symbolFiles.Count -gt 0) {
+if ($IncludeSymbols -and $symbolFiles.Count -gt 0) {
     $symbolStage = Join-Path $env:RUNNER_TEMP "MediaForgeSymbols"
     if (Test-Path $symbolStage) { Remove-Item $symbolStage -Recurse -Force }
     New-Item -ItemType Directory -Force -Path $symbolStage | Out-Null
