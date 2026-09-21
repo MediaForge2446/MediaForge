@@ -112,10 +112,12 @@ jobs:
 
           Invoke-WebRequest -Uri $env:FFMPEG_URL -OutFile $archive
 
-          # Verify the exact pinned release asset against the digest published
-          # by BtbN/FFmpeg-Builds for this immutable build artifact.
+          # Verify the exact immutable release asset against the digest pinned in
+          # this workflow so packaging is independent of runtime GitHub API calls.
           $expected = $env:FFMPEG_SHA256.ToLowerInvariant()
           if ($expected -notmatch '^[0-9a-f]{64}
+          $actual = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) { throw "FFmpeg SHA-256 verification failed." }
 
           if (Test-Path $extract) { Remove-Item $extract -Recurse -Force }
           Expand-Archive -Path $archive -DestinationPath $extract -Force
@@ -254,15 +256,12 @@ jobs:
           path: artifacts/MediaForge.msixupload
           if-no-files-found: error
           retention-days: 7
-
 ) {
             throw "FFmpeg SHA-256 pin is invalid."
           }
 
           $actual = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
-          if ($actual -ne $expected) {
-            throw "FFmpeg SHA-256 verification failed."
-          }
+          if ($actual -ne $expected) { throw "FFmpeg SHA-256 verification failed." }
 
           if (Test-Path $extract) { Remove-Item $extract -Recurse -Force }
           Expand-Archive -Path $archive -DestinationPath $extract -Force
@@ -401,4 +400,3 @@ jobs:
           path: artifacts/MediaForge.msixupload
           if-no-files-found: error
           retention-days: 7
-
