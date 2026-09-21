@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediaForge.Application.Explorer;
@@ -28,6 +29,8 @@ public partial class ExplorerViewModel : ObservableObject
     [ObservableProperty] private string _moveDestination = string.Empty;
     [ObservableProperty] private string _statusText = "בחר תיקייה";
     [ObservableProperty] private bool _isBusy;
+    [ObservableProperty] private string _searchQuery = string.Empty;
+    [ObservableProperty] private string _sortMode = "שם";
 
     public ObservableCollection<ExplorerEntryViewModel> Entries { get; } = [];
     public ObservableCollection<ExplorerTreeNodeViewModel> FolderTree { get; } = [];
@@ -37,6 +40,35 @@ public partial class ExplorerViewModel : ObservableObject
     public bool CanGoForward => _forwardHistory.Count > 0;
     public bool HasEntries => Entries.Count > 0;
     public bool HasSelectedEntry => SelectedEntry is not null && !SelectedEntry.MarkedForDeletion && !SelectedEntry.IsError;
+    public IReadOnlyList<string> SortOptions { get; } = ["שם", "סוג", "גודל", "עודכן לאחרונה"];
+
+    public IEnumerable<ExplorerEntryViewModel> FilteredEntries
+    {
+        get
+        {
+            IEnumerable<ExplorerEntryViewModel> query = Entries;
+
+            if (!string.IsNullOrWhiteSpace(SearchQuery))
+            {
+                var term = SearchQuery.Trim();
+                query = query.Where(x =>
+                    x.Name.Contains(term, StringComparison.CurrentCultureIgnoreCase) ||
+                    x.FullPath.Contains(term, StringComparison.CurrentCultureIgnoreCase));
+            }
+
+            return SortMode switch
+            {
+                "סוג" => query.OrderByDescending(x => x.IsDirectory)
+                              .ThenBy(x => x.Name, StringComparer.CurrentCultureIgnoreCase),
+                "גודל" => query.OrderByDescending(x => x.Size)
+                                .ThenBy(x => x.Name, StringComparer.CurrentCultureIgnoreCase),
+                "עודכן לאחרונה" => query.OrderByDescending(x => x.LastModifiedUtc)
+                                        .ThenBy(x => x.Name, StringComparer.CurrentCultureIgnoreCase),
+                _ => query.OrderByDescending(x => x.IsDirectory)
+                          .ThenBy(x => x.Name, StringComparer.CurrentCultureIgnoreCase)
+            };
+        }
+    }
 
     public event Action<string>? AddMediaRequested;
 
@@ -80,6 +112,7 @@ public partial class ExplorerViewModel : ObservableObject
 
             OnPropertyChanged(nameof(HasEntries));
             OnPropertyChanged(nameof(HasSelectedEntry));
+            OnPropertyChanged(nameof(FilteredEntries));
             var pendingCount = projected.Count(x => x.IsPending);
             StatusText = Entries.Count == 0
                 ? "התיקייה ריקה"
@@ -212,6 +245,49 @@ public partial class ExplorerViewModel : ObservableObject
 
     partial void OnSelectedEntryChanged(ExplorerEntryViewModel? value)
         => OnPropertyChanged(nameof(HasSelectedEntry));
+
+    partial void OnSearchQueryChanged(string value)
+        => OnPropertyChanged(nameof(FilteredEntries));
+
+    partial void OnSortModeChanged(string value)
+        => OnPropertyChanged(nameof(FilteredEntries));
+
+    [RelayCommand]
+    private async Task RefreshCurrentFolderAsync(CancellationToken cancellationToken)
+    {
+        if (IsBusy || string.IsNullOrWhiteSpace(CurrentPath))
+            return;
+
+        StatusText = "מרענן את התיקייה…";
+        await BuildFolderTreeAsync(cancellationToken).ConfigureAwait(true);
+        await ReloadAsync(cancellationToken).ConfigureAwait(true);
+    }
+
+    [RelayCommand]
+    private void OpenInWindowsExplorer()
+    {
+        var entry = SelectedEntry;
+        if (entry is null || IsBusy)
+            return;
+
+        var target = entry.IsDirectory ? entry.FullPath : Path.GetDirectoryName(entry.FullPath);
+        if (string.IsNullOrWhiteSpace(target))
+            return;
+
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = $""{target}"",
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"לא ניתן לפתוח את סייר Windows: {ex.Message}";
+        }
+    }
 
     [RelayCommand]
     private async Task OpenAsync(ExplorerEntryViewModel? entry, CancellationToken cancellationToken)
@@ -372,6 +448,7 @@ public sealed partial class ExplorerEntryViewModel : ObservableObject
 
     [ObservableProperty] private bool _markedForDeletion;
 
+    public DateTimeOffset LastModifiedUtc { get; }
     public string KindText => IsDirectory ? "תיקייה" : "קובץ";
     public string SizeText => IsDirectory ? "—" : FormatBytes(Size);
     public string StatusText => IsError ? "השינוי נכשל" : MarkedForDeletion ? "מחיקה ממתינה" : IsPending ? "שינוי ממתין" : "מסונכרן";
@@ -385,6 +462,7 @@ public sealed partial class ExplorerEntryViewModel : ObservableObject
         IsPending = isPending;
         PendingOperationId = pendingOperationId;
         IsError = isError;
+        LastModifiedUtc = entry.LastModifiedUtc;
     }
 
     partial void OnMarkedForDeletionChanged(bool value) => OnPropertyChanged(nameof(StatusText));
