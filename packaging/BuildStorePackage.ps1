@@ -113,11 +113,22 @@ if ($symbolFiles.Count -gt 0) {
     $appSym = Join-Path $OutputDirectory "MediaForge.appxsym"
     if (Test-Path $appSym) { Remove-Item $appSym -Force }
 
-    # Compress-Archive only accepts .zip destinations on PowerShell. Create a
-    # temporary ZIP, then rename it to Partner Center's .appxsym extension.
+    # Create a standard ZIP first, then rename it to Partner Center's .appxsym
+    # extension. Use the .NET ZIP API so this works consistently under Windows
+    # PowerShell and does not depend on the destination-file extension rules of
+    # Compress-Archive.
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
     $symbolZip = Join-Path $env:RUNNER_TEMP "MediaForge.appxsym.zip"
     if (Test-Path $symbolZip) { Remove-Item $symbolZip -Force }
-    Compress-Archive -Path (Join-Path $symbolStage "*") -DestinationPath $symbolZip -CompressionLevel Optimal
+    [System.IO.Compression.ZipFile]::CreateFromDirectory(
+        $symbolStage,
+        $symbolZip,
+        [System.IO.Compression.CompressionLevel]::Optimal,
+        $false
+    )
+    if (-not (Test-Path $symbolZip)) {
+        throw "Failed to create public symbol ZIP: $symbolZip"
+    }
     Move-Item -Path $symbolZip -Destination $appSym -Force
 
     # Never ship raw PDBs inside the customer package.
