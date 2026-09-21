@@ -23,6 +23,8 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _activeSection = "home";
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string _statusText = "מוכן";
+    [ObservableProperty] private double _commitProgressPercent;
+    [ObservableProperty] private string _commitProgressStatus = string.Empty;
     [ObservableProperty] private int _pendingCount;
     [ObservableProperty] private object? _currentPage;
 
@@ -74,6 +76,42 @@ public partial class MainViewModel : ObservableObject
     }
 
     public void NavigateHomeFromView() => NavigateHome();
+
+    [RelayCommand]
+    private async Task NavigateExplorerAsync(CancellationToken cancellationToken)
+    {
+        if (IsBusy) return;
+
+        if (string.IsNullOrWhiteSpace(Explorer.CurrentPath))
+        {
+            var first = RootFolders.FirstOrDefault();
+            if (first is null)
+            {
+                StatusText = "הוסף תיקייה ראשית כדי לפתוח את הסייר";
+                return;
+            }
+
+            await OpenRootFolderAsync(first, cancellationToken).ConfigureAwait(true);
+            return;
+        }
+
+        ActiveSection = "explorer";
+        PageTitle = Path.GetFileName(Explorer.CurrentPath.TrimEnd(Path.DirectorySeparatorChar)) is { Length: > 0 } name
+            ? name
+            : "סייר";
+        CurrentPage = Explorer;
+        StatusText = Explorer.CurrentPath;
+    }
+
+    [RelayCommand]
+    private void NavigateSettings()
+    {
+        if (IsBusy) return;
+        ActiveSection = "settings";
+        PageTitle = "הגדרות";
+        CurrentPage = Settings;
+        StatusText = "ניהול כלים, איכות הורדה והעדפות MediaForge";
+    }
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
@@ -185,8 +223,15 @@ public partial class MainViewModel : ObservableObject
         try
         {
             var operations = _stagingService.Operations.ToArray();
+            CommitProgressPercent = 0;
+            CommitProgressStatus = "מכין את השינויים…";
+
             var progress = new Progress<CommitProgress>(value =>
-                StatusText = value.Percent >= 100 ? "מאמת שינויים…" : $"{value.Status} · {value.Percent:0}%");
+            {
+                CommitProgressPercent = Math.Clamp(value.Percent, 0, 100);
+                CommitProgressStatus = value.Status;
+                StatusText = value.Percent >= 100 ? "מאמת שינויים…" : $"{value.Status} · {value.Percent:0}%";
+            });
 
             var result = await _commitEngine.CommitAsync(operations, progress, cancellationToken).ConfigureAwait(true);
             var successful = result.Items.Where(x => x.Success).Select(x => x.OperationId).ToArray();
