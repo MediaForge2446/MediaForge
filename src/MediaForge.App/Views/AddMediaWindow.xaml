@@ -65,16 +65,23 @@
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="88"/>
                         <ColumnDefinition Width="126"/>
                     </Grid.ColumnDefinitions>
 
                     <TextBox Text="{Binding SourceUrl, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource MediaForgeInputStyle}"
-                             ToolTip="קישור YouTube או playlist"/>
+                             ToolTip="קישור YouTube או playlist"
+                             VerticalContentAlignment="Center"/>
                     <Button Grid.Column="1"
+                            Content="הדבק"
+                            Click="PasteButton_OnClick"
+                            Margin="8,0,0,0"
+                            Style="{StaticResource MediaForgeSubtleButtonStyle}"/>
+                    <Button Grid.Column="2"
                             Content="בדוק קישור"
                             Command="{Binding ResolveCommand}"
-                            Margin="9,0,0,0"
+                            Margin="8,0,0,0"
                             Style="{StaticResource MediaForgePrimaryButtonStyle}"/>
                 </Grid>
             </Border>
