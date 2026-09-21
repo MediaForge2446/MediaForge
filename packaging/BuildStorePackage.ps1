@@ -11,9 +11,14 @@ param(
 $ErrorActionPreference = "Stop"
 
 function Find-MakeAppx {
-    $candidates = Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\bin" -Recurse -Filter "MakeAppx.exe" -ErrorAction SilentlyContinue |
-        Sort-Object FullName -Descending
-    $candidates | Select-Object -First 1 -ExpandProperty FullName
+    $candidates = @(
+        (Get-Command MakeAppx.exe -ErrorAction SilentlyContinue).Source
+        (Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin" -Recurse -Filter "MakeAppx.exe" -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1 -ExpandProperty FullName)
+        (Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\App Certification Kit" -Filter "MakeAppx.exe" -ErrorAction SilentlyContinue |
+            Select-Object -First 1 -ExpandProperty FullName)
+    ) | Where-Object { $_ } | Select-Object -First 1
 }
 
 if (-not (Test-Path $PublishDirectory)) {
@@ -43,7 +48,7 @@ Copy-Item $branding (Join-Path $assets "Square44x44Logo.png") -Force
 Copy-Item $branding (Join-Path $assets "Square150x150Logo.png") -Force
 Copy-Item $branding (Join-Path $assets "StoreLogo.png") -Force
 
-$version4 = switch (($Version -split ".").Count) {
+$version4 = switch (($Version -split '\.').Count) {
     1 { "$Version.0.0.0" }
     2 { "$Version.0.0" }
     3 { "$Version.0" }
@@ -68,5 +73,17 @@ if ($LASTEXITCODE -ne 0) {
     throw "MakeAppx failed with exit code $LASTEXITCODE."
 }
 
+# Partner Center recommends an .msixupload file for Store submissions.
+# Public symbols are optional and can be added later when crash analytics symbols are available.
+$upload = Join-Path $OutputDirectory "MediaForge.msixupload"
+if (Test-Path $upload) { Remove-Item $upload -Force }
+
+$tempZip = Join-Path $env:RUNNER_TEMP "MediaForge.msixupload.zip"
+if (Test-Path $tempZip) { Remove-Item $tempZip -Force }
+
+Compress-Archive -Path $output -DestinationPath $tempZip -CompressionLevel Optimal
+Move-Item -Path $tempZip -Destination $upload -Force
+
 Write-Host "Created MSIX: $output"
-Get-Item $output | Format-List FullName,Length
+Write-Host "Created Store upload package: $upload"
+Get-Item $output,$upload | Format-Table FullName,Length -AutoSize
