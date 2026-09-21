@@ -18,6 +18,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 concurrency:
   group: microsoft-store-package
@@ -176,13 +177,41 @@ jobs:
 
           Write-Host "Validated package identity: $($identity.Name) $($identity.Version)"
 
-      - name: Upload MSIX artifact
+      - name: Prune previous MediaForge package artifacts
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $headers = @{
+            Authorization = "Bearer $env:GH_TOKEN"
+            Accept = "application/vnd.github+json"
+            "X-GitHub-Api-Version" = "2022-11-28"
+          }
+
+          $page = 1
+          do {
+            $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/artifacts?per_page=100&page=$page"
+            $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $headers
+
+            foreach ($artifact in $response.artifacts) {
+              if ($artifact.name -like 'MediaForge-*') {
+                Write-Host "Deleting previous package artifact $($artifact.id) ($($artifact.name))..."
+                $deleteUri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/artifacts/$($artifact.id)"
+                Invoke-RestMethod -Method Delete -Uri $deleteUri -Headers $headers
+              }
+            }
+
+            $page++
+          } while ($response.artifacts.Count -eq 100)
+
+          Write-Host 'Previous MediaForge package artifacts have been pruned.'
+
         uses: actions/upload-artifact@v4
         with:
           name: MediaForge-MSIX
           path: artifacts/MediaForge.msix
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 3
 
       - name: Upload Store submission container
         uses: actions/upload-artifact@v4
