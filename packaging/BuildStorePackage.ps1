@@ -3,6 +3,7 @@ param(
     [Parameter(Mandatory = $true)][string]$PublishDirectory,
     [Parameter(Mandatory = $true)][string]$OutputDirectory,
     [Parameter(Mandatory = $true)][string]$Version,
+    [string]$MakeAppxPath,
     [string]$IdentityName = "MediaForge",
     [string]$Publisher = "CN=MediaForge",
     [string]$PublisherDisplayName = "MediaForge"
@@ -26,9 +27,9 @@ if (-not (Test-Path $PublishDirectory)) {
     throw "Publish directory not found: $PublishDirectory"
 }
 
-$makeAppx = Find-MakeAppx
-if (-not $makeAppx) {
-    throw "Windows SDK MakeAppx.exe was not found on this runner."
+$makeAppx = if ($MakeAppxPath) { $MakeAppxPath } else { Find-MakeAppx }
+if (-not $makeAppx -or -not (Test-Path $makeAppx)) {
+    throw "Windows SDK MakeAppx.exe was not found or the supplied path is invalid: $MakeAppxPath"
 }
 
 $stage = Join-Path $env:RUNNER_TEMP "MediaForgeMsixStage"
