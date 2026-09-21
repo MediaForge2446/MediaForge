@@ -1,0 +1,72 @@
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory = $true)][string]$PublishDirectory,
+    [Parameter(Mandatory = $true)][string]$OutputDirectory,
+    [Parameter(Mandatory = $true)][string]$Version,
+    [string]$IdentityName = "MediaForge",
+    [string]$Publisher = "CN=MediaForge",
+    [string]$PublisherDisplayName = "MediaForge"
+)
+
+$ErrorActionPreference = "Stop"
+
+function Find-MakeAppx {
+    $candidates = Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\bin" -Recurse -Filter "MakeAppx.exe" -ErrorAction SilentlyContinue |
+        Sort-Object FullName -Descending
+    $candidates | Select-Object -First 1 -ExpandProperty FullName
+}
+
+if (-not (Test-Path $PublishDirectory)) {
+    throw "Publish directory not found: $PublishDirectory"
+}
+
+$makeAppx = Find-MakeAppx
+if (-not $makeAppx) {
+    throw "Windows SDK MakeAppx.exe was not found on this runner."
+}
+
+$stage = Join-Path $env:RUNNER_TEMP "MediaForgeMsixStage"
+if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
+New-Item -ItemType Directory -Force -Path $stage | Out-Null
+
+Copy-Item (Join-Path $PublishDirectory "*") $stage -Recurse -Force
+
+$branding = Join-Path $PublishDirectory "Assets\MediaForge.png"
+if (-not (Test-Path $branding)) {
+    throw "MediaForge branding asset was not published: $branding"
+}
+
+$assets = Join-Path $stage "Assets"
+New-Item -ItemType Directory -Force -Path $assets | Out-Null
+
+Copy-Item $branding (Join-Path $assets "Square44x44Logo.png") -Force
+Copy-Item $branding (Join-Path $assets "Square150x150Logo.png") -Force
+Copy-Item $branding (Join-Path $assets "StoreLogo.png") -Force
+
+$version4 = switch (($Version -split ".").Count) {
+    1 { "$Version.0.0.0" }
+    2 { "$Version.0.0" }
+    3 { "$Version.0" }
+    default { $Version }
+}
+
+$manifestTemplate = Join-Path $PSScriptRoot "Package.appxmanifest.template.xml"
+$manifestPath = Join-Path $stage "AppxManifest.xml"
+$manifest = Get-Content -Raw -Encoding UTF8 $manifestTemplate
+$manifest = $manifest.Replace("__IDENTITY_NAME__", $IdentityName)
+$manifest = $manifest.Replace("__PUBLISHER__", $Publisher)
+$manifest = $manifest.Replace("__PUBLISHER_DISPLAY_NAME__", $PublisherDisplayName)
+$manifest = $manifest.Replace("__VERSION__", $version4)
+Set-Content -Path $manifestPath -Value $manifest -Encoding UTF8
+
+New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
+$output = Join-Path $OutputDirectory "MediaForge.msix"
+if (Test-Path $output) { Remove-Item $output -Force }
+
+& $makeAppx pack /d $stage /p $output /o
+if ($LASTEXITCODE -ne 0) {
+    throw "MakeAppx failed with exit code $LASTEXITCODE."
+}
+
+Write-Host "Created MSIX: $output"
+Get-Item $output | Format-List FullName,Length
