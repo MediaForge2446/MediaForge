@@ -36,9 +36,9 @@ jobs:
       FFMPEG_URL: "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-11-13-20/ffmpeg-n9.0.1-29-gad500d59cb-win64-gpl-shared-9.0.zip"
       FFMPEG_ARCHIVE_NAME: "ffmpeg-n9.0.1-29-gad500d59cb-win64-gpl-shared-9.0.zip"
       FFMPEG_RELEASE_API: "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/tags/autobuild-2026-09-11-13-20"
-      MSIX_IDENTITY_NAME: \${{ vars.MEDIAFORGE_STORE_IDENTITY_NAME || 'MediaForge' }}
-      MSIX_PUBLISHER: \${{ vars.MEDIAFORGE_STORE_PUBLISHER || 'CN=MediaForge' }}
-      MSIX_PUBLISHER_DISPLAY_NAME: \${{ vars.MEDIAFORGE_STORE_PUBLISHER_DISPLAY_NAME || 'MediaForge' }}
+      MSIX_IDENTITY_NAME: ${{ vars.MEDIAFORGE_STORE_IDENTITY_NAME || 'MediaForge' }}
+      MSIX_PUBLISHER: ${{ vars.MEDIAFORGE_STORE_PUBLISHER || 'CN=MediaForge' }}
+      MSIX_PUBLISHER_DISPLAY_NAME: ${{ vars.MEDIAFORGE_STORE_PUBLISHER_DISPLAY_NAME || 'MediaForge' }}
 
     steps:
       - name: Checkout
@@ -48,10 +48,10 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          if ('\${{ github.event_name }}' -eq 'workflow_dispatch') {
-            $version = '\${{ github.event.inputs.version }}'
-          } elseif ('\${{ github.ref_type }}' -eq 'tag') {
-            $version = '\${{ github.ref_name }}'.TrimStart('v')
+          if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
+            $version = '${{ github.event.inputs.version }}'
+          } elseif ('${{ github.ref_type }}' -eq 'tag') {
+            $version = '${{ github.ref_name }}'.TrimStart('v')
           } else {
             $version = '0.2.0'
           }
@@ -125,7 +125,7 @@ jobs:
       - name: Build Microsoft Store MSIX
         shell: pwsh
         env:
-          VERSION: \${{ steps.version.outputs.version }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: powershell -NoProfile -ExecutionPolicy Bypass -File packaging\BuildStorePackage.ps1 -PublishDirectory "$env:GITHUB_WORKSPACE\publish" -OutputDirectory "$env:GITHUB_WORKSPACE\artifacts" -Version "$env:VERSION" -IdentityName "$env:MSIX_IDENTITY_NAME" -Publisher "$env:MSIX_PUBLISHER" -PublisherDisplayName "$env:MSIX_PUBLISHER_DISPLAY_NAME"
 
       - name: Validate MSIX package structure
