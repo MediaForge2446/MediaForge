@@ -101,10 +101,17 @@ jobs:
 
           Invoke-WebRequest -Uri $env:FFMPEG_URL -OutFile $archive
 
-          $release = Invoke-RestMethod -Uri $env:FFMPEG_RELEASE_API -Headers @{ 'Accept' = 'application/vnd.github+json' }
-          $asset = $release.assets | Where-Object { $_.name -eq $env:FFMPEG_ARCHIVE_NAME } | Select-Object -First 1
-          if (-not $asset) { throw "FFmpeg release asset '$env:FFMPEG_ARCHIVE_NAME' was not found." }
-          if (-not $asset.digest -or $asset.digest -notmatch '^sha256:([0-9a-fA-F]{64})$') { throw "FFmpeg release asset does not expose a SHA-256 digest." }
+          # Read the publisher's signed checksum manifest instead of the GitHub REST
+          # API. This avoids runner-side API rate limits while retaining SHA-256
+          # verification against the exact pinned release artifact.
+          $checksumUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/$env:FFMPEG_RELEASE/checksums.sha256"
+          $checksumText = (Invoke-WebRequest -Uri $checksumUrl -UseBasicParsing).Content
+          $checksumLine = $checksumText -split "\r?\n" |
+            Where-Object { $_ -match ("\s" + [regex]::Escape($env:FFMPEG_ARCHIVE_NAME) + "$") } |
+            Select-Object -First 1
+          if (-not $checksumLine -or $checksumLine -notmatch '^([0-9a-fA-F]{64})\s+') {
+            throw "FFmpeg checksum manifest does not contain '$env:FFMPEG_ARCHIVE_NAME'."
+          }
 
           $expected = $Matches[1].ToLowerInvariant()
           $actual = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
