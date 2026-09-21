@@ -2,11 +2,7 @@ param([string]$RepositoryRoot)
 $ErrorActionPreference = 'Stop'
 if ([string]::IsNullOrWhiteSpace($RepositoryRoot)) { $RepositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path }
 $targets = @(
-    @{ Source = 'installer/assets/MediaForge.ico.b64'; Dest = 'src/MediaForge.App/Assets/MediaForge.ico' },
-    @{ Source = 'installer/assets/MediaForge.png.b64'; Dest = 'src/MediaForge.App/Assets/MediaForge.png' },
-    @{ Source = 'installer/assets/MediaForge.ico.b64'; Dest = 'installer/assets/MediaForge.ico' },
-    @{ Source = 'installer/assets/MediaForge.png.b64'; Dest = 'installer/assets/MediaForge.png' },
-    @{ Source = 'installer/assets/WizardImage.png.b64'; Dest = 'installer/assets/WizardImage.png' }
+    @{ Source = 'installer/assets/MediaForge.png.b64'; Dest = 'src/MediaForge.App/Assets/MediaForge.png' }
 )
 foreach ($item in $targets) {
     $sourcePath = Join-Path $RepositoryRoot $item.Source
