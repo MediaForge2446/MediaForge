@@ -21,12 +21,20 @@
                            FontSize="27"
                            FontWeight="Bold"
                            Foreground="#15263D"/>
-                <TextBlock Text="{Binding CurrentPath}"
-                           Margin="0,5,0,0"
-                           FontSize="10.5"
-                           Foreground="#7C899A"
-                           TextTrimming="CharacterEllipsis"
-                           ToolTip="{Binding CurrentPath}"/>
+                <Border Margin="0,7,0,0"
+                        Padding="10,5"
+                        Background="#F7FAFD"
+                        BorderBrush="#E2E9F0"
+                        BorderThickness="1"
+                        CornerRadius="9"
+                        HorizontalAlignment="Right"
+                        MaxWidth="760">
+                    <TextBlock Text="{Binding CurrentPath}"
+                               FontSize="10"
+                               Foreground="#748297"
+                               TextTrimming="CharacterEllipsis"
+                               ToolTip="{Binding CurrentPath}"/>
+                </Border>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal"
@@ -256,7 +264,7 @@
                                        FontSize="18"
                                        FontWeight="SemiBold"
                                        Foreground="#1D2E47"/>
-                            <TextBlock Text="{Binding Entries.Count, StringFormat={}{0} פריטים}"
+                            <TextBlock Text="{Binding FilteredEntries.Count, StringFormat={}{0} פריטים}"
                                        Margin="0,3,0,0"
                                        FontSize="9.5"
                                        Foreground="#8A96A7"/>
@@ -445,27 +453,43 @@
                                 Background="#FBFCFE"
                                 CornerRadius="10">
                             <StackPanel HorizontalAlignment="Center"
-                                        VerticalAlignment="Center">
-                                <Border Width="66" Height="66"
-                                        CornerRadius="20"
-                                        Background="#EDF4FF">
-                                    <TextBlock Text="＋"
-                                               FontSize="27"
-                                               Foreground="{StaticResource MediaForgeAccentBrush}"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"/>
+                                        VerticalAlignment="Center"
+                                        MaxWidth="420">
+                                <Border Width="72" Height="72"
+                                        CornerRadius="22"
+                                        Background="#EDF4FF"
+                                        HorizontalAlignment="Center">
+                                    <Image Width="50"
+                                           Height="50"
+                                           Source="{StaticResource MediaForgeIconImage}"
+                                           Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="התיקייה ריקה"
-                                           Margin="0,12,0,0"
-                                           FontSize="16"
-                                           FontWeight="SemiBold"
+                                <TextBlock Text="התיקייה מוכנה"
+                                           Margin="0,15,0,0"
+                                           FontSize="18"
+                                           FontWeight="Bold"
                                            HorizontalAlignment="Center"
-                                           Foreground="#2B3A50"/>
-                                <TextBlock Text="הוסף תיקייה או מדיה כדי להתחיל"
-                                           Margin="0,5,0,0"
-                                           FontSize="10"
-                                           Foreground="#8794A6"
+                                           Foreground="#24344B"/>
+                                <TextBlock Text="התחל לבנות את מבנה המדיה שלך או הוסף שיר/playlist ישירות לתיקייה."
+                                           Margin="0,6,0,0"
+                                           FontSize="10.5"
+                                           Foreground="#7F8C9E"
+                                           TextAlignment="Center"
+                                           TextWrapping="Wrap"
                                            HorizontalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal"
+                                            HorizontalAlignment="Center"
+                                            Margin="0,18,0,0">
+                                    <Button Content="＋  הוסף תיקייה"
+                                            Click="AddFolderButton_OnClick"
+                                            MinWidth="132"
+                                            Style="{StaticResource MediaForgePrimaryButtonStyle}"/>
+                                    <Button Content="♫  הוסף מדיה"
+                                            Click="AddMediaButton_OnClick"
+                                            MinWidth="132"
+                                            Margin="8,0,0,0"
+                                            Style="{StaticResource MediaForgeSubtleButtonStyle}"/>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
 
