@@ -16,7 +16,7 @@
     <DisplayName>MediaForge</DisplayName>
     <PublisherDisplayName>__PUBLISHER_DISPLAY_NAME__</PublisherDisplayName>
     <Description>Manage, organize and download your media in one clean Windows workspace.</Description>
-    <Logo>AssetsSquare150x150Logo.png</Logo>
+    <Logo>Assets/Square150x150Logo.png</Logo>
   </Properties>
 
   <Resources>
@@ -46,12 +46,9 @@
         DisplayName="MediaForge"
         Description="Manage, organize and download your media in one clean Windows workspace."
         BackgroundColor="#07122D"
-        Square150x150Logo="AssetsSquare150x150Logo.png"
-        Square44x44Logo="AssetsSquare44x44Logo.png">
-        <uap:DefaultTile
-          Square150x150Logo="AssetsSquare150x150Logo.png"
-          Square44x44Logo="AssetsSquare44x44Logo.png" />
-      </uap:VisualElements>
+        Square150x150Logo="Assets/Square150x150Logo.png"
+        Square44x44Logo="Assets/Square44x44Logo.png"
+        AppListEntry="default" />
 
     </Application>
   </Applications>
