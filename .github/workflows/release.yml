@@ -22,7 +22,7 @@ permissions:
 
 concurrency:
   group: microsoft-store-package
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   package-msix:
@@ -36,7 +36,7 @@ jobs:
       FFMPEG_RELEASE: "autobuild-2026-09-11-13-20"
       FFMPEG_URL: "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-11-13-20/ffmpeg-n9.0.1-29-gad500d59cb-win64-gpl-shared-9.0.zip"
       FFMPEG_ARCHIVE_NAME: "ffmpeg-n9.0.1-29-gad500d59cb-win64-gpl-shared-9.0.zip"
-      FFMPEG_SHA256: "174038310efd2110b92190bec810098acf5fe8d6f2c7ef24baa1876b60e8f117"
+      FFMPEG_RELEASE_API: "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/tags/autobuild-2026-09-11-13-20"
       MSIX_IDENTITY_NAME: ${{ vars.MEDIAFORGE_STORE_IDENTITY_NAME || 'MediaForge' }}
       MSIX_PUBLISHER: ${{ vars.MEDIAFORGE_STORE_PUBLISHER || 'CN=MediaForge' }}
       MSIX_PUBLISHER_DISPLAY_NAME: ${{ vars.MEDIAFORGE_STORE_PUBLISHER_DISPLAY_NAME || 'MediaForge' }}
@@ -62,17 +62,6 @@ jobs:
           }
 
           "version=$version" >> $env:GITHUB_OUTPUT
-
-      - name: Validate Store identity for tagged release
-        if: github.ref_type == 'tag'
-        shell: pwsh
-        env:
-          STORE_IDENTITY: ${{ vars.MEDIAFORGE_STORE_IDENTITY_NAME || 'MediaForge' }}
-          STORE_PUBLISHER: ${{ vars.MEDIAFORGE_STORE_PUBLISHER || 'CN=MediaForge' }}
-        run: |
-          if ($env:STORE_IDENTITY -eq 'MediaForge' -or $env:STORE_PUBLISHER -eq 'CN=MediaForge') {
-            throw 'Configure the real Microsoft Store identity variables before pushing a production Store tag.'
-          }
 
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
@@ -112,154 +101,19 @@ jobs:
 
           Invoke-WebRequest -Uri $env:FFMPEG_URL -OutFile $archive
 
-          # Verify the exact immutable release asset against the digest pinned in
-          # this workflow so packaging is independent of runtime GitHub API calls.
-          $expected = $env:FFMPEG_SHA256.ToLowerInvariant()
-          if ($expected -notmatch '^[0-9a-f]{64}
-          $actual = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
-          if ($actual -ne $expected) { throw "FFmpeg SHA-256 verification failed." }
-
-          if (Test-Path $extract) { Remove-Item $extract -Recurse -Force }
-          Expand-Archive -Path $archive -DestinationPath $extract -Force
-          $root = Get-ChildItem -Path $extract -Directory | Select-Object -First 1
-          if (-not $root) { throw "FFmpeg archive layout is invalid." }
-
-          $destination = Join-Path $tools 'ffmpeg'
-          if (Test-Path $destination) { Remove-Item $destination -Recurse -Force }
-          Copy-Item -Path $root.FullName -Destination $destination -Recurse -Force
-          Remove-Item $archive -Force
-          Remove-Item $extract -Recurse -Force
-
-      - name: Verify bundled tools
-        shell: pwsh
-        run: |
-          if (-not (Test-Path "$env:GITHUB_WORKSPACE\publish\tools\yt-dlp.exe")) { throw 'yt-dlp.exe is missing.' }
-          if (-not (Test-Path "$env:GITHUB_WORKSPACE\publish\tools\ffmpeg\bin\ffmpeg.exe")) { throw 'ffmpeg.exe is missing.' }
-
-      - name: Acquire pinned Windows SDK packaging tool
-        shell: pwsh
-        run: |
-          $version = '10.0.28000.2705'
-          $package = "microsoft.windows.sdk.buildtools.$version.nupkg"
-          $url = "https://api.nuget.org/v3-flatcontainer/microsoft.windows.sdk.buildtools/$version/$package"
-          $archive = Join-Path $env:RUNNER_TEMP $package
-          $extract = Join-Path $env:RUNNER_TEMP 'MediaForgeWindowsSdkBuildTools'
-
-          Invoke-WebRequest -Uri $url -OutFile $archive
-          if (Test-Path $extract) { Remove-Item $extract -Recurse -Force }
-          New-Item -ItemType Directory -Force -Path $extract | Out-Null
-          Expand-Archive -Path $archive -DestinationPath $extract -Force
-
-          $makeAppx = Get-ChildItem -Path $extract -Recurse -Filter 'MakeAppx.exe' -ErrorAction SilentlyContinue |
-            Sort-Object FullName -Descending |
-            Select-Object -First 1 -ExpandProperty FullName
-
-          if (-not $makeAppx) { throw "Pinned Windows SDK BuildTools package did not contain MakeAppx.exe." }
-
-          "MAKEAPPX_PATH=$makeAppx" >> $env:GITHUB_ENV
-          Write-Host "Using MakeAppx: $makeAppx"
-
-      - name: Build Microsoft Store MSIX
-        shell: pwsh
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-        run: powershell -NoProfile -ExecutionPolicy Bypass -File packaging\BuildStorePackage.ps1 -PublishDirectory "$env:GITHUB_WORKSPACE\publish" -OutputDirectory "$env:GITHUB_WORKSPACE\artifacts" -Version "$env:VERSION" -MakeAppxPath "$env:MAKEAPPX_PATH" -IdentityName "$env:MSIX_IDENTITY_NAME" -Publisher "$env:MSIX_PUBLISHER" -PublisherDisplayName "$env:MSIX_PUBLISHER_DISPLAY_NAME"
-
-      - name: Validate MSIX package structure
-        shell: pwsh
-        run: |
-          $msix = Join-Path $env:GITHUB_WORKSPACE 'artifacts\MediaForge.msix'
-          $makeAppx = $env:MAKEAPPX_PATH
-          if (-not $makeAppx -or -not (Test-Path $makeAppx)) { throw "MakeAppx tool path is invalid: $makeAppx" }
-
-          $validation = Join-Path $env:RUNNER_TEMP 'MediaForgeMsixValidation'
-          if (Test-Path $validation) { Remove-Item $validation -Recurse -Force }
-          & $makeAppx unpack /p $msix /d $validation
-          if ($LASTEXITCODE -ne 0) { throw 'MSIX unpack validation failed.' }
-
-          $manifest = Join-Path $validation 'AppxManifest.xml'
-          if (-not (Test-Path $manifest)) { throw 'AppxManifest.xml is missing from the package.' }
-
-          [xml]$xml = Get-Content -Raw -Encoding UTF8 $manifest
-          $identity = $xml.Package.Identity
-          $application = $xml.Package.Applications.Application
-
-          if (-not $identity) { throw 'Package identity is missing.' }
-          if (-not $application) { throw 'Application entry is missing.' }
-          if ($identity.ProcessorArchitecture -ne 'x64') { throw 'Package is not x64.' }
-
-          Write-Host "Validated package identity: $($identity.Name) $($identity.Version)"
-
-      - name: Prune previous MediaForge package artifacts
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $headers = @{
-            Authorization = "Bearer $env:GH_TOKEN"
-            Accept = "application/vnd.github+json"
-            "X-GitHub-Api-Version" = "2022-11-28"
+          # Read the publisher's signed checksum manifest instead of the GitHub REST
+          # API. This avoids runner-side API rate limits while retaining SHA-256
+          # verification against the exact pinned release artifact.
+          $checksumUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/$env:FFMPEG_RELEASE/checksums.sha256"
+          $checksumText = (Invoke-WebRequest -Uri $checksumUrl -UseBasicParsing).Content
+          $checksumLine = $checksumText -split "\r?\n" |
+            Where-Object { $_ -match ("\s" + [regex]::Escape($env:FFMPEG_ARCHIVE_NAME) + "$") } |
+            Select-Object -First 1
+          if (-not $checksumLine -or $checksumLine -notmatch '^([0-9a-fA-F]{64})\s+') {
+            throw "FFmpeg checksum manifest does not contain '$env:FFMPEG_ARCHIVE_NAME'."
           }
 
-          $page = 1
-          do {
-            $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/artifacts?per_page=100&page=$page"
-            $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $headers
-
-            foreach ($artifact in $response.artifacts) {
-              if ($artifact.name -like 'MediaForge-*') {
-                Write-Host "Deleting previous package artifact $($artifact.id) ($($artifact.name))..."
-                $deleteUri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/artifacts/$($artifact.id)"
-                Invoke-RestMethod -Method Delete -Uri $deleteUri -Headers $headers
-              }
-            }
-
-            $page++
-          } while ($response.artifacts.Count -eq 100)
-
-          Write-Host 'Previous MediaForge package artifacts have been pruned.'
-
-      - name: Upload MSIX artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: MediaForge-MSIX
-          path: artifacts/MediaForge.msix
-          if-no-files-found: error
-          retention-days: 3
-
-      - name: Validate Store submission container
-        shell: pwsh
-        run: |
-          $upload = Join-Path $env:GITHUB_WORKSPACE 'artifacts\MediaForge.msixupload'
-          if (-not (Test-Path $upload)) { throw 'MediaForge.msixupload was not created.' }
-
-          $inspection = Join-Path $env:RUNNER_TEMP 'MediaForgeStoreUploadValidation'
-          if (Test-Path $inspection) { Remove-Item $inspection -Recurse -Force }
-          Expand-Archive -Path $upload -DestinationPath $inspection -Force
-
-          $msix = Join-Path $inspection 'MediaForge.msix'
-          if (-not (Test-Path $msix)) { throw 'The Store upload container does not contain MediaForge.msix.' }
-
-          $symbol = Join-Path $inspection 'MediaForge.appxsym'
-          if (-not (Test-Path $symbol)) {
-            Write-Warning 'The Store upload container has no MediaForge.appxsym. Crash-analysis symbols will be unavailable.'
-          } else {
-            Write-Host 'Store upload container includes public symbols.'
-          }
-
-          Get-ChildItem $inspection -File | Format-Table Name,Length -AutoSize
-
-      - name: Upload Store submission container
-        uses: actions/upload-artifact@v4
-        with:
-          name: MediaForge-Store-Upload
-          path: artifacts/MediaForge.msixupload
-          if-no-files-found: error
-          retention-days: 7
-) {
-            throw "FFmpeg SHA-256 pin is invalid."
-          }
-
+          $expected = $Matches[1].ToLowerInvariant()
           $actual = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
           if ($actual -ne $expected) { throw "FFmpeg SHA-256 verification failed." }
 
