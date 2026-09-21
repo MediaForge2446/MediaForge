@@ -43,6 +43,26 @@ New-Item -ItemType Directory -Force -Path $stage | Out-Null
 
 Copy-Item (Join-Path $PublishDirectory "*") $stage -Recurse -Force
 
+# FFmpeg's source/archive layout contains headers, import libraries and development
+# metadata that are not required at runtime. Keep only the executable DLL set and
+# license text to make the Store package materially smaller without changing the
+# runtime path expected by ManagedToolManager.
+$ffmpeg = Join-Path $stage "tools\ffmpeg"
+$ffmpegBin = Join-Path $ffmpeg "bin"
+if (-not (Test-Path (Join-Path $ffmpegBin "ffmpeg.exe"))) {
+    throw "Bundled FFmpeg runtime is missing ffmpeg.exe: $ffmpegBin"
+}
+
+Get-ChildItem -Path $ffmpeg -Directory -Force -ErrorAction SilentlyContinue |
+    Remove-Item -Recurse -Force
+
+Get-ChildItem -Path $ffmpegBin -File -Force -ErrorAction SilentlyContinue |
+    Where-Object {
+        $_.Name -in @("ffplay.exe", "ffprobe.exe") -or
+        $_.Extension -notin @(".exe", ".dll")
+    } |
+    Remove-Item -Force
+
 $branding = Join-Path $PublishDirectory "Assets\MediaForge.png"
 if (-not (Test-Path $branding)) {
     throw "MediaForge branding asset was not published: $branding"
