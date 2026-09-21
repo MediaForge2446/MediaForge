@@ -228,6 +228,30 @@
                 </StackPanel>
             </Border>
 
+            <Border Margin="0,16,0,0"
+                    Padding="20"
+                    Style="{StaticResource MediaForgeCardStyle}">
+                <Grid>
+                    <StackPanel HorizontalAlignment="Right">
+                        <TextBlock Text="מסמכים משפטיים"
+                                   Style="{StaticResource MediaForgeSectionTitleStyle}"/>
+                        <TextBlock Text="תנאי השימוש והסרת האחריות זמינים לעיון בכל עת."
+                                   Margin="0,6,0,0"
+                                   FontSize="10.5"
+                                   Foreground="#7C899B"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <Button Content="Terms of Service &amp; Disclaimer"
+                            Click="OpenTerms_Click"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            MinWidth="220"
+                            Style="{StaticResource MediaForgeSubtleButtonStyle}"
+                            AutomationProperties.Name="Terms of Service and Disclaimer"/>
+                </Grid>
+            </Border>
+
             <Button Content="←  חזרה לבית"
                     Command="{Binding DataContext.NavigateHomeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                     HorizontalAlignment="Right"
