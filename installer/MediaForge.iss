@@ -11,6 +11,7 @@
 AppId={{B4BDA0DA-5FE3-4A28-9B53-3E2CF8A6A9E7}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
+AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
@@ -25,13 +26,35 @@ OutputDir=output
 OutputBaseFilename=Setup
 Compression=lzma2/ultra64
 SolidCompression=yes
-WizardStyle=modern
+WizardStyle=modern windows11 dynamic includetitlebar
+WizardKeepAspectRatio=yes
+WizardSizePercent=100
+WizardImageFile=assets\WizardImage.png
+WizardImageBackColor=$07122D
+WizardSmallImageFile=assets\MediaForge.png
+WizardSmallImageBackColor=$07122D
+SetupIconFile=assets\MediaForge.ico
+DefaultDialogFontName=Segoe UI
 UninstallDisplayIcon={app}\{#MyAppExeName}
+VersionInfoVersion={#MyAppVersion}.0
+VersionInfoProductVersion={#MyAppVersion}
+VersionInfoDescription=MediaForge setup
+VersionInfoProductName=MediaForge
+VersionInfoCompany=MediaForge
+VersionInfoTextVersion={#MyAppVersion}
+VersionInfoCopyright=Copyright 2026 MediaForge
 AllowNoIcons=no
+SetupLogging=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "hebrew"; MessagesFile: "compiler:Languages\Hebrew.isl"
+
+[Messages]
+english.WelcomeLabel1=Welcome to MediaForge Setup
+english.WelcomeLabel2=Install MediaForge to download, convert and organize your media in one clean workspace.%n%nThe installation is designed to be quick, lightweight and easy to understand.
+hebrew.WelcomeLabel1=ברוכים הבאים להתקנת MediaForge
+hebrew.WelcomeLabel2=התקינו את MediaForge כדי להוריד, להמיר ולנהל את המדיה שלכם במקום אחד.%n%nההתקנה פשוטה, מהירה וברורה.
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: unchecked
