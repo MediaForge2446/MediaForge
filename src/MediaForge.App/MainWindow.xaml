@@ -4,7 +4,7 @@
         xmlns:vm="clr-namespace:MediaForge.App.ViewModels"
         xmlns:views="clr-namespace:MediaForge.App.Views"
         Title="MediaForge"
-        Icon="/MediaForge.App;component/Assets/MediaForge.ico"
+        Icon="{StaticResource MediaForgeIconImage}"
         Width="1480"
         Height="900"
         MinWidth="1120"
@@ -16,6 +16,57 @@
         FontSize="13">
 
     <Window.Resources>
+        <DrawingImage x:Key="MediaForgeIconImage">
+            <DrawingImage.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="#07122D">
+                        <GeometryDrawing.Geometry>
+                            <RectangleGeometry Rect="0,0,64,64" RadiusX="14" RadiusY="14"/>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                    <GeometryDrawing>
+                        <GeometryDrawing.Pen>
+                            <Pen Thickness="8" LineJoin="Round">
+                                <Pen.Brush>
+                                    <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                                        <GradientStop Color="#32E7F4" Offset="0"/>
+                                        <GradientStop Color="#2678FF" Offset="0.52"/>
+                                        <GradientStop Color="#B43CFF" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Pen.Brush>
+                            </Pen>
+                        </GeometryDrawing.Pen>
+                        <GeometryDrawing.Geometry>
+                            <PathGeometry>
+                                <PathFigure StartPoint="13,47">
+                                    <LineSegment Point="13,21"/>
+                                    <LineSegment Point="32,39"/>
+                                    <LineSegment Point="51,21"/>
+                                    <LineSegment Point="51,47"/>
+                                </PathFigure>
+                            </PathGeometry>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                    <GeometryDrawing>
+                        <GeometryDrawing.Brush>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#32E7F4" Offset="0"/>
+                                <GradientStop Color="#2E7BFF" Offset="0.55"/>
+                                <GradientStop Color="#B43CFF" Offset="1"/>
+                            </LinearGradientBrush>
+                        </GeometryDrawing.Brush>
+                        <GeometryDrawing.Geometry>
+                            <PathGeometry>
+                                <PathFigure StartPoint="26,39" IsClosed="True">
+                                    <LineSegment Point="26,50"/>
+                                    <LineSegment Point="40,44.5"/>
+                                </PathFigure>
+                            </PathGeometry>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
         <DataTemplate DataType="{x:Type vm:MainViewModel}">
             <views:LibraryPage/>
         </DataTemplate>
@@ -46,7 +97,7 @@
                                 HorizontalAlignment="Left">
                         <Image Width="34"
                                Height="34"
-                               Source="/MediaForge.App;component/Assets/MediaForge.png"
+                               Source="{StaticResource MediaForgeIconImage}"
                                Stretch="Uniform"/>
                         <StackPanel Margin="11,0,0,0"
                                     VerticalAlignment="Center">
