@@ -167,7 +167,7 @@ jobs:
         shell: pwsh
         env:
           VERSION: ${{ steps.version.outputs.version }}
-        run: powershell -NoProfile -ExecutionPolicy Bypass -File packaging\BuildStorePackage.ps1 -PublishDirectory "$env:GITHUB_WORKSPACE\publish" -OutputDirectory "$env:GITHUB_WORKSPACE\artifacts" -Version "$env:VERSION" -MakeAppxPath "$env:MAKEAPPX_PATH" -IdentityName "$env:MSIX_IDENTITY_NAME" -Publisher "$env:MSIX_PUBLISHER" -PublisherDisplayName "$env:MSIX_PUBLISHER_DISPLAY_NAME"
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File packaging\BuildStorePackage.ps1 -PublishDirectory "$env:GITHUB_WORKSPACE\publish" -OutputDirectory "$env:GITHUB_WORKSPACE\artifacts" -Version "$env:VERSION" -MakeAppxPath "$env:MAKEAPPX_PATH" -IdentityName "$env:MSIX_IDENTITY_NAME" -Publisher "$env:MSIX_PUBLISHER" -PublisherDisplayName "$env:MSIX_PUBLISHER_DISPLAY_NAME" -IncludeSymbols:$false
 
       - name: Validate MSIX package structure
         shell: pwsh
