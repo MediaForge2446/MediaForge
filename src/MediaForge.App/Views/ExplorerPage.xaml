@@ -523,12 +523,21 @@
                                    Foreground="#8D815F"/>
                     </StackPanel>
 
-                    <Button Content="שמור שינויים"
-                            Command="{Binding DataContext.SaveChangesCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                            IsEnabled="{Binding DataContext.HasPendingChanges, RelativeSource={RelativeSource AncestorType=Window}}"
-                            MinWidth="142"
-                            HorizontalAlignment="Left"
-                            Style="{StaticResource MediaForgePrimaryButtonStyle}"/>
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                        <Button Content="שמור שינויים"
+                                Command="{Binding DataContext.SaveChangesCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                IsEnabled="{Binding DataContext.HasPendingChanges, RelativeSource={RelativeSource AncestorType=Window}}"
+                                MinWidth="142"
+                                Style="{StaticResource MediaForgePrimaryButtonStyle}"/>
+                        <Button Content="בטל הכול"
+                                Command="{Binding DataContext.DiscardPendingChangesCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                IsEnabled="{Binding DataContext.HasPendingChanges, RelativeSource={RelativeSource AncestorType=Window}}"
+                                MinWidth="92"
+                                Margin="8,0,0,0"
+                                Style="{StaticResource MediaForgeSubtleButtonStyle}"/>
+                    </StackPanel>
                 </Grid>
 
                 <Grid Grid.Row="1">
