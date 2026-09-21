@@ -75,7 +75,11 @@ jobs:
         run: powershell -NoProfile -ExecutionPolicy Bypass -File build\PrepareBranding.ps1 -RepositoryRoot $env:GITHUB_WORKSPACE
 
       - name: Publish self-contained x64
-        run: dotnet publish src/MediaForge.App/MediaForge.App.csproj --configuration Release --runtime win-x64 --self-contained true --no-restore --output publish
+        shell: pwsh
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          dotnet publish src/MediaForge.App/MediaForge.App.csproj --configuration Release --runtime win-x64 --self-contained true --no-restore --output publish -p:Version=$env:VERSION -p:AssemblyVersion=$env:VERSION.0 -p:FileVersion=$env:VERSION.0 -p:InformationalVersion=$env:VERSION
 
       - name: Download and verify yt-dlp
         shell: pwsh
@@ -191,4 +195,26 @@ jobs:
           path: artifacts/MediaForge.msixupload
           if-no-files-found: error
           retention-days: 7
+
+      - name: Validate Store submission container
+        shell: pwsh
+        run: |
+          $upload = Join-Path $env:GITHUB_WORKSPACE 'artifacts\MediaForge.msixupload'
+          if (-not (Test-Path $upload)) { throw 'MediaForge.msixupload was not created.' }
+
+          $inspection = Join-Path $env:RUNNER_TEMP 'MediaForgeStoreUploadValidation'
+          if (Test-Path $inspection) { Remove-Item $inspection -Recurse -Force }
+          Expand-Archive -Path $upload -DestinationPath $inspection -Force
+
+          $msix = Join-Path $inspection 'MediaForge.msix'
+          if (-not (Test-Path $msix)) { throw 'The Store upload container does not contain MediaForge.msix.' }
+
+          $symbol = Join-Path $inspection 'MediaForge.appxsym'
+          if (-not (Test-Path $symbol)) {
+            Write-Warning 'The Store upload container has no MediaForge.appxsym. Crash-analysis symbols will be unavailable.'
+          } else {
+            Write-Host 'Store upload container includes public symbols.'
+          }
+
+          Get-ChildItem $inspection -File | Format-Table Name,Length -AutoSize
 
