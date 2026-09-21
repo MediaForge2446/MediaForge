@@ -279,7 +279,7 @@ public partial class ExplorerViewModel : ObservableObject
             Process.Start(new ProcessStartInfo
             {
                 FileName = "explorer.exe",
-                Arguments = $""{target}"",
+                Arguments = $"\"{target}\"",
                 UseShellExecute = true
             });
         }
