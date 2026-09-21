@@ -22,7 +22,7 @@ permissions:
 
 concurrency:
   group: microsoft-store-package
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   package-msix:
@@ -62,6 +62,17 @@ jobs:
           }
 
           "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Validate Store identity for tagged release
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        env:
+          STORE_IDENTITY: ${{ vars.MEDIAFORGE_STORE_IDENTITY_NAME || 'MediaForge' }}
+          STORE_PUBLISHER: ${{ vars.MEDIAFORGE_STORE_PUBLISHER || 'CN=MediaForge' }}
+        run: |
+          if ($env:STORE_IDENTITY -eq 'MediaForge' -or $env:STORE_PUBLISHER -eq 'CN=MediaForge') {
+            throw 'Configure the real Microsoft Store identity variables before pushing a production Store tag.'
+          }
 
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
