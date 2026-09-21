@@ -36,7 +36,7 @@ jobs:
       FFMPEG_RELEASE: "autobuild-2026-09-11-13-20"
       FFMPEG_URL: "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-11-13-20/ffmpeg-n9.0.1-29-gad500d59cb-win64-gpl-shared-9.0.zip"
       FFMPEG_ARCHIVE_NAME: "ffmpeg-n9.0.1-29-gad500d59cb-win64-gpl-shared-9.0.zip"
-      FFMPEG_RELEASE_API: "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/tags/autobuild-2026-09-11-13-20"
+      FFMPEG_SHA256: "174038310efd2110b92190bec810098acf5fe8d6f2c7ef24baa1876b60e8f117"
       MSIX_IDENTITY_NAME: ${{ vars.MEDIAFORGE_STORE_IDENTITY_NAME || 'MediaForge' }}
       MSIX_PUBLISHER: ${{ vars.MEDIAFORGE_STORE_PUBLISHER || 'CN=MediaForge' }}
       MSIX_PUBLISHER_DISPLAY_NAME: ${{ vars.MEDIAFORGE_STORE_PUBLISHER_DISPLAY_NAME || 'MediaForge' }}
