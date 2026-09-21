@@ -321,7 +321,7 @@
                                                         <Setter Property="Background" Value="#FFF3F5"/>
                                                         <Setter Property="BorderBrush" Value="#E2B4BC"/>
                                                     </DataTrigger>
-                                                </Style>
+                                                </Style.Triggers>
                                             </Style>
                                         </Border.Style>
 
