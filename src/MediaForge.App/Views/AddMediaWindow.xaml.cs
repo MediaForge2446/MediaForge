@@ -31,7 +31,7 @@ public partial class AddMediaWindow : Window
             if (System.Windows.Clipboard.ContainsText())
             {
                 _viewModel.SourceUrl = System.Windows.Clipboard.GetText().Trim();
-                _viewModel.StatusText = "הקישור הודבק — לחץ על "בדוק קישור"";
+                _viewModel.StatusText = "הקישור הודבק — לחץ על \"בדוק קישור\"";
             }
         }
         catch (System.Runtime.InteropServices.ExternalException)
