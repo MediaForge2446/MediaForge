@@ -24,6 +24,22 @@ public partial class AddMediaWindow : Window
         return Task.CompletedTask;
     }
 
+    private void PasteButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (System.Windows.Clipboard.ContainsText())
+            {
+                _viewModel.SourceUrl = System.Windows.Clipboard.GetText().Trim();
+                _viewModel.StatusText = "הקישור הודבק — לחץ על "בדוק קישור"";
+            }
+        }
+        catch (System.Runtime.InteropServices.ExternalException)
+        {
+            _viewModel.StatusText = "לא ניתן לקרוא כרגע מהלוח";
+        }
+    }
+
     private void CloseButton_OnClick(object sender, RoutedEventArgs e) => Close();
 
     protected override void OnClosed(EventArgs e)
