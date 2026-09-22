@@ -102,17 +102,17 @@
 
                         <ui:TextBox Text="{Binding SourceUrl, UpdateSourceTrigger=PropertyChanged}"
                                     PlaceholderText="{DynamicResource AddMedia_UrlPlaceholder}"
-                                    Icon="{ui:SymbolIcon Link24}"
+                                    Icon="{ui:SymbolIcon Search24}"
                                     Height="46"
                                     VerticalContentAlignment="Center"/>
 
                         <ui:Button Grid.Column="1"
-                                   Command="{Binding PasteCommand}"
+                                   Click="PasteButton_OnClick"
                                    Appearance="Secondary"
                                    Margin="8,0,0,0"
                                    ToolTip="{DynamicResource AddMedia_Paste}">
                             <ui:Button.Icon>
-                                <ui:SymbolIcon Symbol="Clipboard24"/>
+                                <ui:SymbolIcon Symbol="Document24"/>
                             </ui:Button.Icon>
                         </ui:Button>
 
