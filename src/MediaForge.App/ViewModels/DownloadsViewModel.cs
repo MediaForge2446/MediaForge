@@ -17,10 +17,12 @@ public partial class DownloadsViewModel : ObservableObject
     private readonly IFolderPicker _folderPicker;
     private readonly LocalizationService _localization;
     private readonly UserPreferencesService _preferences;
+    private readonly DownloadQueue _downloadQueue;
 
     [ObservableProperty] private string _sourceUrl = string.Empty;
     [ObservableProperty] private string _destinationDirectory = string.Empty;
     [ObservableProperty] private MediaFormat _selectedFormat = MediaFormat.Mp3;
+    [ObservableProperty] private MediaQuality _selectedQuality = MediaQuality.Standard128K;
     [ObservableProperty] private string _collectionTitle = string.Empty;
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string _statusText = string.Empty;
@@ -31,6 +33,9 @@ public partial class DownloadsViewModel : ObservableObject
 
     public IReadOnlyList<MediaFormat> Formats { get; } =
         [MediaFormat.Mp3, MediaFormat.Mp4, MediaFormat.Wav, MediaFormat.M4a];
+
+    public IReadOnlyList<MediaQuality> Qualities { get; } =
+        [MediaQuality.Standard128K, MediaQuality.High192K, MediaQuality.VeryHigh256K, MediaQuality.Maximum320K];
 
     public bool IsMp3Selected => SelectedFormat == MediaFormat.Mp3;
     public bool IsMp4Selected => SelectedFormat == MediaFormat.Mp4;
@@ -45,17 +50,21 @@ public partial class DownloadsViewModel : ObservableObject
     public int ActiveQueueCount => QueueItems.Count(x => x.IsActive);
     public int QueuedCount => QueueItems.Count(x => x.State is DownloadQueueState.Queued or DownloadQueueState.Retrying);
     public event Func<Task>? MediaStaged;
+    public event Func<Guid, Task>? RetryRequested;
+    public event Action<string>? LogRequested;
 
     public DownloadsViewModel(
         MediaImportService importService,
         IFolderPicker folderPicker,
         LocalizationService localization,
-        UserPreferencesService preferences)
+        UserPreferencesService preferences,
+        DownloadQueue? downloadQueue = null)
     {
         _importService = importService;
         _folderPicker = folderPicker;
         _localization = localization;
         _preferences = preferences ?? throw new ArgumentNullException(nameof(preferences));
+        _downloadQueue = downloadQueue ?? new DownloadQueue();
         _selectedFormat = _preferences.DefaultFormat;
         _localization.CultureChanged += OnCultureChanged;
         StatusText = _localization.Get("Downloads_PastePrompt");
@@ -80,6 +89,7 @@ public partial class DownloadsViewModel : ObservableObject
         CollectionTitle = string.Empty;
         PreviewItem = null;
         SelectedFormat = _preferences.DefaultFormat;
+        SelectedQuality = MediaQuality.Standard128K;
         StatusText = _localization.Get("Downloads_PastePrompt");
         UnsubscribeItems();
         Items.Clear();
@@ -123,6 +133,82 @@ public partial class DownloadsViewModel : ObservableObject
 
         item.ApplyProgress(progress);
         NotifyQueueState();
+    }
+
+    public IReadOnlyList<Guid> GetOrderedOperationIds()
+        => QueueItems
+            .Select(x => x.OperationId)
+            .ToArray();
+
+    public void MoveQueueItem(Guid operationId, int targetIndex)
+    {
+        var currentIndex = QueueItems
+            .Select((item, index) => (item, index))
+            .FirstOrDefault(x => x.item.OperationId == operationId)
+            .index;
+
+        var item = QueueItems.FirstOrDefault(x => x.OperationId == operationId);
+        if (item is null)
+            return;
+
+        targetIndex = Math.Clamp(targetIndex, 0, Math.Max(0, QueueItems.Count - 1));
+        if (currentIndex == targetIndex)
+            return;
+
+        QueueItems.Move(currentIndex, targetIndex);
+
+        for (var i = 0; i < QueueItems.Count; i++)
+            _downloadQueue.SetPriority(QueueItems[i].OperationId, QueueItems.Count - i);
+    }
+
+    [RelayCommand]
+    private void PauseQueueItem(DownloadQueueItemViewModel? item)
+    {
+        if (item is null || item.IsTerminal || item.State == DownloadQueueState.Paused)
+            return;
+
+        if (_downloadQueue.Pause(item.OperationId))
+            item.SetControlState(DownloadQueueState.Paused);
+    }
+
+    [RelayCommand]
+    private void ResumeQueueItem(DownloadQueueItemViewModel? item)
+    {
+        if (item is null || item.IsTerminal)
+            return;
+
+        if (_downloadQueue.Resume(item.OperationId))
+            item.SetControlState(DownloadQueueState.Queued);
+    }
+
+    [RelayCommand]
+    private void CancelQueueItem(DownloadQueueItemViewModel? item)
+    {
+        if (item is null || item.IsTerminal)
+            return;
+
+        if (_downloadQueue.Cancel(item.OperationId))
+            item.SetControlState(DownloadQueueState.Cancelled);
+    }
+
+    [RelayCommand]
+    private async Task RetryQueueItemAsync(DownloadQueueItemViewModel? item)
+    {
+        if (item is null || item.State != DownloadQueueState.Failed)
+            return;
+
+        _downloadQueue.PrepareForRetry(item.OperationId);
+        item.SetControlState(DownloadQueueState.Queued);
+
+        if (RetryRequested is { } handler)
+            await handler(item.OperationId).ConfigureAwait(true);
+    }
+
+    [RelayCommand]
+    private void ShowQueueLog(DownloadQueueItemViewModel? item)
+    {
+        if (item is not null)
+            LogRequested?.Invoke(item.LogText);
     }
 
     public void ApplyCommitResults(IEnumerable<CommitItemResult> results)
@@ -346,11 +432,11 @@ public partial class DownloadsViewModel : ObservableObject
                 selected,
                 DestinationDirectory,
                 SelectedFormat,
+                SelectedQuality,
                 cancellationToken).ConfigureAwait(true);
 
-            foreach (var operation in staged)
-            {
-                QueueItems.Add(DownloadQueueItemViewModel.FromStaging(
+                foreach (var operation in staged)
+            {                QueueItems.Add(DownloadQueueItemViewModel.FromStaging(
                     operation,
                     _localization));
             }
@@ -419,12 +505,16 @@ public partial class DownloadQueueItemViewModel : ObservableObject
     public string? ThumbnailUrl { get; }
     public string DestinationPath { get; }
     public MediaFormat Format { get; }
+    public MediaQuality Quality { get; }
 
     [ObservableProperty] private DownloadQueueState _state = DownloadQueueState.Queued;
     [ObservableProperty] private double _progressPercent;
     [ObservableProperty] private double? _speedBytesPerSecond;
     [ObservableProperty] private TimeSpan? _eta;
+    [ObservableProperty] private long? _downloadedBytes;
+    [ObservableProperty] private long? _totalBytes;
     [ObservableProperty] private string _errorMessage = string.Empty;
+    [ObservableProperty] private string _logText = string.Empty;
 
     public bool IsActive => State is DownloadQueueState.Downloading or DownloadQueueState.Retrying;
     public bool IsTerminal => State is DownloadQueueState.Completed or DownloadQueueState.Failed or DownloadQueueState.Cancelled;
@@ -435,6 +525,15 @@ public partial class DownloadQueueItemViewModel : ObservableObject
     public string EtaText => Eta is { } eta && eta.TotalSeconds >= 0
         ? FormatEta(eta)
         : "—";
+    public string SizeText => TotalBytes is { } total ? FormatBytes(total) : "—";
+    public string DownloadedSizeText => DownloadedBytes is { } value ? FormatBytes(value) : "—";
+    public string QualityText => Quality switch
+    {
+        MediaQuality.High192K => "192 kbps",
+        MediaQuality.VeryHigh256K => "256 kbps",
+        MediaQuality.Maximum320K => "320 kbps",
+        _ => "128 kbps"
+    };
 
     public DownloadQueueItemViewModel(
         Guid operationId,
@@ -443,6 +542,7 @@ public partial class DownloadQueueItemViewModel : ObservableObject
         string? thumbnailUrl,
         string destinationPath,
         MediaFormat format,
+        MediaQuality quality,
         LocalizationService localization)
     {
         OperationId = operationId;
@@ -453,6 +553,7 @@ public partial class DownloadQueueItemViewModel : ObservableObject
         ThumbnailUrl = thumbnailUrl;
         DestinationPath = destinationPath;
         Format = format;
+        Quality = quality;
         _localization = localization;
     }
 
@@ -470,6 +571,7 @@ public partial class DownloadQueueItemViewModel : ObservableObject
             payload.ThumbnailUrl,
             payload.DestinationPath ?? operation.Target,
             payload.DesiredFormat ?? MediaFormat.Mp3,
+            payload.DesiredQuality ?? MediaQuality.Standard128K,
             localization);
     }
 
@@ -478,6 +580,9 @@ public partial class DownloadQueueItemViewModel : ObservableObject
         ProgressPercent = Math.Clamp(progress.Percent, 0, 100);
         SpeedBytesPerSecond = progress.SpeedBytesPerSecond;
         Eta = progress.Eta;
+        DownloadedBytes = progress.DownloadedBytes;
+        TotalBytes = progress.TotalBytes;
+        AppendLog($"{DateTime.Now:T}  {progress.Status}  {ProgressPercent:0.0}%");
 
         State = progress.Status switch
         {
@@ -509,12 +614,33 @@ public partial class DownloadQueueItemViewModel : ObservableObject
 
         ProgressPercent = result.Success ? 100 : ProgressPercent;
         ErrorMessage = result.Error ?? string.Empty;
+        if (result.Error is not null)
+            AppendLog($"{DateTime.Now:T}  {result.Error}");
         NotifyDerivedProperties();
     }
 
     public void RefreshLocalizedState()
     {
         OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(QualityText));
+    }
+
+    public void SetControlState(DownloadQueueState state)
+    {
+        State = state;
+        if (state == DownloadQueueState.Paused)
+            AppendLog($"{DateTime.Now:T}  {_localization.Get("Queue_Paused")}");
+        NotifyDerivedProperties();
+    }
+
+    private void AppendLog(string line)
+    {
+        if (string.IsNullOrWhiteSpace(line))
+            return;
+
+        LogText = string.IsNullOrWhiteSpace(LogText)
+            ? line
+            : LogText + Environment.NewLine + line;
     }
 
     private void NotifyDerivedProperties()
@@ -524,6 +650,9 @@ public partial class DownloadQueueItemViewModel : ObservableObject
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(SpeedText));
         OnPropertyChanged(nameof(EtaText));
+        OnPropertyChanged(nameof(SizeText));
+        OnPropertyChanged(nameof(DownloadedSizeText));
+        OnPropertyChanged(nameof(QualityText));
     }
 
     private string GetLocalizedState() => State switch
@@ -555,6 +684,23 @@ public partial class DownloadQueueItemViewModel : ObservableObject
             return value.ToString(@"h:mm:ss");
 
         return value.ToString(@"mm:ss");
+    }
+
+    private static string FormatBytes(long bytes)
+    {
+        if (bytes < 1024)
+            return $"{bytes} B";
+
+        var value = bytes / 1024d;
+        if (value < 1024)
+            return $"{value:0.0} KiB";
+
+        value /= 1024d;
+        if (value < 1024)
+            return $"{value:0.0} MiB";
+
+        value /= 1024d;
+        return $"{value:0.00} GiB";
     }
 }
 
