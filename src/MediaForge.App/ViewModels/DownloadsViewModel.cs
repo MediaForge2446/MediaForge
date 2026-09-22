@@ -18,6 +18,7 @@ public partial class DownloadsViewModel : ObservableObject
     private readonly LocalizationService _localization;
     private readonly UserPreferencesService _preferences;
     private readonly DownloadQueue _downloadQueue;
+    private CancellationTokenSource? _autoResolveCts;
 
     [ObservableProperty] private string _sourceUrl = string.Empty;
     [ObservableProperty] private string _destinationDirectory = string.Empty;
@@ -326,6 +327,36 @@ public partial class DownloadsViewModel : ObservableObject
         }
     }
 
+    partial void OnSourceUrlChanged(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || IsBusy)
+            return;
+
+        _ = ScheduleAutoResolveAsync(value);
+    }
+
+    private async Task ScheduleAutoResolveAsync(string value)
+    {
+        _autoResolveCts?.Cancel();
+        _autoResolveCts?.Dispose();
+        _autoResolveCts = new CancellationTokenSource();
+        var token = _autoResolveCts.Token;
+
+        try
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(650), token).ConfigureAwait(true);
+
+            if (string.Equals(SourceUrl.Trim(), value.Trim(), StringComparison.Ordinal) &&
+                !IsBusy)
+            {
+                await ResolveAsync(token).ConfigureAwait(true);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
     partial void OnSelectedFormatChanged(MediaFormat value)
     {
         if (Enum.IsDefined(value))
@@ -416,7 +447,7 @@ public partial class DownloadsViewModel : ObservableObject
 
         var selected = Items
             .Where(x => x.IsSelected)
-            .Select(x => x.ToResolvedItem())
+            .Select(x => x.ToResolvedItem() with { DesiredQuality = SelectedQuality })
             .ToArray();
 
         if (selected.Length == 0)
