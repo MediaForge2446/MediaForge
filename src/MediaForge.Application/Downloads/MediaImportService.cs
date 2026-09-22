@@ -32,7 +32,7 @@ public sealed class MediaImportService
         IEnumerable<ResolvedMediaItem> items,
         string destinationDirectory,
         MediaFormat defaultFormat,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
         => StageDownloadsAsync(
             items,
             destinationDirectory,
