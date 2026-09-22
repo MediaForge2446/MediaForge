@@ -1,3 +1,4 @@
+using System.Collections;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -11,7 +12,7 @@ public sealed class LocalizationService : INotifyPropertyChanged
 {
     private const string SettingsDirectoryName = "MediaForge";
     private const string SettingsFileName = "locale.json";
-    private const string ResourcePrefix = "Languages.";
+    private const string ResourceFileName = "Languages.xaml";
 
     private static readonly Lazy<LocalizationService> LazyInstance = new(() => new LocalizationService());
 
@@ -109,29 +110,38 @@ public sealed class LocalizationService : INotifyPropertyChanged
         if (dictionaries is null)
             return;
 
+        var catalog = new ResourceDictionary
+        {
+            Source = new Uri(
+                $"pack://application:,,,/MediaForge;component/Localization/{ResourceFileName}",
+                UriKind.Absolute)
+        };
+
+        var english = catalog["en-US"] as ResourceDictionary;
+        var selected = catalog[_culture.Name] as ResourceDictionary;
+        var active = new ResourceDictionary();
+
+        CopyEntries(english, active);
+        if (selected is not null && !ReferenceEquals(selected, english))
+            CopyEntries(selected, active);
+
         for (var i = dictionaries.Count - 1; i >= 0; i--)
         {
             var source = dictionaries[i].Source?.OriginalString;
-            if (source is not null && source.Contains("/Localization/" + ResourcePrefix, StringComparison.OrdinalIgnoreCase))
+            if (source is not null && source.Contains("/Localization/" + ResourceFileName, StringComparison.OrdinalIgnoreCase))
                 dictionaries.RemoveAt(i);
         }
 
-        dictionaries.Add(new ResourceDictionary
-        {
-            Source = new Uri(
-                $"pack://application:,,,/MediaForge;component/Localization/{ResourcePrefix}en-US.xaml",
-                UriKind.Absolute)
-        });
+        dictionaries.Add(active);
+    }
 
-        if (!string.Equals(_culture.Name, "en-US", StringComparison.OrdinalIgnoreCase))
-        {
-            dictionaries.Add(new ResourceDictionary
-            {
-                Source = new Uri(
-                    $"pack://application:,,,/MediaForge;component/Localization/{ResourcePrefix}{_culture.Name}.xaml",
-                    UriKind.Absolute)
-            });
-        }
+    private static void CopyEntries(ResourceDictionary? source, ResourceDictionary target)
+    {
+        if (source is null)
+            return;
+
+        foreach (DictionaryEntry entry in source)
+            target[entry.Key] = entry.Value;
     }
 
     private static CultureInfo ResolveCulture(string? persisted)
