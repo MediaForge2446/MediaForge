@@ -28,6 +28,18 @@ public sealed class MediaImportService
     public Task<MediaResolveResult> ResolveAsync(string sourceUrl, CancellationToken cancellationToken = default)
         => _resolver.ResolveAsync(sourceUrl, cancellationToken);
 
+    public Task<IReadOnlyList<StagingOperation>> StageDownloadsAsync(
+        IEnumerable<ResolvedMediaItem> items,
+        string destinationDirectory,
+        MediaFormat defaultFormat,
+        CancellationToken cancellationToken = default)
+        => StageDownloadsAsync(
+            items,
+            destinationDirectory,
+            defaultFormat,
+            MediaQuality.Standard128K,
+            cancellationToken);
+
     public async Task<IReadOnlyList<StagingOperation>> StageDownloadsAsync(
         IEnumerable<ResolvedMediaItem> items,
         string destinationDirectory,
