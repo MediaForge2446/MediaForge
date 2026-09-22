@@ -32,6 +32,7 @@ public sealed class MediaImportService
         IEnumerable<ResolvedMediaItem> items,
         string destinationDirectory,
         MediaFormat defaultFormat,
+        MediaQuality defaultQuality = MediaQuality.Standard128K,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(items);
@@ -92,6 +93,7 @@ public sealed class MediaImportService
                     SourceUrl: item.SourceUrl,
                     DestinationPath: destinationPath,
                     DesiredFormat: format,
+                    DesiredQuality: Enum.IsDefined(item.DesiredQuality) ? item.DesiredQuality : defaultQuality,
                     VideoId: item.VideoId,
                     Title: item.Metadata.Title,
                     Artist: item.Metadata.Artist,
