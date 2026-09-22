@@ -188,7 +188,7 @@ public partial class MainViewModel : ObservableObject
             }
 
             var root = await _libraryService.AddRootFolderAsync(library, path, cancellationToken: cancellationToken).ConfigureAwait(true);
-            var vm = new RootFolderViewModel(root);
+            var vm = new RootFolderViewModel(root, _localization);
             RootFolders.Add(vm);
             await RefreshRootAsync(vm, cancellationToken).ConfigureAwait(true);
             OnPropertyChanged(nameof(HasLibrary));
@@ -311,6 +311,7 @@ public partial class MainViewModel : ObservableObject
         if (operationId is not Guid id || IsBusy) return;
         await _stagingService.UndoAsync(id, cancellationToken).ConfigureAwait(true);
         RefreshPendingCount();
+        Downloads.SyncFromStaging(_stagingService.Operations);
         await Explorer.ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
