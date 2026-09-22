@@ -128,6 +128,16 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void NavigateDownloads()
+    {
+        if (IsBusy) return;
+        ActiveSection = "downloads";
+        PageTitle = _localization.Get("Downloads_Title");
+        CurrentPage = Downloads;
+        StatusText = _localization.Get("Status_DownloadsDescription");
+    }
+
+    [RelayCommand]
     private void NavigateSettings()
     {
         if (IsBusy) return;
