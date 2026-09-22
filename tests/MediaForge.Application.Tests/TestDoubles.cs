@@ -79,7 +79,8 @@ internal sealed class FakeMediaDownloader : IMediaDownloader
         string outputPath,
         MediaFormat format,
         IProgress<DownloadProgress>? progress = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        MediaQuality quality = MediaQuality.Standard128K)
     {
         progress?.Report(new DownloadProgress(100, "Completed"));
         _fileSystem.AddFile(outputPath);

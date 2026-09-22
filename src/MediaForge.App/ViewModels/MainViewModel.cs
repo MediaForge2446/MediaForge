@@ -7,6 +7,7 @@ using MediaForge.Application.Commit;
 using MediaForge.Application.Library;
 using MediaForge.Application.Staging;
 using MediaForge.App.Services;
+using MediaForge.App.Localization;
 using MediaForge.Core.Models;
 
 namespace MediaForge.App.ViewModels;
@@ -18,11 +19,12 @@ public partial class MainViewModel : ObservableObject
     private readonly IFolderPicker _folderPicker;
     private readonly StagingService _stagingService;
     private readonly ICommitEngine _commitEngine;
+    private readonly LocalizationService _localization;
 
-    [ObservableProperty] private string _pageTitle = "הבית";
+    [ObservableProperty] private string _pageTitle = string.Empty;
     [ObservableProperty] private string _activeSection = "home";
     [ObservableProperty] private bool _isBusy;
-    [ObservableProperty] private string _statusText = "מוכן";
+    [ObservableProperty] private string _statusText = string.Empty;
     [ObservableProperty] private double _commitProgressPercent;
     [ObservableProperty] private string _commitProgressStatus = string.Empty;
     [ObservableProperty] private int _pendingCount;
@@ -44,35 +46,58 @@ public partial class MainViewModel : ObservableObject
         ICommitEngine commitEngine,
         ExplorerViewModel explorer,
         DownloadsViewModel downloads,
-        SettingsViewModel settings)
+        SettingsViewModel settings,
+        LocalizationService localization)
     {
         _libraryService = libraryService;
         _libraryScanService = libraryScanService;
         _folderPicker = folderPicker;
         _stagingService = stagingService;
         _commitEngine = commitEngine;
+        _localization = localization;
         Explorer = explorer;
         Downloads = downloads;
         Settings = settings;
         CurrentPage = this;
+        _localization.CultureChanged += OnCultureChanged;
+        ApplyHomeText();
 
         _stagingService.Changed += OnStagingChanged;
         Explorer.AddMediaRequested += OnAddMediaRequested;
+        Downloads.RetryRequested += RetryDownloadAsync;
     }
 
     private void OnAddMediaRequested(string path)
     {
         Downloads.PrepareForFolder(path);
-        StatusText = $"הוספת מדיה אל {path}";
+        StatusText = $"{_localization.Get("Status_AddMediaTo")} {path}";
+    }
+
+    private void OnCultureChanged(object? sender, EventArgs e)
+    {
+        if (ActiveSection == "home")
+            ApplyHomeText();
+        else if (ActiveSection == "settings")
+        {
+            PageTitle = _localization.Get("Settings_Title");
+            StatusText = _localization.Get("Settings_Description");
+        }
+    }
+
+    private void ApplyHomeText()
+    {
+        PageTitle = _localization.Get("Nav_Home");
+        StatusText = RootFolders.Count == 0
+            ? _localization.Get("Status_AddLibrary")
+            : _localization.Get("Status_ChooseLibrary");
     }
 
     [RelayCommand]
     private void NavigateHome()
     {
         ActiveSection = "home";
-        PageTitle = "הבית";
         CurrentPage = this;
-        StatusText = RootFolders.Count == 0 ? "הוסף תיקיית מקור ראשית כדי להתחיל" : "בחר תיקייה ראשית כדי לפתוח את סביבת העבודה";
+        ApplyHomeText();
     }
 
     public void NavigateHomeFromView() => NavigateHome();
@@ -87,7 +112,7 @@ public partial class MainViewModel : ObservableObject
             var first = RootFolders.FirstOrDefault();
             if (first is null)
             {
-                StatusText = "הוסף תיקייה ראשית כדי לפתוח את הסייר";
+                StatusText = _localization.Get("Status_AddLibrary");
                 return;
             }
 
@@ -98,9 +123,19 @@ public partial class MainViewModel : ObservableObject
         ActiveSection = "explorer";
         PageTitle = Path.GetFileName(Explorer.CurrentPath.TrimEnd(Path.DirectorySeparatorChar)) is { Length: > 0 } name
             ? name
-            : "סייר";
+            : _localization.Get("Nav_Explorer");
         CurrentPage = Explorer;
         StatusText = Explorer.CurrentPath;
+    }
+
+    [RelayCommand]
+    private void NavigateDownloads()
+    {
+        if (IsBusy) return;
+        ActiveSection = "downloads";
+        PageTitle = _localization.Get("Downloads_Title");
+        CurrentPage = Downloads;
+        StatusText = _localization.Get("Status_DownloadsDescription");
     }
 
     [RelayCommand]
@@ -108,28 +143,29 @@ public partial class MainViewModel : ObservableObject
     {
         if (IsBusy) return;
         ActiveSection = "settings";
-        PageTitle = "הגדרות";
+        PageTitle = _localization.Get("Settings_Title");
         CurrentPage = Settings;
-        StatusText = "ניהול כלים, איכות הורדה והעדפות MediaForge";
+        StatusText = _localization.Get("Settings_Description");
     }
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         IsBusy = true;
-        StatusText = "טוען את הספרייה…";
+        StatusText = _localization.Get("Status_LoadingLibrary");
         try
         {
             var library = await _libraryService.LoadAsync(cancellationToken).ConfigureAwait(true);
             RootFolders.Clear();
             foreach (var root in library.RootFolders)
-                RootFolders.Add(new RootFolderViewModel(root));
+                RootFolders.Add(new RootFolderViewModel(root, _localization));
 
             OnPropertyChanged(nameof(HasLibrary));
             await _stagingService.InitializeAsync(cancellationToken).ConfigureAwait(true);
             RefreshPendingCount();
+            Downloads.SyncFromStaging(_stagingService.Operations);
             CurrentPage = this;
             await RefreshLibraryCoreAsync(cancellationToken).ConfigureAwait(true);
-            StatusText = RootFolders.Count == 0 ? "הוסף תיקיית מקור ראשית כדי להתחיל" : "בחר תיקייה ראשית כדי להתחיל";
+            ApplyHomeText();
         }
         finally
         {
@@ -152,25 +188,25 @@ public partial class MainViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(path)) return;
 
         IsBusy = true;
-        StatusText = "מוסיף את התיקייה הראשית…";
+        StatusText = _localization.Get("Status_AddingLibrary");
         try
         {
             var library = await _libraryService.LoadAsync(cancellationToken).ConfigureAwait(true);
             if (library.RootFolders.Any(x => string.Equals(Path.GetFullPath(x.Path), Path.GetFullPath(path), StringComparison.OrdinalIgnoreCase)))
             {
-                StatusText = "התיקייה כבר קיימת בבית";
+                StatusText = _localization.Get("Status_DuplicateRoot");
                 return;
             }
 
             var root = await _libraryService.AddRootFolderAsync(library, path, cancellationToken: cancellationToken).ConfigureAwait(true);
-            var vm = new RootFolderViewModel(root);
+            var vm = new RootFolderViewModel(root, _localization);
             RootFolders.Add(vm);
             await RefreshRootAsync(vm, cancellationToken).ConfigureAwait(true);
             OnPropertyChanged(nameof(HasLibrary));
-            StatusText = "התיקייה הראשית נוספה";
+            StatusText = _localization.Get("Status_RootAdded");
         }
-        catch (OperationCanceledException) { StatusText = "הפעולה בוטלה"; }
-        catch (Exception ex) { StatusText = $"לא ניתן להוסיף את התיקייה: {ex.Message}"; }
+        catch (OperationCanceledException) { StatusText = _localization.Get("Status_Canceled"); }
+        catch (Exception ex) { StatusText = $"{_localization.Get("Status_AddLibraryFailed")}: {ex.Message}"; }
         finally { IsBusy = false; }
     }
 
@@ -202,15 +238,15 @@ public partial class MainViewModel : ObservableObject
     {
         if (IsBusy) return;
         IsBusy = true;
-        StatusText = "סורק מחדש…";
+        StatusText = _localization.Get("Status_Scanning");
         try
         {
             await RefreshLibraryCoreAsync(cancellationToken).ConfigureAwait(true);
             await Explorer.ReloadAsync(cancellationToken).ConfigureAwait(true);
-            StatusText = "הספרייה עודכנה";
+            StatusText = _localization.Get("Status_LibraryUpdated");
         }
-        catch (OperationCanceledException) { StatusText = "הסריקה בוטלה"; }
-        catch (Exception ex) { StatusText = $"הסריקה נכשלה: {ex.Message}"; }
+        catch (OperationCanceledException) { StatusText = _localization.Get("Status_Canceled"); }
+        catch (Exception ex) { StatusText = $"{_localization.Get("Status_ScanFailed")}: {ex.Message}"; }
         finally { IsBusy = false; }
     }
 
@@ -219,32 +255,97 @@ public partial class MainViewModel : ObservableObject
     {
         if (IsBusy || !HasPendingChanges) return;
         IsBusy = true;
-        StatusText = "שומר שינויים בדיסק…";
+        StatusText = _localization.Get("Status_SaveChanges");
         try
         {
-            var operations = _stagingService.Operations.ToArray();
+            var order = Downloads.GetOrderedOperationIds()
+                .Select((id, index) => (id, index))
+                .ToDictionary(x => x.id, x => x.index);
+
+            var operations = _stagingService.Operations
+                .OrderBy(x => order.TryGetValue(x.OperationId, out var index) ? index : int.MaxValue)
+                .ToArray();
             CommitProgressPercent = 0;
-            CommitProgressStatus = "מכין את השינויים…";
+            CommitProgressStatus = _localization.Get("Status_SavePreparing");
 
             var progress = new Progress<CommitProgress>(value =>
             {
                 CommitProgressPercent = Math.Clamp(value.Percent, 0, 100);
                 CommitProgressStatus = value.Status;
-                StatusText = value.Percent >= 100 ? "מאמת שינויים…" : $"{value.Status} · {value.Percent:0}%";
+                Downloads.ApplyCommitProgress(value);
+                Explorer.ApplyCommitProgress(value);
+                StatusText = value.Percent >= 100 ? _localization.Get("Status_VerifyingChanges") : $"{value.Status} · {value.Percent:0}%";
             });
 
             var result = await _commitEngine.CommitAsync(operations, progress, cancellationToken).ConfigureAwait(true);
             var successful = result.Items.Where(x => x.Success).Select(x => x.OperationId).ToArray();
             var failed = result.Items.Where(x => !x.Success).Select(x => x.OperationId).ToArray();
             await Explorer.ApplyCommitResultsAsync(successful, failed, cancellationToken).ConfigureAwait(true);
+            Downloads.ApplyCommitResults(result.Items);
             RefreshPendingCount();
-            StatusText = result.Success ? "כל השינויים נשמרו ואומתו" : $"השמירה הסתיימה עם {failed.Length} שגיאות";
+            Downloads.SyncFromStaging(_stagingService.Operations);
+            StatusText = result.Success ? _localization.Get("Status_ChangesSaved") : $"{_localization.Get("Status_SaveFailed")}: {failed.Length}";
             await Explorer.ReloadAsync(cancellationToken).ConfigureAwait(true);
             await RefreshLibraryCoreAsync(cancellationToken).ConfigureAwait(true);
         }
-        catch (OperationCanceledException) { StatusText = "השמירה בוטלה — שינויים שלא הושלמו נשארו ממתינים"; }
-        catch (Exception ex) { StatusText = $"השמירה נכשלה: {ex.Message}"; }
+        catch (OperationCanceledException) { StatusText = _localization.Get("Status_SaveCanceled"); }
+        catch (Exception ex) { StatusText = $"{_localization.Get("Status_SaveFailed")}: {ex.Message}"; }
         finally { IsBusy = false; }
+    }
+
+    private async Task RetryDownloadAsync(Guid operationId)
+    {
+        if (IsBusy)
+            return;
+
+        var operation = _stagingService.Operations
+            .FirstOrDefault(x => x.OperationId == operationId && x.OperationType == MediaForge.Core.Enums.OperationType.Download);
+
+        if (operation is null)
+            return;
+
+        IsBusy = true;
+        StatusText = _localization.Get("Queue_Retrying");
+
+        try
+        {
+            var progress = new Progress<CommitProgress>(value =>
+            {
+                CommitProgressPercent = Math.Clamp(value.Percent, 0, 100);
+                CommitProgressStatus = value.Status;
+                Downloads.ApplyCommitProgress(value);
+            });
+
+            var result = await _commitEngine
+                .CommitAsync(new[] { operation }, progress, CancellationToken.None)
+                .ConfigureAwait(true);
+
+            Downloads.ApplyCommitResults(result.Items);
+            RefreshPendingCount();
+            Downloads.SyncFromStaging(_stagingService.Operations);
+
+            if (result.Success)
+            {
+                await Explorer.ApplyCommitResultsAsync([operationId], [], CancellationToken.None).ConfigureAwait(true);
+                await Explorer.ReloadAsync(CancellationToken.None).ConfigureAwait(true);
+                await RefreshLibraryCoreAsync(CancellationToken.None).ConfigureAwait(true);
+                StatusText = _localization.Get("Status_ChangesSaved");
+            }
+            else
+            {
+                StatusText = result.Items.FirstOrDefault()?.Error
+                    ?? _localization.Get("Status_SaveFailed");
+            }
+        }
+        catch (Exception ex)
+        {
+            Downloads.ApplyCommitResults([new CommitItemResult(operationId, false, ex.Message)]);
+            StatusText = $"{_localization.Get("Status_SaveFailed")}: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
@@ -254,21 +355,22 @@ public partial class MainViewModel : ObservableObject
             return;
 
         IsBusy = true;
-        StatusText = "מבטל את כל השינויים הממתינים…";
+        StatusText = _localization.Get("Status_Discarding");
         try
         {
             await _stagingService.ClearAsync(cancellationToken).ConfigureAwait(true);
             RefreshPendingCount();
+            Downloads.SyncFromStaging(_stagingService.Operations);
             await Explorer.RefreshFromStagingAsync(cancellationToken).ConfigureAwait(true);
-            StatusText = "כל השינויים הממתינים בוטלו";
+            StatusText = _localization.Get("Status_Discarded");
         }
         catch (OperationCanceledException)
         {
-            StatusText = "הפעולה בוטלה";
+            StatusText = _localization.Get("Status_Canceled");
         }
         catch (Exception ex)
         {
-            StatusText = $"לא ניתן לבטל את השינויים: {ex.Message}";
+            StatusText = $"{_localization.Get("Status_DiscardFailed")}: {ex.Message}";
         }
         finally
         {
@@ -282,6 +384,7 @@ public partial class MainViewModel : ObservableObject
         if (operationId is not Guid id || IsBusy) return;
         await _stagingService.UndoAsync(id, cancellationToken).ConfigureAwait(true);
         RefreshPendingCount();
+        Downloads.SyncFromStaging(_stagingService.Operations);
         await Explorer.ReloadAsync(cancellationToken).ConfigureAwait(true);
     }
 
@@ -314,12 +417,13 @@ public partial class MainViewModel : ObservableObject
         try
         {
             RefreshPendingCount();
+            Downloads.SyncFromStaging(_stagingService.Operations);
             if (ActiveSection == "explorer" && !string.IsNullOrWhiteSpace(Explorer.CurrentPath))
                 await Explorer.RefreshFromStagingAsync().ConfigureAwait(true);
         }
         catch (Exception ex)
         {
-            StatusText = $"רענון השינויים נכשל: {ex.Message}";
+            StatusText = $"{_localization.Get("Status_RefreshFailed")}: {ex.Message}";
         }
     }
 }
@@ -327,19 +431,54 @@ public partial class MainViewModel : ObservableObject
 public sealed partial class RootFolderViewModel : ObservableObject
 {
     private readonly RootFolder _model;
+    private readonly LocalizationService _localization;
+    private LibraryScanResult? _lastScan;
     [ObservableProperty] private bool _exists;
     [ObservableProperty] private int _folderCount;
     [ObservableProperty] private int _fileCount;
     [ObservableProperty] private int _mediaCount;
     [ObservableProperty] private string _totalSizeText = "0 B";
-    [ObservableProperty] private string _scanStatus = "לא נבדק";
+    [ObservableProperty] private string _scanStatus = string.Empty;
     [ObservableProperty] private string _scanSummary = string.Empty;
 
     public Guid Id => _model.Id;
     public string Name => _model.Name;
     public string Path => _model.Path;
     public string DisplayPath => _model.Path;
-    public RootFolderViewModel(RootFolder model) => _model = model;
+    public RootFolderViewModel(RootFolder model, LocalizationService localization)
+    {
+        _model = model;
+        _localization = localization;
+        _localization.CultureChanged += OnCultureChanged;
+        UpdateScanText(null);
+    }
+
+    private void OnCultureChanged(object? sender, EventArgs e) => UpdateScanText(_lastScan);
+
+    private void UpdateScanText(LibraryScanResult? scan)
+    {
+        _lastScan = scan;
+        if (scan is null)
+        {
+            ScanStatus = _localization.Get("Status_NotChecked");
+            ScanSummary = string.Empty;
+            return;
+        }
+
+        ScanStatus = scan.Exists
+            ? _localization.Get("Status_Synced")
+            : _localization.Get("Status_RootMissing");
+
+        ScanSummary = scan.Exists
+            ? string.Format(
+                _localization.CurrentCulture,
+                "{0} media · {1} files · {2} folders · {3}",
+                scan.MediaCount,
+                scan.FileCount,
+                scan.FolderCount,
+                scan.TotalSizeText)
+            : _localization.Get("Status_CheckPath");
+    }
 
     public void ApplyScan(LibraryScanResult scan)
     {
@@ -348,9 +487,6 @@ public sealed partial class RootFolderViewModel : ObservableObject
         FileCount = scan.FileCount;
         MediaCount = scan.MediaCount;
         TotalSizeText = scan.TotalSizeText;
-        ScanStatus = scan.Exists ? "מחובר ומסונכרן" : "התיקייה לא נמצאה";
-        ScanSummary = scan.Exists
-            ? $"{scan.MediaCount} מדיה · {scan.FileCount} קבצים · {scan.FolderCount} תיקיות · {scan.TotalSizeText}"
-            : "בדוק את הנתיב או חבר את הכונן";
+        UpdateScanText(scan);
     }
 }

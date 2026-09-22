@@ -8,6 +8,7 @@ using MediaForge.Application.Downloads;
 using MediaForge.Application.Library;
 using MediaForge.Application.Staging;
 using MediaForge.App.Services;
+using MediaForge.App.Localization;
 using MediaForge.App.ViewModels;
 using MediaForge.App.Views;
 using MediaForge.Core.Interfaces;
@@ -25,6 +26,9 @@ public partial class App : System.Windows.Application
     {
         base.OnStartup(e);
         DispatcherUnhandledException += OnDispatcherUnhandledException;
+        LocalizationService.Instance.Initialize();
+        var preferences = new UserPreferencesService();
+        preferences.Initialize();
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
         try
@@ -75,9 +79,19 @@ public partial class App : System.Windows.Application
                 stagingService,
                 mediaIndex,
                 fileSystem);
-            var explorerViewModel = new ExplorerViewModel(explorerService, stagingService);
-            var downloadsViewModel = new DownloadsViewModel(mediaImportService, folderPicker);
-            var settingsViewModel = new SettingsViewModel(toolManager);
+            var explorerViewModel = new ExplorerViewModel(explorerService, stagingService, mediaIndex);
+            var updateService = new GitHubAppUpdateService();
+            var downloadsViewModel = new DownloadsViewModel(
+                mediaImportService,
+                folderPicker,
+                LocalizationService.Instance,
+                preferences,
+                downloadQueue);
+            var settingsViewModel = new SettingsViewModel(
+                toolManager,
+                LocalizationService.Instance,
+                preferences,
+                updateService);
             var mainViewModel = new MainViewModel(
                 libraryService,
                 libraryScanService,
@@ -86,12 +100,15 @@ public partial class App : System.Windows.Application
                 commitEngine,
                 explorerViewModel,
                 downloadsViewModel,
-                settingsViewModel);
+                settingsViewModel,
+                LocalizationService.Instance);
 
             var window = new MainWindow(mainViewModel);
             MainWindow = window;
             window.Show();
             await mainViewModel.InitializeAsync();
+
+            _ = settingsViewModel.CheckForUpdatesInBackgroundAsync();
         }
         catch (Exception ex)
         {

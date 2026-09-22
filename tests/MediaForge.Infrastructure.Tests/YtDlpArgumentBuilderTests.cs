@@ -31,6 +31,25 @@ public sealed class YtDlpArgumentBuilderTests
         Assert.Equal(YtDlpArgumentBuilder.DefaultMp3AudioQuality, args[qualityIndex + 1]);
     }
 
+    [Theory]
+    [InlineData(MediaQuality.Standard128K, "128K")]
+    [InlineData(MediaQuality.High192K, "192K")]
+    [InlineData(MediaQuality.VeryHigh256K, "256K")]
+    [InlineData(MediaQuality.Maximum320K, "320K")]
+    public void Mp3MapsQualityToRequestedBitrate(MediaQuality quality, string bitrate)
+    {
+        var args = YtDlpArgumentBuilder.Build(
+            @"C:\temp\song.tmp",
+            @"C:\tools\ffmpeg.exe",
+            MediaFormat.Mp3,
+            quality);
+
+        var qualityIndex = Array.IndexOf(args.ToArray(), "--audio-quality");
+
+        Assert.True(qualityIndex >= 0);
+        Assert.Equal(bitrate, args[qualityIndex + 1]);
+    }
+
     [Fact]
     public void Mp4UsesMp4VideoAndMerge()
     {

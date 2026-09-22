@@ -99,6 +99,17 @@ public sealed class CommitEngine : ICommitEngine
 
             var videoId = operation.Payload?.VideoId;
             var format = operation.Payload?.DesiredFormat;
+            var fileInfo = new FileInfo(outputPath);
+            progress?.Report(new CommitProgress(
+                result.OperationId,
+                100,
+                "Completed",
+                true,
+                null,
+                TimeSpan.Zero,
+                fileInfo.Length,
+                fileInfo.Length));
+
             if (_mediaIndex is not null && !string.IsNullOrWhiteSpace(videoId) && format is not null)
             {
                 await _mediaIndex.UpsertAsync(
@@ -108,7 +119,10 @@ public sealed class CommitEngine : ICommitEngine
                         outputPath,
                         format.Value,
                         operation.CreatedAt,
-                        DateTimeOffset.UtcNow),
+                        DateTimeOffset.UtcNow,
+                        operation.Payload?.Title,
+                        operation.Payload?.Artist,
+                        operation.Payload?.ThumbnailUrl),
                     cancellationToken).ConfigureAwait(false);
             }
 

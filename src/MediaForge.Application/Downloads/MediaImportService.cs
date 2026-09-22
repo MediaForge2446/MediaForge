@@ -28,10 +28,23 @@ public sealed class MediaImportService
     public Task<MediaResolveResult> ResolveAsync(string sourceUrl, CancellationToken cancellationToken = default)
         => _resolver.ResolveAsync(sourceUrl, cancellationToken);
 
+    public Task<IReadOnlyList<StagingOperation>> StageDownloadsAsync(
+        IEnumerable<ResolvedMediaItem> items,
+        string destinationDirectory,
+        MediaFormat defaultFormat,
+        CancellationToken cancellationToken)
+        => StageDownloadsAsync(
+            items,
+            destinationDirectory,
+            defaultFormat,
+            MediaQuality.Standard128K,
+            cancellationToken);
+
     public async Task<IReadOnlyList<StagingOperation>> StageDownloadsAsync(
         IEnumerable<ResolvedMediaItem> items,
         string destinationDirectory,
         MediaFormat defaultFormat,
+        MediaQuality defaultQuality = MediaQuality.Standard128K,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(items);
@@ -92,7 +105,11 @@ public sealed class MediaImportService
                     SourceUrl: item.SourceUrl,
                     DestinationPath: destinationPath,
                     DesiredFormat: format,
-                    VideoId: item.VideoId)));
+                    DesiredQuality: Enum.IsDefined(item.DesiredQuality) ? item.DesiredQuality : defaultQuality,
+                    VideoId: item.VideoId,
+                    Title: item.Metadata.Title,
+                    Artist: item.Metadata.Artist,
+                    ThumbnailUrl: item.Metadata.ThumbnailUrl)));
         }
 
         if (staged.Count == 0)

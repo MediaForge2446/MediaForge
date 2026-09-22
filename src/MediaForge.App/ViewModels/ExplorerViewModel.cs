@@ -15,6 +15,7 @@ public partial class ExplorerViewModel : ObservableObject
     private readonly IExplorerService _explorer;
     private readonly Application.Abstractions.IStagingService _staging;
     private readonly ExplorerProjectionService _projection;
+    private readonly IMediaIndex? _mediaIndex;
     private readonly HashSet<Guid> _failedOperationIds = [];
     private readonly Stack<string> _backHistory = [];
     private readonly Stack<string> _forwardHistory = [];
@@ -72,10 +73,15 @@ public partial class ExplorerViewModel : ObservableObject
 
     public event Action<string>? AddMediaRequested;
 
-    public ExplorerViewModel(IExplorerService explorer, Application.Abstractions.IStagingService staging, ExplorerProjectionService? projection = null)
+    public ExplorerViewModel(
+        IExplorerService explorer,
+        Application.Abstractions.IStagingService staging,
+        IMediaIndex? mediaIndex = null,
+        ExplorerProjectionService? projection = null)
     {
         _explorer = explorer;
         _staging = staging;
+        _mediaIndex = mediaIndex;
         _projection = projection ?? new ExplorerProjectionService();
     }
 
@@ -107,7 +113,22 @@ public partial class ExplorerViewModel : ObservableObject
             foreach (var item in projected)
             {
                 var isError = item.PendingOperationId is Guid operationId && _failedOperationIds.Contains(operationId);
-                Entries.Add(new ExplorerEntryViewModel(item.Entry, item.IsPending, item.PendingOperationId, isError) { MarkedForDeletion = item.MarkedForDeletion });
+                var pendingOperation = item.PendingOperationId is Guid pendingId
+                    ? _staging.Operations.FirstOrDefault(x => x.OperationId == pendingId)
+                    : null;
+                var indexed = _mediaIndex?.Entries.FirstOrDefault(x =>
+                    string.Equals(x.PhysicalPath, item.Entry.FullPath, StringComparison.OrdinalIgnoreCase));
+
+                Entries.Add(new ExplorerEntryViewModel(
+                    item.Entry,
+                    item.IsPending,
+                    item.PendingOperationId,
+                    isError,
+                    indexed,
+                    pendingOperation)
+                {
+                    MarkedForDeletion = item.MarkedForDeletion
+                });
             }
 
             OnPropertyChanged(nameof(HasEntries));
@@ -233,6 +254,13 @@ public partial class ExplorerViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(CurrentPath) || IsBusy) return;
         AddMediaRequested?.Invoke(CurrentPath);
+    }
+
+    public void ApplyCommitProgress(CommitProgress progress)
+    {
+        var operationId = progress.OperationId;
+        var entry = Entries.FirstOrDefault(x => x.PendingOperationId == operationId);
+        entry?.ApplyProgress(progress);
     }
 
     public async Task ApplyCommitResultsAsync(IEnumerable<Guid> successfulOperationIds, IEnumerable<Guid> failedOperationIds, CancellationToken cancellationToken = default)
@@ -445,15 +473,46 @@ public sealed partial class ExplorerEntryViewModel : ObservableObject
     public bool IsPending { get; }
     public Guid? PendingOperationId { get; }
     public bool IsError { get; }
+    public string? ThumbnailUrl { get; }
+    public string? MediaTitle { get; }
+    public string? MediaArtist { get; }
 
     [ObservableProperty] private bool _markedForDeletion;
+    [ObservableProperty] private double _progressPercent;
+    [ObservableProperty] private double? _speedBytesPerSecond;
+    [ObservableProperty] private TimeSpan? _eta;
+    [ObservableProperty] private string _errorMessage = string.Empty;
 
     public DateTimeOffset LastModifiedUtc { get; }
     public string KindText => IsDirectory ? "תיקייה" : "קובץ";
     public string SizeText => IsDirectory ? "—" : FormatBytes(Size);
-    public string StatusText => IsError ? "השינוי נכשל" : MarkedForDeletion ? "מחיקה ממתינה" : IsPending ? "שינוי ממתין" : "מסונכרן";
+    public string StatusText => IsError
+        ? "השינוי נכשל"
+        : MarkedForDeletion
+            ? "מחיקה ממתינה"
+            : IsPending
+                ? "שינוי ממתין"
+                : "מסונכרן";
+    public string SpeedText => SpeedBytesPerSecond is { } speed && speed > 0
+        ? FormatSpeed(speed)
+        : "—";
+    public string EtaText => Eta is { } eta && eta.TotalSeconds >= 0
+        ? eta.ToString(eta.TotalHours >= 1 ? @"h:mm:ss" : @"mm:ss")
+        : "—";
+    public bool HasProgress => IsPending && ProgressPercent > 0 && !IsDirectory;
+    public bool IsMedia => !IsDirectory && (
+        FullPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase) ||
+        FullPath.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) ||
+        FullPath.EndsWith(".wav", StringComparison.OrdinalIgnoreCase) ||
+        FullPath.EndsWith(".m4a", StringComparison.OrdinalIgnoreCase));
 
-    public ExplorerEntryViewModel(ExplorerEntry entry, bool isPending, Guid? pendingOperationId, bool isError = false)
+    public ExplorerEntryViewModel(
+        ExplorerEntry entry,
+        bool isPending,
+        Guid? pendingOperationId,
+        bool isError = false,
+        MediaIndexEntry? indexed = null,
+        StagingOperation? pendingOperation = null)
     {
         Name = entry.Name;
         FullPath = entry.FullPath;
@@ -463,9 +522,41 @@ public sealed partial class ExplorerEntryViewModel : ObservableObject
         PendingOperationId = pendingOperationId;
         IsError = isError;
         LastModifiedUtc = entry.LastModifiedUtc;
+
+        ThumbnailUrl = pendingOperation?.Payload?.ThumbnailUrl ?? indexed?.ThumbnailUrl;
+        MediaTitle = pendingOperation?.Payload?.Title ?? indexed?.Title;
+        MediaArtist = pendingOperation?.Payload?.Artist ?? indexed?.Artist;
+        _errorMessage = isError ? "השינוי נכשל" : string.Empty;
+    }
+
+    public void ApplyProgress(CommitProgress progress)
+    {
+        if (PendingOperationId != progress.OperationId)
+            return;
+
+        ProgressPercent = Math.Clamp(progress.Percent, 0, 100);
+        SpeedBytesPerSecond = progress.SpeedBytesPerSecond;
+        Eta = progress.Eta;
+
+        if (progress.IsTerminal && progress.Percent <= 0)
+            ErrorMessage = progress.Status;
+
+        OnPropertyChanged(nameof(HasProgress));
+        OnPropertyChanged(nameof(SpeedText));
+        OnPropertyChanged(nameof(EtaText));
     }
 
     partial void OnMarkedForDeletionChanged(bool value) => OnPropertyChanged(nameof(StatusText));
+
+    private static string FormatSpeed(double bytesPerSecond)
+    {
+        if (bytesPerSecond < 1024)
+            return $"{bytesPerSecond:0} B/s";
+        var value = bytesPerSecond / 1024d;
+        if (value < 1024)
+            return $"{value:0.0} KB/s";
+        return $"{value / 1024d:0.0} MB/s";
+    }
 
     private static string FormatBytes(long bytes)
     {

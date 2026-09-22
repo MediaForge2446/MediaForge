@@ -10,5 +10,9 @@ public sealed record StagingPayload(
     string? NewName = null,
     bool Recursive = false,
     MediaFormat? DesiredFormat = null,
+    MediaQuality? DesiredQuality = null,
     string? VideoId = null,
-    bool? IsDirectory = null);
+    bool? IsDirectory = null,
+    string? Title = null,
+    string? Artist = null,
+    string? ThumbnailUrl = null);

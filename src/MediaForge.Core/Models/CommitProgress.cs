@@ -4,4 +4,8 @@ public sealed record CommitProgress(
     Guid OperationId,
     double Percent,
     string Status,
-    bool IsTerminal = false);
+    bool IsTerminal = false,
+    double? SpeedBytesPerSecond = null,
+    TimeSpan? Eta = null,
+    long? DownloadedBytes = null,
+    long? TotalBytes = null);

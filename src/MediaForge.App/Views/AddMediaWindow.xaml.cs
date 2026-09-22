@@ -1,17 +1,23 @@
 using System;
 using System.Windows;
+using MediaForge.App.Localization;
 using MediaForge.App.ViewModels;
+using Wpf.Ui.Controls;
 
 namespace MediaForge.App.Views;
 
-public partial class AddMediaWindow : Window
+public partial class AddMediaWindow : FluentWindow
 {
     private readonly DownloadsViewModel _viewModel;
+    private readonly LocalizationService _localization;
 
     public AddMediaWindow(DownloadsViewModel viewModel)
     {
         _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+        _localization = LocalizationService.Instance;
+
         InitializeComponent();
+        _localization.ApplyToWindow(this);
         DataContext = viewModel;
         _viewModel.MediaStaged += OnMediaStagedAsync;
     }
@@ -28,15 +34,15 @@ public partial class AddMediaWindow : Window
     {
         try
         {
-            if (System.Windows.Clipboard.ContainsText())
-            {
-                _viewModel.SourceUrl = System.Windows.Clipboard.GetText().Trim();
-                _viewModel.StatusText = "הקישור הודבק — לחץ על \"בדוק קישור\"";
-            }
+            if (!System.Windows.Clipboard.ContainsText())
+                return;
+
+            _viewModel.SourceUrl = System.Windows.Clipboard.GetText().Trim();
+            _viewModel.StatusText = _localization.Get("AddMedia_PasteReady");
         }
         catch (System.Runtime.InteropServices.ExternalException)
         {
-            _viewModel.StatusText = "לא ניתן לקרוא כרגע מהלוח";
+            _viewModel.StatusText = _localization.Get("AddMedia_ClipboardUnavailable");
         }
     }
 

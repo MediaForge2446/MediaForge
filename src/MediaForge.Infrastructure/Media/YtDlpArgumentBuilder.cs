@@ -8,7 +8,7 @@ public static class YtDlpArgumentBuilder
     // Balanced default for everyday listening: good enough quality while keeping MP3 files compact.
     public const string DefaultMp3AudioQuality = "128K";
 
-    public static IReadOnlyList<string> Build(string outputPath, string ffmpegPath, MediaFormat format)
+    public static IReadOnlyList<string> Build(string outputPath, string ffmpegPath, MediaFormat format, MediaQuality quality = MediaQuality.Standard128K)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
         ArgumentException.ThrowIfNullOrWhiteSpace(ffmpegPath);
@@ -16,6 +16,7 @@ public static class YtDlpArgumentBuilder
         var arguments = new List<string>
         {
             "--newline",
+            "--continue",
             "--no-playlist",
             "--no-warnings",
             "--ffmpeg-location", ffmpegPath
@@ -35,7 +36,16 @@ public static class YtDlpArgumentBuilder
                     _ => "m4a"
                 });
                 arguments.Add("--audio-quality");
-                arguments.Add(format == MediaFormat.Mp3 ? DefaultMp3AudioQuality : "0");
+                arguments.Add(format == MediaFormat.Mp3
+                    ? quality switch
+                    {
+                        MediaQuality.Standard128K => "128K",
+                        MediaQuality.High192K => "192K",
+                        MediaQuality.VeryHigh256K => "256K",
+                        MediaQuality.Maximum320K => "320K",
+                        _ => DefaultMp3AudioQuality
+                    }
+                    : "0");
                 if (format is MediaFormat.Mp3 or MediaFormat.M4a)
                 {
                     arguments.Add("--embed-thumbnail");
