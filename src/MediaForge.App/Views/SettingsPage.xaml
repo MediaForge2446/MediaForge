@@ -1,22 +1,22 @@
 <UserControl x:Class="MediaForge.App.Views.SettingsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             FlowDirection="RightToLeft"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              Background="Transparent">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="42,34,42,34">
+        <StackPanel Margin="34">
 
             <StackPanel HorizontalAlignment="Right">
-                <TextBlock Text="הגדרות"
+                <TextBlock Text="{DynamicResource Settings_Title}"
                            FontSize="30"
-                           FontWeight="Bold"
-                           Foreground="#15253B"/>
-                <TextBlock Text="פשוט, שקט ומוכן לעבודה."
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                <TextBlock Text="{DynamicResource App_Tagline}"
                            Margin="0,6,0,0"
-                           FontSize="12.5"
-                           Foreground="#778499"/>
+                           FontSize="12"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
             </StackPanel>
 
             <Grid Margin="0,22,0,0">
@@ -26,220 +26,86 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0"
-                        Padding="20"
-                        Style="{StaticResource MediaForgeCardStyle}">
+                <ui:Card Grid.Column="0" Padding="20">
                     <StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="46"
-                                    Height="46"
-                                    CornerRadius="14"
-                                    Background="#0B1833">
-                                <Image Width="38"
-                                       Height="38"
-                                       Source="{StaticResource MediaForgeIconImage}"
-                                       Stretch="Uniform"/>
-                            </Border>
-                            <StackPanel Margin="12,0,0,0"
-                                        VerticalAlignment="Center">
-                                <TextBlock Text="MediaForge"
-                                           FontSize="18"
-                                           FontWeight="SemiBold"
-                                           Foreground="#1D2C42"/>
-                                <TextBlock Text="סביבת עבודה לניהול המדיה שלך"
-                                           Margin="0,3,0,0"
-                                           FontSize="10"
-                                           Foreground="#8592A4"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <Border Margin="0,20,0,0"
-                                Padding="14"
-                                Background="#F2F8F5"
-                                BorderBrush="#D4EBDD"
-                                BorderThickness="1"
-                                CornerRadius="12">
-                            <StackPanel Orientation="Horizontal">
-                                <Ellipse Width="8"
-                                         Height="8"
-                                         Fill="{StaticResource MediaForgeSuccessBrush}"
-                                         VerticalAlignment="Center"/>
-                                <StackPanel Margin="9,0,0,0">
-                                    <TextBlock Text="עדכונים מנוהלים דרך Microsoft Store"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#286E50"/>
-                                    <TextBlock Text="אין צורך להוריד מתקינים חדשים או לחפש גרסאות ידנית."
-                                               Margin="0,4,0,0"
-                                               FontSize="9.5"
-                                               Foreground="#6D877B"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
-
-                        <TextBlock Text="מסלול הפצה יחיד"
+                        <TextBlock Text="{DynamicResource Settings_Appearance}"
+                                   FontSize="17"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="{DynamicResource Settings_Language}"
                                    Margin="0,18,0,0"
-                                   FontSize="10"
-                                   FontWeight="SemiBold"
-                                   Foreground="#718096"/>
-                        <TextBlock Text="Microsoft Store"
-                                   Margin="0,4,0,0"
-                                   FontSize="13"
-                                   FontWeight="SemiBold"
-                                   Foreground="#25354C"/>
+                                   FontSize="12"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="{DynamicResource Settings_LanguageDescription}"
+                                   Margin="0,5,0,8"
+                                   FontSize="10.5"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="Wrap"/>
+                        <ComboBox ItemsSource="{Binding LanguageOptions}"
+                                  SelectedItem="{Binding SelectedLanguage}"
+                                  DisplayMemberPath="DisplayName"
+                                  Height="42"
+                                  AutomationProperties.Name="{DynamicResource Settings_Language}"/>
                     </StackPanel>
-                </Border>
+                </ui:Card>
 
-                <Border Grid.Column="2"
-                        Padding="20"
-                        Style="{StaticResource MediaForgeCardStyle}">
+                <ui:Card Grid.Column="2" Padding="20">
                     <StackPanel>
-                        <TextBlock Text="איכות מדיה"
-                                   Style="{StaticResource MediaForgeSectionTitleStyle}"/>
-                        <TextBlock Text="MediaForge נבנה להאזנה יומיומית טובה בלי לבזבז נפח מיותר."
+                        <TextBlock Text="{DynamicResource Settings_Tools}"
+                                   FontSize="17"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="{DynamicResource Settings_ToolsDescription}"
                                    Margin="0,6,0,0"
                                    FontSize="10.5"
-                                   Foreground="#7C899B"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                    TextWrapping="Wrap"/>
-
-                        <Border Margin="0,18,0,8"
-                                Padding="14"
-                                Background="#F1F6FF"
-                                BorderBrush="#D8E5FB"
-                                BorderThickness="1"
-                                CornerRadius="12">
-                            <Grid>
-                                <StackPanel HorizontalAlignment="Right">
-                                    <TextBlock Text="MP3"
-                                               FontSize="14"
-                                               FontWeight="SemiBold"
-                                               Foreground="#245EA7"/>
-                                    <TextBlock Text="128 kbps · Stereo"
-                                               Margin="0,3,0,0"
-                                               FontSize="10"
-                                               Foreground="#7087A6"/>
-                                </StackPanel>
-                                <Border HorizontalAlignment="Left"
-                                        Background="#E4EEFF"
-                                        CornerRadius="9"
-                                        Padding="8,4">
-                                    <TextBlock Text="ברירת מחדל"
-                                               FontSize="9"
-                                               FontWeight="SemiBold"
-                                               Foreground="#356AAE"/>
-                                </Border>
-                            </Grid>
-                        </Border>
-
-                        <TextBlock Text="היתרון"
-                                   Margin="0,10,0,0"
-                                   FontSize="10"
-                                   FontWeight="SemiBold"
-                                   Foreground="#718096"/>
-                        <TextBlock Text="קבצים קומפקטיים שמתאימים לאחסון ספריית מוזיקה גדולה."
-                                   Margin="0,4,0,0"
-                                   FontSize="10.5"
-                                   Foreground="#69788D"
+                        <TextBlock Text="{Binding ToolStatus}"
+                                   Margin="0,18,0,0"
+                                   FontSize="11"
                                    TextWrapping="Wrap"/>
+                        <ui:Button Content="{DynamicResource Settings_Tools}"
+                                   Command="{Binding VerifyToolsCommand}"
+                                   IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanNotConverter}}"
+                                   Appearance="Primary"
+                                   Height="40"
+                                   Margin="0,12,0,0"/>
+                        <TextBlock Text="{Binding YtDlpPath}"
+                                   Margin="0,14,0,0"
+                                   FontSize="9"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   TextTrimming="CharacterEllipsis"
+                                   ToolTip="{Binding YtDlpPath}"/>
+                        <TextBlock Text="{Binding FfmpegPath}"
+                                   Margin="0,5,0,0"
+                                   FontSize="9"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   TextTrimming="CharacterEllipsis"
+                                   ToolTip="{Binding FfmpegPath}"/>
                     </StackPanel>
-                </Border>
+                </ui:Card>
             </Grid>
 
-            <Border Margin="0,16,0,0"
-                    Padding="20"
-                    Style="{StaticResource MediaForgeCardStyle}">
+            <ui:Card Margin="0,16,0,0" Padding="20">
                 <StackPanel>
-                    <TextBlock Text="תחזוקה שקטה"
-                               Style="{StaticResource MediaForgeSectionTitleStyle}"/>
-                    <TextBlock Text="MediaForge מטפל ברכיבי ההורדה מאחורי הקלעים כדי שהמשתמש יוכל להתמקד בספרייה."
+                    <TextBlock Text="{DynamicResource Settings_DefaultFormat}"
+                               FontSize="17"
+                               FontWeight="SemiBold"/>
+                    <TextBlock Text="{DynamicResource Settings_DefaultFormatDescription}"
                                Margin="0,6,0,0"
                                FontSize="10.5"
-                               Foreground="#7C899B"
-                               TextWrapping="Wrap"/>
-
-                    <UniformGrid Columns="3"
-                                 Margin="0,16,0,0">
-                        <Border Margin="0,0,7,0"
-                                Padding="14"
-                                Background="#F7FAFD"
-                                CornerRadius="11">
-                            <StackPanel>
-                                <TextBlock Text="✓"
-                                           FontSize="16"
-                                           FontWeight="Bold"
-                                           Foreground="{StaticResource MediaForgeSuccessBrush}"/>
-                                <TextBlock Text="שמירה אטומית"
-                                           Margin="0,5,0,0"
-                                           FontSize="10.5"
-                                           FontWeight="SemiBold"
-                                           Foreground="#34445B"/>
-                                <TextBlock Text="מצב הספרייה נשמר בצורה בטוחה."
-                                           Margin="0,3,0,0"
-                                           FontSize="9"
-                                           Foreground="#8490A2"
-                                           TextWrapping="Wrap"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Margin="4,0"
-                                Padding="14"
-                                Background="#F7FAFD"
-                                CornerRadius="11">
-                            <StackPanel>
-                                <TextBlock Text="✓"
-                                           FontSize="16"
-                                           FontWeight="Bold"
-                                           Foreground="{StaticResource MediaForgeSuccessBrush}"/>
-                                <TextBlock Text="Staging"
-                                           Margin="0,5,0,0"
-                                           FontSize="10.5"
-                                           FontWeight="SemiBold"
-                                           Foreground="#34445B"/>
-                                <TextBlock Text="שינויים נשארים בטיוטה עד שמירה."
-                                           Margin="0,3,0,0"
-                                           FontSize="9"
-                                           Foreground="#8490A2"
-                                           TextWrapping="Wrap"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Margin="7,0,0,0"
-                                Padding="14"
-                                Background="#F7FAFD"
-                                CornerRadius="11">
-                            <StackPanel>
-                                <TextBlock Text="✓"
-                                           FontSize="16"
-                                           FontWeight="Bold"
-                                           Foreground="{StaticResource MediaForgeSuccessBrush}"/>
-                                <TextBlock Text="הורדות ברקע"
-                                           Margin="0,5,0,0"
-                                           FontSize="10.5"
-                                           FontWeight="SemiBold"
-                                           Foreground="#34445B"/>
-                                <TextBlock Text="ה־UI נשאר זמין בזמן העבודה."
-                                           Margin="0,3,0,0"
-                                           FontSize="9"
-                                           Foreground="#8490A2"
-                                           TextWrapping="Wrap"/>
-                            </StackPanel>
-                        </Border>
-                    </UniformGrid>
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
                 </StackPanel>
-            </Border>
+            </ui:Card>
 
-            <Border Margin="0,16,0,0"
-                    Padding="20"
-                    Style="{StaticResource MediaForgeCardStyle}">
+            <ui:Card Margin="0,16,0,0" Padding="20">
                 <Grid>
                     <StackPanel HorizontalAlignment="Right">
-                        <TextBlock Text="מסמכים משפטיים"
-                                   Style="{StaticResource MediaForgeSectionTitleStyle}"/>
-                        <TextBlock Text="תנאי השימוש והסרת האחריות זמינים לעיון בכל עת."
+                        <TextBlock Text="{DynamicResource Settings_About}"
+                                   FontSize="17"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="{DynamicResource App_Title}"
                                    Margin="0,6,0,0"
                                    FontSize="10.5"
-                                   Foreground="#7C899B"
-                                   TextWrapping="Wrap"/>
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
                     </StackPanel>
 
                     <Button Content="Terms of Service &amp; Disclaimer"
@@ -247,17 +113,16 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             MinWidth="220"
-                            Style="{StaticResource MediaForgeSubtleButtonStyle}"
                             AutomationProperties.Name="Terms of Service and Disclaimer"/>
                 </Grid>
-            </Border>
+            </ui:Card>
 
-            <Button Content="←  חזרה לבית"
-                    Command="{Binding DataContext.NavigateHomeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                    HorizontalAlignment="Right"
-                    Margin="0,16,0,0"
-                    MinWidth="130"
-                    Style="{StaticResource MediaForgeSubtleButtonStyle}"/>
+            <ui:Button Content="{DynamicResource Nav_Home}"
+                       Command="{Binding DataContext.NavigateHomeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                       HorizontalAlignment="Right"
+                       Margin="0,16,0,0"
+                       MinWidth="130"
+                       Height="40"/>
         </StackPanel>
     </ScrollViewer>
 </UserControl>
