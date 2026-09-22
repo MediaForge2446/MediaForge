@@ -1,7 +1,6 @@
 <UserControl x:Class="MediaForge.App.Views.DownloadsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             FlowDirection="RightToLeft"
              Background="Transparent">
     <UserControl.Resources>
         <Style x:Key="DownloadComboStyle" TargetType="ComboBox" BasedOn="{StaticResource MediaForgeComboStyle}">
