@@ -1,3 +1,4 @@
+; MediaForge standard Windows installer for WinGet/GitHub Releases.
 #define MyAppName "MediaForge"
 #define MyAppPublisher "MediaForge"
 #define MyAppURL "https://github.com/MediaForge2446/MediaForge"
