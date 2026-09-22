@@ -352,6 +352,7 @@ public sealed partial class RootFolderViewModel : ObservableObject
 {
     private readonly RootFolder _model;
     private readonly LocalizationService _localization;
+    private LibraryScanResult? _lastScan;
     [ObservableProperty] private bool _exists;
     [ObservableProperty] private int _folderCount;
     [ObservableProperty] private int _fileCount;
@@ -372,13 +373,15 @@ public sealed partial class RootFolderViewModel : ObservableObject
         UpdateScanText(null);
     }
 
-    private void OnCultureChanged(object? sender, EventArgs e) => UpdateScanText(null);
+    private void OnCultureChanged(object? sender, EventArgs e) => UpdateScanText(_lastScan);
 
     private void UpdateScanText(LibraryScanResult? scan)
     {
+        _lastScan = scan;
         if (scan is null)
         {
             ScanStatus = _localization.Get("Status_NotChecked");
+            ScanSummary = string.Empty;
             return;
         }
 
