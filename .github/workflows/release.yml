@@ -160,13 +160,15 @@ jobs:
         run: |
           $candidates = @(
             "$env:ProgramFiles\Inno Setup 7\ISCC.exe",
-            "${env:ProgramFiles(x86)}\Inno Setup 7\ISCC.exe"
+            "${env:ProgramFiles(x86)}\Inno Setup 7\ISCC.exe",
+            "$env:LOCALAPPDATA\Programs\Inno Setup 7\ISCC.exe",
+            "$env:LOCALAPPDATA\Inno Setup 7\ISCC.exe"
           )
 
-          $iscc = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          $iscc = $candidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+
           if (-not $iscc) {
-            $iscc = (Get-ChildItem -Path "$env:ProgramFiles", "${env:ProgramFiles(x86)}" -Recurse -Filter ISCC.exe -ErrorAction SilentlyContinue |
-              Select-Object -First 1 -ExpandProperty FullName)
+            $iscc = (& where.exe ISCC.exe 2>$null | Select-Object -First 1)
           }
 
           if (-not $iscc -or -not (Test-Path $iscc)) {
