@@ -32,7 +32,7 @@
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Root" Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}"/>
-                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentControlFillColorSecondaryBrush}"/>
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentFillColorSecondaryBrush}"/>
                                 <Setter Property="Foreground" Value="White"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
