@@ -50,7 +50,7 @@ public sealed class LocalizationService : INotifyPropertyChanged
     public IReadOnlyList<LanguageOption> SupportedLanguages => Supported;
     public CultureInfo CurrentCulture => _culture;
     public bool IsRtl => IsRtlCulture(_culture);
-    public FlowDirection CurrentFlowDirection => IsRtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+    public System.Windows.FlowDirection CurrentFlowDirection => IsRtl ? System.Windows.FlowDirection.RightToLeft : System.Windows.FlowDirection.LeftToRight;
 
     public void Initialize()
     {
