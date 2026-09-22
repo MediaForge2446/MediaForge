@@ -489,6 +489,7 @@ public enum DownloadQueueState
 {
     Queued,
     Downloading,
+    Paused,
     Retrying,
     Completed,
     Failed,
