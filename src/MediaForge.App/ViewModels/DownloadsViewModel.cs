@@ -15,6 +15,7 @@ public partial class DownloadsViewModel : ObservableObject
     private readonly MediaImportService _importService;
     private readonly IFolderPicker _folderPicker;
     private readonly LocalizationService _localization;
+    private readonly UserPreferencesService _preferences;
 
     [ObservableProperty] private string _sourceUrl = string.Empty;
     [ObservableProperty] private string _destinationDirectory = string.Empty;
@@ -22,6 +23,7 @@ public partial class DownloadsViewModel : ObservableObject
     [ObservableProperty] private string _collectionTitle = string.Empty;
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string _statusText = string.Empty;
+    [ObservableProperty] private ResolvedMediaItemViewModel? _previewItem;
 
     public ObservableCollection<ResolvedMediaItemViewModel> Items { get; } = [];
     public ObservableCollection<DownloadQueueItemViewModel> QueueItems { get; } = [];
@@ -41,11 +43,14 @@ public partial class DownloadsViewModel : ObservableObject
     public DownloadsViewModel(
         MediaImportService importService,
         IFolderPicker folderPicker,
-        LocalizationService localization)
+        LocalizationService localization,
+        UserPreferencesService preferences)
     {
         _importService = importService;
         _folderPicker = folderPicker;
         _localization = localization;
+        _preferences = preferences ?? throw new ArgumentNullException(nameof(preferences));
+        _selectedFormat = _preferences.DefaultFormat;
         _localization.CultureChanged += OnCultureChanged;
         StatusText = _localization.Get("Downloads_PastePrompt");
     }
@@ -67,6 +72,8 @@ public partial class DownloadsViewModel : ObservableObject
         DestinationDirectory = path;
         SourceUrl = string.Empty;
         CollectionTitle = string.Empty;
+        PreviewItem = null;
+        SelectedFormat = _preferences.DefaultFormat;
         StatusText = _localization.Get("Downloads_PastePrompt");
         UnsubscribeItems();
         Items.Clear();
@@ -199,6 +206,8 @@ public partial class DownloadsViewModel : ObservableObject
                 Items.Add(itemViewModel);
             }
 
+            PreviewItem = Items.FirstOrDefault();
+
             StatusText = result.IsPlaylist
                 ? string.Format(
                     _localization.CurrentCulture,
@@ -221,6 +230,44 @@ public partial class DownloadsViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    partial void OnSelectedFormatChanged(MediaFormat value)
+    {
+        if (Enum.IsDefined(value))
+            _preferences.SetDefaultFormat(value);
+    }
+
+    [RelayCommand]
+    private void SelectMp3()
+    {
+        SelectedFormat = MediaFormat.Mp3;
+        foreach (var item in Items.Where(x => x.IsSelected))
+            item.DesiredFormat = MediaFormat.Mp3;
+    }
+
+    [RelayCommand]
+    private void SelectMp4()
+    {
+        SelectedFormat = MediaFormat.Mp4;
+        foreach (var item in Items.Where(x => x.IsSelected))
+            item.DesiredFormat = MediaFormat.Mp4;
+    }
+
+    [RelayCommand]
+    private void SelectWav()
+    {
+        SelectedFormat = MediaFormat.Wav;
+        foreach (var item in Items.Where(x => x.IsSelected))
+            item.DesiredFormat = MediaFormat.Wav;
+    }
+
+    [RelayCommand]
+    private void SelectM4a()
+    {
+        SelectedFormat = MediaFormat.M4a;
+        foreach (var item in Items.Where(x => x.IsSelected))
+            item.DesiredFormat = MediaFormat.M4a;
     }
 
     [RelayCommand]
