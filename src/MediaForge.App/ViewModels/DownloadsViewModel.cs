@@ -519,6 +519,10 @@ public partial class DownloadQueueItemViewModel : ObservableObject
 
     public bool IsActive => State is DownloadQueueState.Downloading or DownloadQueueState.Retrying;
     public bool IsTerminal => State is DownloadQueueState.Completed or DownloadQueueState.Failed or DownloadQueueState.Cancelled;
+    public bool CanPause => State is DownloadQueueState.Queued or DownloadQueueState.Downloading or DownloadQueueState.Retrying;
+    public bool CanResume => State == DownloadQueueState.Paused;
+    public bool CanCancel => !IsTerminal;
+    public bool CanRetry => State == DownloadQueueState.Failed;
     public string StatusText => GetLocalizedState();
     public string SpeedText => SpeedBytesPerSecond is { } speed && speed > 0
         ? FormatSpeed(speed)
@@ -648,6 +652,10 @@ public partial class DownloadQueueItemViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(IsActive));
         OnPropertyChanged(nameof(IsTerminal));
+        OnPropertyChanged(nameof(CanPause));
+        OnPropertyChanged(nameof(CanResume));
+        OnPropertyChanged(nameof(CanCancel));
+        OnPropertyChanged(nameof(CanRetry));
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(SpeedText));
         OnPropertyChanged(nameof(EtaText));
