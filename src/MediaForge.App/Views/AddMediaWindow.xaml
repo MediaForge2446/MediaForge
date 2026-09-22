@@ -10,7 +10,7 @@
         ShowInTaskbar="False"
         ResizeMode="CanResize"
         Background="#EEF3F8"
-        FlowDirection="RightToLeft">
+>
 
     <Border Margin="10"
             Background="#FFFFFF"
