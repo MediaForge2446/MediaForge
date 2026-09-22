@@ -88,12 +88,6 @@ public partial class SettingsViewModel : ObservableObject
         _ = ApplyLanguageAsync(value.CultureName);
     }
 
-    partial void OnDefaultFormatChanged(MediaFormat value)
-    {
-        if (Enum.IsDefined(value))
-            _preferences.SetDefaultFormat(value);
-    }
-
     partial void OnThemeChanged(ThemePreference value)
     {
         _preferences.SetTheme(value);
