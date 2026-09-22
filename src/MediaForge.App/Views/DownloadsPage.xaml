@@ -302,7 +302,7 @@
                             </ListView.ItemTemplate>
                         </ListView>
 
-                        <Border Visibility="{Binding QueueCount, Converter={StaticResource ZeroToVisibilityConverter}}"
+                        <Border Visibility="{Binding HasQueue, Converter={StaticResource InverseBooleanToVisibilityConverter}}"
                                 Background="{DynamicResource LayerFillColorAltBrush}"
                                 CornerRadius="12">
                             <StackPanel HorizontalAlignment="Center"
