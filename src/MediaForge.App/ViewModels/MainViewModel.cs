@@ -273,6 +273,7 @@ public partial class MainViewModel : ObservableObject
                 CommitProgressPercent = Math.Clamp(value.Percent, 0, 100);
                 CommitProgressStatus = value.Status;
                 Downloads.ApplyCommitProgress(value);
+                Explorer.ApplyCommitProgress(value);
                 StatusText = value.Percent >= 100 ? _localization.Get("Status_VerifyingChanges") : $"{value.Status} · {value.Percent:0}%";
             });
 
