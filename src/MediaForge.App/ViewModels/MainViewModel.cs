@@ -151,6 +151,7 @@ public partial class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(HasLibrary));
             await _stagingService.InitializeAsync(cancellationToken).ConfigureAwait(true);
             RefreshPendingCount();
+            Downloads.SyncFromStaging(_stagingService.Operations);
             CurrentPage = this;
             await RefreshLibraryCoreAsync(cancellationToken).ConfigureAwait(true);
             ApplyHomeText();
@@ -254,6 +255,7 @@ public partial class MainViewModel : ObservableObject
             {
                 CommitProgressPercent = Math.Clamp(value.Percent, 0, 100);
                 CommitProgressStatus = value.Status;
+                Downloads.ApplyCommitProgress(value);
                 StatusText = value.Percent >= 100 ? _localization.Get("Status_VerifyingChanges") : $"{value.Status} · {value.Percent:0}%";
             });
 
@@ -261,7 +263,9 @@ public partial class MainViewModel : ObservableObject
             var successful = result.Items.Where(x => x.Success).Select(x => x.OperationId).ToArray();
             var failed = result.Items.Where(x => !x.Success).Select(x => x.OperationId).ToArray();
             await Explorer.ApplyCommitResultsAsync(successful, failed, cancellationToken).ConfigureAwait(true);
+            Downloads.ApplyCommitResults(result.Items);
             RefreshPendingCount();
+            Downloads.SyncFromStaging(_stagingService.Operations);
             StatusText = result.Success ? _localization.Get("Status_ChangesSaved") : $"{_localization.Get("Status_SaveFailed")}: {failed.Length}";
             await Explorer.ReloadAsync(cancellationToken).ConfigureAwait(true);
             await RefreshLibraryCoreAsync(cancellationToken).ConfigureAwait(true);
@@ -283,6 +287,7 @@ public partial class MainViewModel : ObservableObject
         {
             await _stagingService.ClearAsync(cancellationToken).ConfigureAwait(true);
             RefreshPendingCount();
+            Downloads.SyncFromStaging(_stagingService.Operations);
             await Explorer.RefreshFromStagingAsync(cancellationToken).ConfigureAwait(true);
             StatusText = _localization.Get("Status_Discarded");
         }
@@ -338,6 +343,7 @@ public partial class MainViewModel : ObservableObject
         try
         {
             RefreshPendingCount();
+            Downloads.SyncFromStaging(_stagingService.Operations);
             if (ActiveSection == "explorer" && !string.IsNullOrWhiteSpace(Explorer.CurrentPath))
                 await Explorer.RefreshFromStagingAsync().ConfigureAwait(true);
         }
