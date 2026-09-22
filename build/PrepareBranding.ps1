@@ -23,7 +23,7 @@ foreach ($item in $targets) {
     $directory = Split-Path -Parent $destPath
     New-Item -ItemType Directory -Force -Path $directory | Out-Null
 
-    $base64 = (Get-Content -Raw -Encoding UTF8 $sourcePath).Trim()
+    $base64 = [regex]::Replace((Get-Content -Raw -Encoding UTF8 $sourcePath), '\s', '')
     if ([string]::IsNullOrWhiteSpace($base64)) {
         throw "Branding source is empty: $sourcePath"
     }
