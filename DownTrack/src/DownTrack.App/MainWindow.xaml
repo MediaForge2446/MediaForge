@@ -1,0 +1,122 @@
+<Window
+    x:Class="DownTrack.App.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="DownTrack">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop Kind="BaseDark" />
+    </Window.SystemBackdrop>
+
+    <Grid
+        Padding="52,40,52,32"
+        RowDefinitions="Auto,*,Auto">
+
+        <StackPanel
+            HorizontalAlignment="Center"
+            Spacing="7">
+            <TextBlock
+                Text="DownTrack"
+                HorizontalAlignment="Center"
+                FontSize="16"
+                FontWeight="SemiBold"
+                Foreground="{ThemeResource AccentBrush}" />
+            <TextBlock
+                Text="Your media. Your way."
+                HorizontalAlignment="Center"
+                FontSize="40"
+                FontWeight="SemiBold"
+                Foreground="{ThemeResource WindowTextBrush}" />
+            <TextBlock
+                Text="Build a library from the folders you already trust."
+                HorizontalAlignment="Center"
+                FontSize="15"
+                Foreground="{ThemeResource MutedTextBrush}" />
+        </StackPanel>
+
+        <GridView
+            Grid.Row="1"
+            Margin="0,36,0,26"
+            x:Name="FoldersGrid"
+            HorizontalAlignment="Center"
+            SelectionMode="None">
+            <GridView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <ItemsWrapGrid MaximumRowsOrColumns="4" />
+                </ItemsPanelTemplate>
+            </GridView.ItemsPanel>
+
+            <GridView.ItemTemplate>
+                <DataTemplate>
+                    <Border
+                        Width="220"
+                        Height="176"
+                        Margin="10"
+                        Padding="24"
+                        CornerRadius="16"
+                        Background="{ThemeResource SurfaceBrush}"
+                        BorderBrush="#22FFFFFF"
+                        BorderThickness="1">
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="11">
+                            <FontIcon
+                                Glyph="&#xE8B7;"
+                                FontSize="42"
+                                Foreground="{ThemeResource AccentBrush}" />
+                            <TextBlock
+                                Text="{Binding DisplayName}"
+                                FontSize="17"
+                                FontWeight="SemiBold"
+                                HorizontalAlignment="Center"
+                                Foreground="{ThemeResource WindowTextBrush}"
+                                TextTrimming="CharacterEllipsis"
+                                MaxWidth="176" />
+                            <TextBlock
+                                Text="{Binding Path}"
+                                FontSize="11"
+                                HorizontalAlignment="Center"
+                                Foreground="{ThemeResource MutedTextBrush}"
+                                TextTrimming="CharacterEllipsis"
+                                MaxWidth="176" />
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </GridView.ItemTemplate>
+        </GridView>
+
+        <StackPanel
+            Grid.Row="2"
+            HorizontalAlignment="Center"
+            Spacing="10">
+            <Button
+                Width="224"
+                Height="52"
+                CornerRadius="26"
+                Background="{ThemeResource AccentBrush}"
+                BorderThickness="0"
+                IsDefault="True"
+                Command="{x:Bind ViewModel.AddFolderCommand}">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="9">
+                    <FontIcon Glyph="&#xE710;" FontSize="16" Foreground="White" />
+                    <TextBlock
+                        Text="Add folder"
+                        FontSize="15"
+                        FontWeight="SemiBold"
+                        Foreground="White" />
+                </StackPanel>
+            </Button>
+
+            <TextBlock
+                Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                Foreground="#FFFF9D9D"
+                HorizontalAlignment="Center"
+                TextWrapping="Wrap"
+                MaxWidth="440" />
+        </StackPanel>
+    </Grid>
+</Window>
