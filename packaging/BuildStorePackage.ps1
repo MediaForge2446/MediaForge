@@ -9,6 +9,9 @@ param(
     [Parameter(Mandatory = $true)][string]$OutputDirectory,
     [Parameter(Mandatory = $true)][string]$Version,
     [string]$MakeAppxPath,
+    [string]$SignToolPath,
+    [string]$SigningPfxPath,
+    [string]$SigningPfxPassword,
     [string]$IdentityName = "MediaForge",
     [string]$Publisher = "CN=MediaForge",
     [string]$PublisherDisplayName = "MediaForge"
@@ -147,6 +150,19 @@ if (Test-Path $output) { Remove-Item $output -Force }
 if ($LASTEXITCODE -ne 0) {
     throw "MakeAppx failed with exit code $LASTEXITCODE."
 }
+
+# Refuse to publish an unsigned MSIX. A trusted certificate should be used for production.
+if (-not $SignToolPath -or -not $SigningPfxPath) { throw "A signing certificate and SignTool path are required." }
+if (-not (Test-Path $SignToolPath)) { throw "SignTool.exe was not found: $SignToolPath" }
+if (-not (Test-Path $SigningPfxPath)) { throw "Signing PFX was not found: $SigningPfxPath" }
+$signArgs = @("sign", "/fd", "SHA256", "/a", "/f", $SigningPfxPath)
+if ($SigningPfxPassword) { $signArgs += @("/p", $SigningPfxPassword) }
+$signArgs += $output
+& $SignToolPath @signArgs
+if ($LASTEXITCODE -ne 0) { throw "SignTool failed with exit code $LASTEXITCODE." }
+& $SignToolPath verify /pa $output
+if ($LASTEXITCODE -ne 0) { throw "Signed MSIX verification failed with exit code $LASTEXITCODE." }
+Write-Host "MSIX signature verified successfully."
 
 # Partner Center accepts an .msixupload container. It is a ZIP containing the
 # MSIX plus the optional .appxsym symbol archive.
