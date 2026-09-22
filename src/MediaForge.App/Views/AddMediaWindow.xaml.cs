@@ -34,10 +34,10 @@ public partial class AddMediaWindow : FluentWindow
     {
         try
         {
-            if (!Clipboard.ContainsText())
+            if (!System.Windows.Clipboard.ContainsText())
                 return;
 
-            _viewModel.SourceUrl = Clipboard.GetText().Trim();
+            _viewModel.SourceUrl = System.Windows.Clipboard.GetText().Trim();
             _viewModel.StatusText = _localization.Get("AddMedia_PasteReady");
         }
         catch (System.Runtime.InteropServices.ExternalException)
