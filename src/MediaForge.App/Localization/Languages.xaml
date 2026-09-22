@@ -43,6 +43,19 @@
     <x:String x:Key="Status_DuplicateRoot">That folder is already in the library</x:String>
     <x:String x:Key="Status_SavePreparing">Preparing changes…</x:String>
     <x:String x:Key="Status_VerifyingChanges">Verifying changes…</x:String>
+    <x:String x:Key="Status_AddMediaTo">Adding media to</x:String>
+    <x:String x:Key="Settings_Description">Manage tools, download quality, and MediaForge preferences.</x:String>
+    <x:String x:Key="Status_ChooseLibrary">Choose a root folder to open your workspace</x:String>
+    <x:String x:Key="Status_AddLibraryFailed">Could not add the root folder</x:String>
+    <x:String x:Key="Status_ScanFailed">Library scan failed</x:String>
+    <x:String x:Key="Status_SaveFailed">Save finished with issues</x:String>
+    <x:String x:Key="Status_SaveCanceled">Save canceled; unfinished changes remain pending</x:String>
+    <x:String x:Key="Status_DiscardFailed">Could not discard pending changes</x:String>
+    <x:String x:Key="Status_RefreshFailed">Refreshing changes failed</x:String>
+    <x:String x:Key="Status_NotChecked">Not checked</x:String>
+    <x:String x:Key="Status_Synced">Connected and synced</x:String>
+    <x:String x:Key="Status_RootMissing">Folder not found</x:String>
+    <x:String x:Key="Status_CheckPath">Check the path or connect the drive</x:String>
 
     <x:String x:Key="Common_Settings">Settings</x:String>
     <x:String x:Key="Library_Subtitle">Choose a root folder to organize and manage your media workspace.</x:String>
