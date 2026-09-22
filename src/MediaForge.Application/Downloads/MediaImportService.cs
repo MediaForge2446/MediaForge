@@ -92,7 +92,10 @@ public sealed class MediaImportService
                     SourceUrl: item.SourceUrl,
                     DestinationPath: destinationPath,
                     DesiredFormat: format,
-                    VideoId: item.VideoId)));
+                    VideoId: item.VideoId,
+                    Title: item.Metadata.Title,
+                    Artist: item.Metadata.Artist,
+                    ThumbnailUrl: item.Metadata.ThumbnailUrl)));
         }
 
         if (staged.Count == 0)
