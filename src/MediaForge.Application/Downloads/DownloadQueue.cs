@@ -29,6 +29,7 @@ public sealed class DownloadQueue
         public bool Cancelled;
         public CancellationTokenSource? ActiveCancellation;
         public TaskCompletionSource<bool> ResumeSignal = CreateSignaledSignal();
+        public long PauseVersion;
         public ExecutionState State = ExecutionState.Queued;
 
         private static TaskCompletionSource<bool> CreateSignaledSignal()
@@ -73,6 +74,7 @@ public sealed class DownloadQueue
                 return true;
 
             control.Paused = true;
+            control.PauseVersion++;
             control.ResumeSignal = new TaskCompletionSource<bool>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -235,6 +237,8 @@ public sealed class DownloadQueue
                     TransitionLocked(control, ExecutionState.Downloading);
                 }
 
+                var pauseVersion = GetPauseVersion(control);
+
                 progress?.Report(new CommitProgress(
                     operation.OperationId,
                     CurrentPercent(operation.OperationId),
@@ -277,17 +281,26 @@ public sealed class DownloadQueue
                 }
                 catch (OperationCanceledException) when (
                     !cancellationToken.IsCancellationRequested &&
-                    IsPaused(control))
+                    !IsCancelled(control) &&
+                    WasPauseRequestedSince(control, pauseVersion))
                 {
                     paused = true;
 
+                    bool stillPaused;
                     lock (control.Gate)
-                        TransitionLocked(control, ExecutionState.Paused);
+                    {
+                        stillPaused = control.Paused;
+                        if (stillPaused && control.State == ExecutionState.Downloading)
+                            TransitionLocked(control, ExecutionState.Paused);
+                    }
 
-                    progress?.Report(new CommitProgress(
-                        operation.OperationId,
-                        CurrentPercent(operation.OperationId),
-                        "Paused"));
+                    if (stillPaused)
+                    {
+                        progress?.Report(new CommitProgress(
+                            operation.OperationId,
+                            CurrentPercent(operation.OperationId),
+                            "Paused"));
+                    }
                 }
                 catch (OperationCanceledException) when (
                     !cancellationToken.IsCancellationRequested &&
@@ -410,6 +423,18 @@ public sealed class DownloadQueue
     {
         lock (control.Gate)
             return control.Cancelled;
+    }
+
+    private static long GetPauseVersion(Control control)
+    {
+        lock (control.Gate)
+            return control.PauseVersion;
+    }
+
+    private static bool WasPauseRequestedSince(Control control, long pauseVersion)
+    {
+        lock (control.Gate)
+            return control.PauseVersion > pauseVersion;
     }
 
     private async Task WaitIfPausedAsync(
