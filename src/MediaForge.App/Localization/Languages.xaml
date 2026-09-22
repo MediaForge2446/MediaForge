@@ -3,6 +3,7 @@
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
   <ResourceDictionary x:Key="en-US">
 
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Media, organized.</sys:String>
     <sys:String x:Key="Nav_Home">Home</sys:String>
@@ -177,8 +178,11 @@
     <sys:String x:Key="Downloads_Size">Size</sys:String>
     <sys:String x:Key="Queue_Paused">Paused</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">Verifying managed tools…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">Release notes</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">No release notes were provided.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="he-IL">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">המדיה שלך. מסודרת.</sys:String>
@@ -354,8 +358,11 @@
     <sys:String x:Key="Downloads_Size">גודל</sys:String>
     <sys:String x:Key="Queue_Paused">מושהה</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">מאמת כלים מנוהלים…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">פרטי גרסה</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">לא סופקו פרטי גרסה.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="es-ES">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Tu media, organizada.</sys:String>
@@ -386,8 +393,11 @@
     <sys:String x:Key="Downloads_Size">Tamaño</sys:String>
     <sys:String x:Key="Queue_Paused">En pausa</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">Verificando herramientas administradas…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">Notas de la versión</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">No se proporcionaron notas de la versión.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="fr-FR">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Vos médias, bien organisés.</sys:String>
@@ -418,8 +428,11 @@
     <sys:String x:Key="Downloads_Size">Taille</sys:String>
     <sys:String x:Key="Queue_Paused">En pause</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">Vérification des outils gérés…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">Notes de version</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">Aucune note de version n’a été fournie.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="de-DE">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Deine Medien. Aufgeräumt.</sys:String>
@@ -450,8 +463,11 @@
     <sys:String x:Key="Downloads_Size">Taille</sys:String>
     <sys:String x:Key="Queue_Paused">Pausiert</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">Verwaltete Tools werden überprüft…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">Versionshinweise</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">Es wurden keine Versionshinweise bereitgestellt.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="it-IT">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">I tuoi media, organizzati.</sys:String>
@@ -482,8 +498,11 @@
     <sys:String x:Key="Downloads_Size">Dimensione</sys:String>
     <sys:String x:Key="Queue_Paused">In pausa</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">Verifica degli strumenti gestiti…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">Note di rilascio</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">Non sono state fornite note di rilascio.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="pt-BR">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Sua mídia, organizada.</sys:String>
@@ -514,8 +533,11 @@
     <sys:String x:Key="Downloads_Size">Tamanho</sys:String>
     <sys:String x:Key="Queue_Paused">Pausado</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">Verificando ferramentas gerenciadas…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">Notas da versão</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">Nenhuma nota da versão foi fornecida.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="pt-PT">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Os teus ficheiros multimédia, organizados.</sys:String>
@@ -546,8 +568,11 @@
     <sys:String x:Key="Downloads_Size">Tamanho</sys:String>
     <sys:String x:Key="Queue_Paused">Em pausa</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">A verificar ferramentas geridas…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">Notas da versão</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">Não foram fornecidas notas de versão.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="nl-NL">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Je media, georganiseerd.</sys:String>
@@ -578,8 +603,11 @@
     <sys:String x:Key="Downloads_Size">Grootte</sys:String>
     <sys:String x:Key="Queue_Paused">Gepauzeerd</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">Beheerde hulpprogramma's worden gecontroleerd…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">Releaseopmerkingen</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">Er zijn geen releaseopmerkingen beschikbaar.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="pl-PL">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Twoje multimedia. Uporządkowane.</sys:String>
@@ -610,8 +638,11 @@
     <sys:String x:Key="Downloads_Size">Rozmiar</sys:String>
     <sys:String x:Key="Queue_Paused">Wstrzymane</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">Sprawdzanie zarządzanych narzędzi…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">Informacje o wydaniu</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">Nie udostępniono informacji o wydaniu.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="tr-TR">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Medyanız, düzenli.</sys:String>
@@ -642,8 +673,11 @@
     <sys:String x:Key="Downloads_Size">Boyut</sys:String>
     <sys:String x:Key="Queue_Paused">Duraklatıldı</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">Yönetilen araçlar doğrulanıyor…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">Sürüm notları</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">Sürüm notu sağlanmadı.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="sv-SE">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Ditt media, organiserat.</sys:String>
@@ -674,8 +708,11 @@
     <sys:String x:Key="Downloads_Size">Storlek</sys:String>
     <sys:String x:Key="Queue_Paused">Pausad</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">Verifierar hanterade verktyg…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">Versionsanteckningar</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">Inga versionsanteckningar angavs.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="da-DK">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Dine medier, organiseret.</sys:String>
@@ -706,8 +743,11 @@
     <sys:String x:Key="Downloads_Size">Størrelse</sys:String>
     <sys:String x:Key="Queue_Paused">Sat på pause</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">Bekræfter administrerede værktøjer…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">Udgivelsesnoter</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">Der blev ikke angivet nogen udgivelsesnoter.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="nb-NO">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Mediene dine, organisert.</sys:String>
@@ -738,8 +778,11 @@
     <sys:String x:Key="Downloads_Size">Størrelse</sys:String>
     <sys:String x:Key="Queue_Paused">Satt på pause</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">Bekrefter administrerte verktøy…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">Versjonsnotater</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">Ingen versjonsnotater ble oppgitt.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="fi-FI">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Mediasi, järjestyksessä.</sys:String>
@@ -770,8 +813,11 @@
     <sys:String x:Key="Downloads_Size">Koko</sys:String>
     <sys:String x:Key="Queue_Paused">Keskeytetty</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">Hallinnoituja työkaluja tarkistetaan…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">Julkaisutiedot</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">Julkaisutietoja ei annettu.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="cs-CZ">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Vaše média. Uspořádaná.</sys:String>
@@ -802,8 +848,11 @@
     <sys:String x:Key="Downloads_Size">Velikost</sys:String>
     <sys:String x:Key="Queue_Paused">Pozastaveno</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">Ověřování spravovaných nástrojů…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">Poznámky k vydání</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">Poznámky k vydání nebyly poskytnuty.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="uk-UA">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Ваші медіа. Упорядковані.</sys:String>
@@ -834,8 +883,11 @@
     <sys:String x:Key="Downloads_Size">Rozmiar</sys:String>
     <sys:String x:Key="Queue_Paused">Призупинено</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">Перевірка керованих інструментів…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">Примітки до випуску</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">Примітки до випуску не надано.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="ja-JP">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">メディアを、すっきり整理。</sys:String>
@@ -866,8 +918,11 @@
     <sys:String x:Key="Downloads_Size">サイズ</sys:String>
     <sys:String x:Key="Queue_Paused">一時停止中</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">管理ツールを確認しています…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">リリースノート</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">リリースノートは提供されていません。</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="ko-KR">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">미디어를 깔끔하게 정리하세요.</sys:String>
@@ -898,8 +953,11 @@
     <sys:String x:Key="Downloads_Size">크기</sys:String>
     <sys:String x:Key="Queue_Paused">일시 중지됨</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">관리 도구 확인 중…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">릴리스 노트</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">릴리스 노트가 제공되지 않았습니다.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="zh-CN">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">媒体，井然有序。</sys:String>
@@ -930,8 +988,11 @@
     <sys:String x:Key="Downloads_Size">大小</sys:String>
     <sys:String x:Key="Queue_Paused">已暂停</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">正在验证托管工具…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">发行说明</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">未提供发行说明。</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="ar-SA">
+
 
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">وسائطك، منظمة.</sys:String>
@@ -962,5 +1023,7 @@
     <sys:String x:Key="Downloads_Size">الحجم</sys:String>
     <sys:String x:Key="Queue_Paused">متوقف مؤقتًا</sys:String>
     <sys:String x:Key="Settings_VerifyingTools">جارٍ التحقق من الأدوات المُدارة…</sys:String>
+    <sys:String x:Key="Settings_ReleaseNotes">ملاحظات الإصدار</sys:String>
+    <sys:String x:Key="Settings_NoReleaseNotes">لم يتم توفير ملاحظات الإصدار.</sys:String>
 </ResourceDictionary>
 </ResourceDictionary>
