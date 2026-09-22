@@ -1,3 +1,4 @@
+; WinGet release path: standard unsigned Inno Setup EXE.
 ; MediaForge standard Windows installer for WinGet/GitHub Releases.
 #define MyAppName "MediaForge"
 #define MyAppPublisher "MediaForge"
