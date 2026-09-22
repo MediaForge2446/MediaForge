@@ -15,7 +15,8 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
         string outputPath,
         MediaFormat format,
         IProgress<DownloadProgress>? progress = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        MediaQuality quality = MediaQuality.Standard128K)
     {
         if (string.IsNullOrWhiteSpace(sourceUrl))
             throw new ArgumentException("A source URL is required.", nameof(sourceUrl));
@@ -45,7 +46,8 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
                 {
                     progress?.Report(value);
                 }),
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                quality).ConfigureAwait(false);
 
             var produced = ResolveProducedPath(stagingBase, extension);
             if (produced is null)
