@@ -10,5 +10,6 @@ public interface IYtDlpRunner
         string outputPath,
         MediaFormat format,
         IProgress<DownloadProgress>? progress = null,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        MediaQuality quality = MediaQuality.Standard128K);
 }
