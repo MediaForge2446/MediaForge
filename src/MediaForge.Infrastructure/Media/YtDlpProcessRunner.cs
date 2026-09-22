@@ -10,7 +10,17 @@ namespace MediaForge.Infrastructure.Media;
 
 public sealed class YtDlpProcessRunner : IYtDlpRunner
 {
-    private static readonly Regex ProgressRegex = new(@"(?<percent>\d+(?:\.\d+)?)%", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly Regex PercentRegex =
+        new(@"(?<percent>\\d+(?:\\.\\d+)?)%", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    private static readonly Regex SpeedRegex =
+        new(@"(?<speed>\\d+(?:[.,]\\d+)?)\\s*(?<unit>[KMGTP]?i?B/s|B/s)",
+            RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
+    private static readonly Regex EtaRegex =
+        new(@"ETA\\s+(?<eta>\\d{2}:\\d{2}(?::\\d{2})?)",
+            RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
     private readonly IToolManager _toolManager;
     private readonly LocalAppPaths _paths;
 
@@ -24,14 +34,21 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
         string url,
         string outputPath,
         MediaFormat format,
-        IProgress<double>? progress = null,
+        IProgress<DownloadProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(url)) throw new ArgumentException("A source URL is required.", nameof(url));
-        if (string.IsNullOrWhiteSpace(outputPath)) throw new ArgumentException("An output path is required.", nameof(outputPath));
+        if (string.IsNullOrWhiteSpace(url))
+            throw new ArgumentException("A source URL is required.", nameof(url));
 
-        var tools = await _toolManager.EnsureToolsReadyAsync(cancellationToken).ConfigureAwait(false);
-        Directory.CreateDirectory(Path.GetDirectoryName(outputPath) ?? _paths.AppDirectory);
+        if (string.IsNullOrWhiteSpace(outputPath))
+            throw new ArgumentException("An output path is required.", nameof(outputPath));
+
+        var tools = await _toolManager
+            .EnsureToolsReadyAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        Directory.CreateDirectory(
+            Path.GetDirectoryName(outputPath) ?? _paths.AppDirectory);
 
         using var process = new Process
         {
@@ -47,8 +64,14 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
             EnableRaisingEvents = true
         };
 
-        foreach (var argument in YtDlpArgumentBuilder.Build(outputPath, tools.FfmpegExecutablePath, format))
+        foreach (var argument in YtDlpArgumentBuilder.Build(
+                     outputPath,
+                     tools.FfmpegExecutablePath,
+                     format))
+        {
             process.StartInfo.ArgumentList.Add(argument);
+        }
+
         process.StartInfo.ArgumentList.Add(url);
 
         if (!process.Start())
@@ -68,26 +91,45 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
         });
 
         var stderr = new List<string>();
-        var stdoutTask = ConsumeAsync(process.StandardOutput, progress, cancellationToken, null);
-        var stderrTask = ConsumeAsync(process.StandardError, null, cancellationToken, stderr);
-        await Task.WhenAll(stdoutTask, stderrTask, process.WaitForExitAsync(cancellationToken)).ConfigureAwait(false);
+
+        var stdoutTask = ConsumeAsync(
+            process.StandardOutput,
+            progress,
+            cancellationToken,
+            null);
+
+        var stderrTask = ConsumeAsync(
+            process.StandardError,
+            null,
+            cancellationToken,
+            stderr);
+
+        await Task.WhenAll(
+                stdoutTask,
+                stderrTask,
+                process.WaitForExitAsync(cancellationToken))
+            .ConfigureAwait(false);
+
         cancellationToken.ThrowIfCancellationRequested();
 
         if (process.ExitCode != 0)
         {
-            var detail = string.Join(Environment.NewLine, stderr.Where(x => !string.IsNullOrWhiteSpace(x)).TakeLast(8));
+            var detail = string.Join(
+                Environment.NewLine,
+                stderr.Where(x => !string.IsNullOrWhiteSpace(x)).TakeLast(8));
+
             throw new InvalidOperationException(
                 string.IsNullOrWhiteSpace(detail)
                     ? $"yt-dlp exited with code {process.ExitCode}."
                     : detail);
         }
 
-        progress?.Report(100d);
+        progress?.Report(new DownloadProgress(100, "Completed"));
     }
 
     private static async Task ConsumeAsync(
         StreamReader reader,
-        IProgress<double>? progress,
+        IProgress<DownloadProgress>? progress,
         CancellationToken cancellationToken,
         ICollection<string>? lines)
     {
@@ -95,17 +137,74 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
         {
             cancellationToken.ThrowIfCancellationRequested();
             lines?.Add(line);
-            if (progress is null) continue;
 
-            var match = ProgressRegex.Match(line);
-            if (match.Success && double.TryParse(
-                    match.Groups["percent"].Value,
-                    NumberStyles.Float,
-                    CultureInfo.InvariantCulture,
-                    out var percent))
-            {
-                progress.Report(Math.Clamp(percent, 0d, 100d));
-            }
+            if (progress is null)
+                continue;
+
+            var parsed = ParseProgress(line);
+            if (parsed is not null)
+                progress.Report(parsed);
         }
     }
+
+    private static DownloadProgress? ParseProgress(string line)
+    {
+        var percentMatch = PercentRegex.Match(line);
+        if (!percentMatch.Success ||
+            !double.TryParse(
+                percentMatch.Groups["percent"].Value,
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out var percent))
+        {
+            return null;
+        }
+
+        double? speed = null;
+        var speedMatch = SpeedRegex.Match(line);
+
+        if (speedMatch.Success &&
+            double.TryParse(
+                speedMatch.Groups["speed"].Value.Replace(',', '.'),
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out var numericSpeed))
+        {
+            speed = numericSpeed * GetUnitMultiplier(speedMatch.Groups["unit"].Value);
+        }
+
+        TimeSpan? eta = null;
+        var etaMatch = EtaRegex.Match(line);
+        if (etaMatch.Success &&
+            TimeSpan.TryParse(
+                etaMatch.Groups["eta"].Value,
+                CultureInfo.InvariantCulture,
+                out var parsedEta))
+        {
+            eta = parsedEta;
+        }
+
+        return new DownloadProgress(
+            Math.Clamp(percent, 0d, 100d),
+            "Downloading",
+            speed,
+            eta);
+    }
+
+    private static double GetUnitMultiplier(string unit) =>
+        unit.ToUpperInvariant() switch
+        {
+            "B/S" => 1d,
+            "KB/S" => 1000d,
+            "MB/S" => 1000d * 1000d,
+            "GB/S" => 1000d * 1000d * 1000d,
+            "TB/S" => 1000d * 1000d * 1000d * 1000d,
+            "PB/S" => 1000d * 1000d * 1000d * 1000d * 1000d,
+            "KIB/S" => 1024d,
+            "MIB/S" => 1024d * 1024d,
+            "GIB/S" => 1024d * 1024d * 1024d,
+            "TIB/S" => 1024d * 1024d * 1024d * 1024d,
+            "PIB/S" => 1024d * 1024d * 1024d * 1024d * 1024d,
+            _ => 1d
+        };
 }
