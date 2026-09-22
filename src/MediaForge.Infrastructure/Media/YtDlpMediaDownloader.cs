@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using MediaForge.Core.Enums;
 using MediaForge.Core.Interfaces;
 using MediaForge.Core.Models;
@@ -36,27 +35,15 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
         try
         {
             Directory.CreateDirectory(parentDirectory);
-            var stopwatch = Stopwatch.StartNew();
-
             progress?.Report(new DownloadProgress(0, "Downloading"));
 
             await _runner.RunAsync(
                 sourceUrl,
                 stagingBase,
                 format,
-                new Progress<double>(percent =>
+                new Progress<DownloadProgress>(value =>
                 {
-                    var clamped = Math.Clamp(percent, 0d, 100d);
-                    var speed = TryGetSpeed(stagingBase, stopwatch);
-                    var eta = speed is > 0 && clamped > 0
-                        ? TimeSpan.FromSeconds(stopwatch.Elapsed.TotalSeconds * (100d - clamped) / clamped)
-                        : null;
-
-                    progress?.Report(new DownloadProgress(
-                        clamped,
-                        "Downloading",
-                        speed,
-                        eta));
+                    progress?.Report(value);
                 }),
                 cancellationToken).ConfigureAwait(false);
 
@@ -88,25 +75,6 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
         {
             TryDeleteMatching(stagingBase);
             throw;
-        }
-    }
-
-    private static double? TryGetSpeed(string path, Stopwatch stopwatch)
-    {
-        if (stopwatch.Elapsed.TotalSeconds < 0.5)
-            return null;
-
-        try
-        {
-            var length = new FileInfo(path).Length;
-            if (length <= 0)
-                return null;
-
-            return length / stopwatch.Elapsed.TotalSeconds;
-        }
-        catch
-        {
-            return null;
         }
     }
 
