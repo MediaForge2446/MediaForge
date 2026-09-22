@@ -36,7 +36,16 @@ public static class YtDlpArgumentBuilder
                     _ => "m4a"
                 });
                 arguments.Add("--audio-quality");
-                arguments.Add(format == MediaFormat.Mp3 ? DefaultMp3AudioQuality : "0");
+                arguments.Add(format == MediaFormat.Mp3
+                    ? quality switch
+                    {
+                        MediaQuality.Standard128K => "128K",
+                        MediaQuality.High192K => "192K",
+                        MediaQuality.VeryHigh256K => "256K",
+                        MediaQuality.Maximum320K => "320K",
+                        _ => DefaultMp3AudioQuality
+                    }
+                    : "0");
                 if (format is MediaFormat.Mp3 or MediaFormat.M4a)
                 {
                     arguments.Add("--embed-thumbnail");
