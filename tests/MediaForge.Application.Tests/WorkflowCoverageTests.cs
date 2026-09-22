@@ -125,7 +125,6 @@ public sealed class WorkflowCoverageTests
     }
 
     [Fact]
-    [Fact]
     public async Task CommitEngine_CancellationStopsBeforeNextOperation()
     {
         var fileSystem = new InMemoryFileSystem();
