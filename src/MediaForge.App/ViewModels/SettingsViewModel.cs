@@ -44,6 +44,11 @@ public partial class SettingsViewModel : ObservableObject
         _updateService.CurrentVersion.ToString(3);
 
     public bool IsUpdateAvailable => AvailableUpdate is not null;
+    public string ReleaseNotesText =>
+        AvailableUpdate?.ReleaseNotes?.Trim() is { Length: > 0 } notes
+            ? notes
+            : _localization.Get("Settings_NoReleaseNotes");
+
     public string AvailableVersionText =>
         AvailableUpdate?.VersionLabel is { Length: > 0 } version
             ? string.Format(
@@ -107,6 +112,7 @@ public partial class SettingsViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(IsUpdateAvailable));
         OnPropertyChanged(nameof(AvailableVersionText));
+        OnPropertyChanged(nameof(ReleaseNotesText));
     }
 
     private async Task ApplyLanguageAsync(string cultureName)
