@@ -165,7 +165,7 @@ jobs:
 
           $iscc = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
           if (-not $iscc) {
-            $iscc = (Get-ChildItem "$env:ProgramFiles" "${env:ProgramFiles(x86)}" -Recurse -Filter ISCC.exe -ErrorAction SilentlyContinue |
+            $iscc = (Get-ChildItem -Path "$env:ProgramFiles", "${env:ProgramFiles(x86)}" -Recurse -Filter ISCC.exe -ErrorAction SilentlyContinue |
               Select-Object -First 1 -ExpandProperty FullName)
           }
 
