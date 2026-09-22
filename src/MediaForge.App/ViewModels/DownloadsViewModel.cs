@@ -31,6 +31,11 @@ public partial class DownloadsViewModel : ObservableObject
     public IReadOnlyList<MediaFormat> Formats { get; } =
         [MediaFormat.Mp3, MediaFormat.Mp4, MediaFormat.Wav, MediaFormat.M4a];
 
+    public bool IsMp3Selected => SelectedFormat == MediaFormat.Mp3;
+    public bool IsMp4Selected => SelectedFormat == MediaFormat.Mp4;
+    public bool IsWavSelected => SelectedFormat == MediaFormat.Wav;
+    public bool IsM4aSelected => SelectedFormat == MediaFormat.M4a;
+
     public bool HasItems => Items.Count > 0;
     public int SelectedCount => Items.Count(x => x.IsSelected);
     public bool HasSelection => SelectedCount > 0;
@@ -236,6 +241,11 @@ public partial class DownloadsViewModel : ObservableObject
     {
         if (Enum.IsDefined(value))
             _preferences.SetDefaultFormat(value);
+
+        OnPropertyChanged(nameof(IsMp3Selected));
+        OnPropertyChanged(nameof(IsMp4Selected));
+        OnPropertyChanged(nameof(IsWavSelected));
+        OnPropertyChanged(nameof(IsM4aSelected));
     }
 
     [RelayCommand]
