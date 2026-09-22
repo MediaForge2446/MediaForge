@@ -83,7 +83,9 @@ public sealed class LocalizationService : INotifyPropertyChanged
     {
         _culture = culture;
         CultureInfo.DefaultThreadCurrentUICulture = culture;
+        CultureInfo.DefaultThreadCurrentCulture = culture;
         CultureInfo.CurrentUICulture = culture;
+        CultureInfo.CurrentCulture = culture;
 
         ReplaceLanguageDictionary();
         ApplyToOpenWindows();
