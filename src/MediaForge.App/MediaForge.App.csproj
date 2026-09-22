@@ -19,13 +19,13 @@
     <PackageReference Include="WPF-UI" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..MediaForge.CoreMediaForge.Core.csproj" />
-    <ProjectReference Include="..MediaForge.ApplicationMediaForge.Application.csproj" />
-    <ProjectReference Include="..MediaForge.InfrastructureMediaForge.Infrastructure.csproj" />
+    <ProjectReference Include="..\MediaForge.Core\MediaForge.Core.csproj" />
+    <ProjectReference Include="..\MediaForge.Application\MediaForge.Application.csproj" />
+    <ProjectReference Include="..\MediaForge.Infrastructure\MediaForge.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="AssetsMediaForge.png"
+    <Content Include="Assets\MediaForge.png"
              CopyToOutputDirectory="PreserveNewest"
              CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
