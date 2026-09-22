@@ -30,19 +30,11 @@ Long-running work is asynchronous, staging is persisted locally, and the UI does
 
 ## Distribution
 
-**Microsoft Store is the only customer-facing distribution channel.**
+**Primary distribution target: WinGet Community Repository.**
 
-MediaForge is packaged as an x64 MSIX with package identity and full-trust desktop execution. The Store provides the customer installation experience, Microsoft signing, hosting, and update delivery. The repository no longer treats Inno Setup/Setup.exe as the product distribution path.
+The CI produces a self-contained Windows x64 build and a single Inno Setup installer, `Setup.exe`. The installer is published to the GitHub Release for the corresponding version and is suitable for a WinGet `exe` installer manifest.
 
-The Store packaging pipeline is under `packaging/` and validates:
-
-- self-contained x64 publish
-- bundled yt-dlp and FFmpeg with SHA-256 verification
-- MSIX manifest structure
-- x64 package architecture
-- package extraction/structural integrity
-
-Before the first real Store submission, the package identity values must be associated with the MediaForge product reserved in Partner Center. The required repository variables are documented in `packaging/README.md`.
+The release pipeline intentionally does not build, sign, or validate MSIX packages. This removes the Microsoft Store/MSIX signing dependency from the WinGet release path.
 
 ## Current implementation
 
