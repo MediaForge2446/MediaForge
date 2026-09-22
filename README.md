@@ -1,21 +1,30 @@
 # MediaForge
 
-MediaForge is being rebuilt from the ground up as a premium, Windows-first media library and downloader.
+MediaForge V1 is a Windows-first media library and downloader being rebuilt from the ground up.
 
-## v1 reset status
+## Current phase
 
-The legacy application implementation has been intentionally removed from the rebuild branch. This is a design-first reset: no legacy WPF UI, no legacy application projects, no legacy test suite, and no legacy installer are being carried forward.
+**Product specification / UX design**
 
-The new product direction is:
+No application implementation is being carried forward from the previous WPF version.
 
-- **WinUI 3 + Windows App SDK**
-- **.NET 10 LTS**
-- Native Windows 11 visual language with Mica and composition-based motion
-- Feature-oriented application architecture with strict UI/domain boundaries
-- 20 first-class display languages, including RTL support for Hebrew and Arabic
-- Media-first workflow: paste link → cinematic preview → choose format → download
-- Local-first storage with explicit user control over files and library structure
+## Official specification
 
-Implementation starts only after the v1 blueprint and visual system are agreed.
+- [MediaForge V1 Product Specification — Part 1: First-Run & Onboarding](docs/MEDIAFORGE-V1-PRODUCT-SPECIFICATION.md)
 
-See [docs/REBUILD-V1-BLUEPRINT.md](docs/REBUILD-V1-BLUEPRINT.md).
+The product is being specified screen-by-screen before implementation begins.
+
+Core product direction:
+
+- WinUI 3 + Windows App SDK
+- Native Windows 11 visual language
+- Dark / Light themes
+- Mica-based shell
+- 20-language localization foundation
+- RTL support for Hebrew and Arabic
+- Cinematic media preview
+- Smart paste workflow
+- Advanced download queue
+- Media Explorer
+
+Implementation begins only after the relevant UX/UI specification is approved.
