@@ -7,18 +7,48 @@
         <ResourceDictionary>
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Dark">
-                    <SolidColorBrush x:Key="WindowTextBrush" Color="#F7F5FF" />
-                    <SolidColorBrush x:Key="MutedTextBrush" Color="#A8A4B8" />
-                    <SolidColorBrush x:Key="AccentBrush" Color="#8B7CFF" />
+                    <SolidColorBrush x:Key="WindowTextBrush" Color="#FFF9FBFF" />
+                    <SolidColorBrush x:Key="MutedTextBrush" Color="#FFB7B5C8" />
+                    <SolidColorBrush x:Key="SubtleTextBrush" Color="#FF8F8C9F" />
                     <SolidColorBrush x:Key="SurfaceBrush" Color="#24FFFFFF" />
-                    <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#34FFFFFF" />
+                    <SolidColorBrush x:Key="SurfaceStrongBrush" Color="#35FFFFFF" />
+                    <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#42FFFFFF" />
+                    <SolidColorBrush x:Key="CardBorderBrush" Color="#35FFFFFF" />
+                    <SolidColorBrush x:Key="AccentBrush" Color="#FF8B78FF" />
+                    <SolidColorBrush x:Key="AccentAltBrush" Color="#FF29D8FF" />
+                    <SolidColorBrush x:Key="WarmAccentBrush" Color="#FFFF78BA" />
+                    <SolidColorBrush x:Key="SuccessBrush" Color="#FF58E0A8" />
+                    <LinearGradientBrush x:Key="HeroGradientBrush" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#FF7A63FF" Offset="0" />
+                        <GradientStop Color="#FFEF62BE" Offset="0.48" />
+                        <GradientStop Color="#FF35D8FF" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="HeroGlowBrush" StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#667A63FF" Offset="0" />
+                        <GradientStop Color="#0035D8FF" Offset="1" />
+                    </LinearGradientBrush>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Light">
-                    <SolidColorBrush x:Key="WindowTextBrush" Color="#141218" />
-                    <SolidColorBrush x:Key="MutedTextBrush" Color="#625E6C" />
-                    <SolidColorBrush x:Key="AccentBrush" Color="#635BFF" />
-                    <SolidColorBrush x:Key="SurfaceBrush" Color="#18FFFFFF" />
-                    <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#28FFFFFF" />
+                    <SolidColorBrush x:Key="WindowTextBrush" Color="#FF17131F" />
+                    <SolidColorBrush x:Key="MutedTextBrush" Color="#FF676272" />
+                    <SolidColorBrush x:Key="SubtleTextBrush" Color="#FF87818F" />
+                    <SolidColorBrush x:Key="SurfaceBrush" Color="#B8FFFFFF" />
+                    <SolidColorBrush x:Key="SurfaceStrongBrush" Color="#DDFFFFFF" />
+                    <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#EEFFFFFF" />
+                    <SolidColorBrush x:Key="CardBorderBrush" Color="#33000000" />
+                    <SolidColorBrush x:Key="AccentBrush" Color="#FF6C58FF" />
+                    <SolidColorBrush x:Key="AccentAltBrush" Color="#FF00A9D6" />
+                    <SolidColorBrush x:Key="WarmAccentBrush" Color="#FFE7529E" />
+                    <SolidColorBrush x:Key="SuccessBrush" Color="#FF16A66A" />
+                    <LinearGradientBrush x:Key="HeroGradientBrush" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#FF6D58FF" Offset="0" />
+                        <GradientStop Color="#FFE65AA9" Offset="0.48" />
+                        <GradientStop Color="#FF0CB8E1" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="HeroGlowBrush" StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#447A63FF" Offset="0" />
+                        <GradientStop Color="#0035D8FF" Offset="1" />
+                    </LinearGradientBrush>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>

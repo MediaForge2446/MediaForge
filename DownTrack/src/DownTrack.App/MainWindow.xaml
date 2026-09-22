@@ -11,112 +11,194 @@
         <MicaBackdrop Kind="BaseDark" />
     </Window.SystemBackdrop>
 
-    <Grid
-        Padding="52,40,52,32"
-        RowDefinitions="Auto,*,Auto">
+    <Grid Padding="28,24,28,28" RowDefinitions="Auto,*">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <Border Width="38" Height="38" CornerRadius="12" Background="{ThemeResource HeroGradientBrush}">
+                    <FontIcon Glyph="&#xE8E5;" FontSize="18" Foreground="White"
+                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel Spacing="0">
+                    <TextBlock Text="DownTrack" FontSize="16" FontWeight="SemiBold"
+                               Foreground="{ThemeResource WindowTextBrush}" />
+                    <TextBlock Text="MEDIA WORKSPACE" FontSize="9" CharacterSpacing="95"
+                               Foreground="{ThemeResource SubtleTextBrush}" />
+                </StackPanel>
+            </StackPanel>
 
-        <StackPanel
-            HorizontalAlignment="Center"
-            Spacing="7">
-            <TextBlock
-                Text="DownTrack"
-                HorizontalAlignment="Center"
-                FontSize="16"
-                FontWeight="SemiBold"
-                Foreground="{ThemeResource AccentBrush}" />
-            <TextBlock
-                Text="Your media. Your way."
-                HorizontalAlignment="Center"
-                FontSize="40"
-                FontWeight="SemiBold"
-                Foreground="{ThemeResource WindowTextBrush}" />
-            <TextBlock
-                Text="Build a library from the folders you already trust."
-                HorizontalAlignment="Center"
-                FontSize="15"
-                Foreground="{ThemeResource MutedTextBrush}" />
-        </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                <Button Width="40" Height="40" Padding="0" CornerRadius="20"
+                        Background="{ThemeResource SurfaceBrush}" BorderBrush="{ThemeResource CardBorderBrush}"
+                        BorderThickness="1" ToolTipService.ToolTip="Command palette">
+                    <FontIcon Glyph="&#xE721;" FontSize="15" />
+                </Button>
+                <Button Width="40" Height="40" Padding="0" CornerRadius="20"
+                        Background="{ThemeResource SurfaceBrush}" BorderBrush="{ThemeResource CardBorderBrush}"
+                        BorderThickness="1" ToolTipService.ToolTip="Settings">
+                    <FontIcon Glyph="&#xE713;" FontSize="15" />
+                </Button>
+            </StackPanel>
+        </Grid>
 
-        <GridView
-            Grid.Row="1"
-            Margin="0,36,0,26"
-            x:Name="FoldersGrid"
-            HorizontalAlignment="Center"
-            SelectionMode="None">
-            <GridView.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <ItemsWrapGrid MaximumRowsOrColumns="4" />
-                </ItemsPanelTemplate>
-            </GridView.ItemsPanel>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel MaxWidth="1180" HorizontalAlignment="Center" Spacing="28">
 
-            <GridView.ItemTemplate>
-                <DataTemplate>
-                    <Border
-                        Width="220"
-                        Height="176"
-                        Margin="10"
-                        Padding="24"
-                        CornerRadius="16"
-                        Background="{ThemeResource SurfaceBrush}"
-                        BorderBrush="#22FFFFFF"
-                        BorderThickness="1">
-                        <StackPanel
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Spacing="11">
-                            <FontIcon
-                                Glyph="&#xE8B7;"
-                                FontSize="42"
-                                Foreground="{ThemeResource AccentBrush}" />
-                            <TextBlock
-                                Text="{Binding DisplayName}"
-                                FontSize="17"
-                                FontWeight="SemiBold"
-                                HorizontalAlignment="Center"
-                                Foreground="{ThemeResource WindowTextBrush}"
-                                TextTrimming="CharacterEllipsis"
-                                MaxWidth="176" />
-                            <TextBlock
-                                Text="{Binding Path}"
-                                FontSize="11"
-                                HorizontalAlignment="Center"
-                                Foreground="{ThemeResource MutedTextBrush}"
-                                TextTrimming="CharacterEllipsis"
-                                MaxWidth="176" />
+                <Grid Height="278" Margin="0,28,0,0">
+                    <Border CornerRadius="28" Background="{ThemeResource HeroGlowBrush}" />
+                    <Border Margin="1" CornerRadius="27" Background="{ThemeResource SurfaceStrongBrush}"
+                            BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1">
+                        <Grid Clip="RoundedRectangle">
+                            <Ellipse Width="260" Height="260" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                     Margin="0,-86,-36,0" Fill="{ThemeResource WarmAccentBrush}"
+                                     Opacity="0.14" />
+                            <Ellipse Width="210" Height="210" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                     Margin="0,0,90,-120" Fill="{ThemeResource AccentAltBrush}"
+                                     Opacity="0.12" />
+                            <StackPanel Margin="34,30,34,28" VerticalAlignment="Center" Spacing="10">
+                                <Border HorizontalAlignment="Left" Padding="12,6" CornerRadius="14"
+                                        Background="#22FFFFFF">
+                                    <TextBlock Text="YOUR MEDIA, BUT BETTER"
+                                               FontSize="11" FontWeight="SemiBold"
+                                               CharacterSpacing="70" Foreground="White" />
+                                </Border>
+                                <TextBlock Text="Make your library&#x0a;feel like yours."
+                                           FontSize="42" LineHeight="48" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource WindowTextBrush}" />
+                                <TextBlock Text="Organize folders, bring in media, and keep every change under control."
+                                           FontSize="15" Foreground="{ThemeResource MutedTextBrush}"
+                                           MaxWidth="560" TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <Border Width="180" Height="180" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Margin="0,0,52,0" CornerRadius="90"
+                                    Background="{ThemeResource HeroGradientBrush}" Opacity="0.96">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4">
+                                    <FontIcon Glyph="&#xE8E5;" FontSize="46" Foreground="White" />
+                                    <TextBlock Text="DOWN" FontSize="12" FontWeight="Bold"
+                                               CharacterSpacing="180" Foreground="White"
+                                               HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="14">
+                    <Border CornerRadius="20" Padding="20" Background="{ThemeResource SurfaceBrush}"
+                            BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1">
+                        <StackPanel Spacing="7">
+                            <TextBlock Text="LIBRARY" FontSize="10" FontWeight="SemiBold"
+                                       CharacterSpacing="80" Foreground="{ThemeResource SubtleTextBrush}" />
+                            <TextBlock Text="{Binding ElementName=FoldersGrid, Path=Items.Count}"
+                                       FontSize="28" FontWeight="SemiBold" Foreground="{ThemeResource WindowTextBrush}" />
+                            <TextBlock Text="root folders" FontSize="12" Foreground="{ThemeResource MutedTextBrush}" />
                         </StackPanel>
                     </Border>
-                </DataTemplate>
-            </GridView.ItemTemplate>
-        </GridView>
 
-        <StackPanel
-            Grid.Row="2"
-            HorizontalAlignment="Center"
-            Spacing="10">
-            <Button
-                Width="224"
-                Height="52"
-                CornerRadius="26"
-                Background="{ThemeResource AccentBrush}"
-                BorderThickness="0"
-                IsDefault="True"
-                Command="{x:Bind ViewModel.AddFolderCommand}">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="9">
-                    <FontIcon Glyph="&#xE710;" FontSize="16" Foreground="White" />
-                    <TextBlock
-                        Text="Add folder"
-                        FontSize="15"
-                        FontWeight="SemiBold"
-                        Foreground="White" />
-                </StackPanel>
-            </Button>
+                    <Border Grid.Column="1" CornerRadius="20" Padding="20" Background="{ThemeResource SurfaceBrush}"
+                            BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1">
+                        <StackPanel Spacing="7">
+                            <TextBlock Text="WORKFLOW" FontSize="10" FontWeight="SemiBold"
+                                       CharacterSpacing="80" Foreground="{ThemeResource SubtleTextBrush}" />
+                            <TextBlock Text="Ready" FontSize="28" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource SuccessBrush}" />
+                            <TextBlock Text="workspace is clean" FontSize="12" Foreground="{ThemeResource MutedTextBrush}" />
+                        </StackPanel>
+                    </Border>
 
-            <TextBlock
-                Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
-                Foreground="#FFFF9D9D"
-                HorizontalAlignment="Center"
-                TextWrapping="Wrap"
-                MaxWidth="440" />
-        </StackPanel>
+                    <Border Grid.Column="2" CornerRadius="20" Padding="20" Background="{ThemeResource SurfaceBrush}"
+                            BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1">
+                        <StackPanel Spacing="7">
+                            <TextBlock Text="DOWNLOADS" FontSize="10" FontWeight="SemiBold"
+                                       CharacterSpacing="80" Foreground="{ThemeResource SubtleTextBrush}" />
+                            <TextBlock Text="0" FontSize="28" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource WindowTextBrush}" />
+                            <TextBlock Text="active right now" FontSize="12" Foreground="{ThemeResource MutedTextBrush}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                    <StackPanel Spacing="3">
+                        <TextBlock Text="Your spaces" FontSize="24" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource WindowTextBrush}" />
+                        <TextBlock Text="Folders you choose become beautiful, focused workspaces."
+                                   FontSize="13" Foreground="{ThemeResource MutedTextBrush}" />
+                    </StackPanel>
+
+                    <Button Grid.Column="1" Height="44" Padding="18,0" CornerRadius="22"
+                            Background="{ThemeResource HeroGradientBrush}" BorderThickness="0"
+                            Command="{x:Bind ViewModel.AddFolderCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE710;" FontSize="15" Foreground="White" />
+                            <TextBlock Text="Add folder" FontWeight="SemiBold" Foreground="White" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <GridView x:Name="FoldersGrid" SelectionMode="None">
+                    <GridView.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <ItemsWrapGrid MaximumRowsOrColumns="4" />
+                        </ItemsPanelTemplate>
+                    </GridView.ItemsPanel>
+                    <GridView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Width="250" Height="190" Margin="0,0,14,14"
+                                    Padding="22" CornerRadius="22"
+                                    Background="{ThemeResource SurfaceBrush}"
+                                    BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1">
+                                <Grid>
+                                    <Border Width="52" Height="52" CornerRadius="17"
+                                            HorizontalAlignment="Left" VerticalAlignment="Top"
+                                            Background="{ThemeResource HeroGradientBrush}">
+                                        <FontIcon Glyph="&#xE8B7;" FontSize="25" Foreground="White"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel VerticalAlignment="Bottom" Spacing="5">
+                                        <TextBlock Text="{Binding DisplayName}" FontSize="18" FontWeight="SemiBold"
+                                                   Foreground="{ThemeResource WindowTextBrush}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Path}" FontSize="11"
+                                                   Foreground="{ThemeResource SubtleTextBrush}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="Open workspace  ›" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="{ThemeResource AccentAltBrush}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </GridView.ItemTemplate>
+                </GridView>
+
+                <Border x:Name="EmptyState" CornerRadius="24" Padding="30"
+                        Background="{ThemeResource SurfaceBrush}"
+                        BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1"
+                        Visibility="Collapsed">
+                    <StackPanel HorizontalAlignment="Center" Spacing="9">
+                        <Border Width="62" Height="62" CornerRadius="22"
+                                Background="{ThemeResource HeroGradientBrush}">
+                            <FontIcon Glyph="&#xE8B7;" FontSize="28" Foreground="White"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="Start with a folder" FontSize="21" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource WindowTextBrush}"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="Pick a folder you already trust. DownTrack will build the workspace around it."
+                                   FontSize="13" Foreground="{ThemeResource MutedTextBrush}"
+                                   TextAlignment="Center" TextWrapping="Wrap" MaxWidth="480" />
+                    </StackPanel>
+                </Border>
+
+                <TextBlock
+                    Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                    Foreground="{ThemeResource WarmAccentBrush}"
+                    FontSize="12"
+                    HorizontalAlignment="Center"
+                    TextWrapping="Wrap"
+                    MaxWidth="520"
+                    Margin="0,0,0,12" />
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Window>

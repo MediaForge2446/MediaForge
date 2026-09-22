@@ -15,5 +15,15 @@ public sealed partial class MainWindow : Window
 
         ViewModel.OwnerHandle = WindowNative.GetWindowHandle(this);
         FoldersGrid.ItemsSource = ViewModel.Roots;
+        UpdateEmptyState();
+
+        ViewModel.Roots.CollectionChanged += (_, _) => UpdateEmptyState();
+    }
+
+    private void UpdateEmptyState()
+    {
+        EmptyState.Visibility = ViewModel.Roots.Count == 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 }
