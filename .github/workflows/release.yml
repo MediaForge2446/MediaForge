@@ -211,6 +211,8 @@ jobs:
           $setup = Join-Path $env:GITHUB_WORKSPACE 'artifacts\Setup.exe'
           $smokeRoot = Join-Path $env:RUNNER_TEMP 'MediaForgeInstallerSmokeTest'
           $installDir = Join-Path $smokeRoot 'install'
+          $installLog = Join-Path $smokeRoot 'install.log'
+          $uninstallLog = Join-Path $smokeRoot 'uninstall.log'
 
           if (Test-Path $smokeRoot) { Remove-Item $smokeRoot -Recurse -Force }
           New-Item -ItemType Directory -Force -Path $installDir | Out-Null
@@ -220,15 +222,28 @@ jobs:
             '/SUPPRESSMSGBOXES',
             '/NORESTART',
             '/SP-',
-            "/DIR=$installDir"
+            "/DIR=$installDir",
+            "/LOG=$installLog"
           ) -Wait -PassThru
 
           if ($process.ExitCode -ne 0) {
+            Write-Host "Installer exit code: $($process.ExitCode)"
+            if (Test-Path $installLog) {
+              Write-Host '----- Inno Setup install log -----'
+              Get-Content -Path $installLog
+              Write-Host '----- End Inno Setup install log -----'
+            }
             throw "Installer smoke test failed with exit code $($process.ExitCode)."
           }
 
           $installedExe = Join-Path $installDir 'MediaForge.exe'
           if (-not (Test-Path $installedExe)) {
+            Write-Host 'Installer completed but MediaForge.exe was not found.'
+            if (Test-Path $installLog) {
+              Write-Host '----- Inno Setup install log -----'
+              Get-Content -Path $installLog
+              Write-Host '----- End Inno Setup install log -----'
+            }
             throw "Installer smoke test did not install MediaForge.exe."
           }
 
@@ -239,10 +254,17 @@ jobs:
             $uninstallProcess = Start-Process -FilePath $uninstaller -ArgumentList @(
               '/VERYSILENT',
               '/SUPPRESSMSGBOXES',
-              '/NORESTART'
+              '/NORESTART',
+              "/LOG=$uninstallLog"
             ) -Wait -PassThru
 
             if ($uninstallProcess.ExitCode -ne 0) {
+              Write-Host "Uninstaller exit code: $($uninstallProcess.ExitCode)"
+              if (Test-Path $uninstallLog) {
+                Write-Host '----- Inno Setup uninstall log -----'
+                Get-Content -Path $uninstallLog
+                Write-Host '----- End Inno Setup uninstall log -----'
+              }
               throw "Uninstaller smoke test failed with exit code $($uninstallProcess.ExitCode)."
             }
           }
