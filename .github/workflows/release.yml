@@ -232,12 +232,14 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           $upload = Join-Path $env:GITHUB_WORKSPACE 'artifacts\MediaForge.msixupload'
+          $msix = Join-Path $env:GITHUB_WORKSPACE 'artifacts\MediaForge.msix'
           if (-not (Test-Path $upload)) { throw 'MediaForge.msixupload was not created.' }
+          if (-not (Test-Path $msix)) { throw 'MediaForge.msix was not created.' }
 
           gh release view $env:RELEASE_TAG --json tagName *> $null
           if ($LASTEXITCODE -eq 0) {
-            Write-Host "Release $env:RELEASE_TAG exists. Replacing the Store package asset."
-            gh release upload $env:RELEASE_TAG $upload --clobber
+            Write-Host "Release $env:RELEASE_TAG exists. Replacing the Store package assets."
+            gh release upload $env:RELEASE_TAG $upload $msix --clobber
           } else {
             $notes = @"
           ## MediaForge $env:VERSION
