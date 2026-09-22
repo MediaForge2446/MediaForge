@@ -6,4 +6,6 @@ public sealed record CommitProgress(
     string Status,
     bool IsTerminal = false,
     double? SpeedBytesPerSecond = null,
-    TimeSpan? Eta = null);
+    TimeSpan? Eta = null,
+    long? DownloadedBytes = null,
+    long? TotalBytes = null);
