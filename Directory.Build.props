@@ -1,5 +1,7 @@
 <Project>
   <PropertyGroup>
+    <Version>0.2.0</Version>
+    <VersionPrefix>0.2.0</VersionPrefix>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
     <Deterministic>true</Deterministic>
