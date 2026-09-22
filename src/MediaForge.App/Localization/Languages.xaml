@@ -2,6 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
   <ResourceDictionary x:Key="en-US">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Media, organized.</sys:String>
     <sys:String x:Key="Nav_Home">Home</sys:String>
@@ -163,8 +164,22 @@
     <sys:String x:Key="Status_Synced">Connected and synced</sys:String>
     <sys:String x:Key="Status_RootMissing">Folder not found</sys:String>
     <sys:String x:Key="Status_CheckPath">Check the path or connect the drive</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">Preview</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">Resolved media appears here before it is added to the staged queue.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">Cancel</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">Parallel</sys:String>
+    <sys:String x:Key="Downloads_Destination">Destination</sys:String>
+    <sys:String x:Key="Downloads_Pause">Pause</sys:String>
+    <sys:String x:Key="Downloads_Pending">Pending</sys:String>
+    <sys:String x:Key="Downloads_Resume">Resume</sys:String>
+    <sys:String x:Key="Downloads_Retry">Retry</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">Show diagnostic log</sys:String>
+    <sys:String x:Key="Downloads_Size">Size</sys:String>
+    <sys:String x:Key="Queue_Paused">Paused</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">Verifying managed tools…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="he-IL">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">המדיה שלך. מסודרת.</sys:String>
     <sys:String x:Key="Nav_Home">בית</sys:String>
@@ -326,8 +341,22 @@
     <sys:String x:Key="Status_Synced">מחובר ומסונכרן</sys:String>
     <sys:String x:Key="Status_RootMissing">התיקייה לא נמצאה</sys:String>
     <sys:String x:Key="Status_CheckPath">בדוק את הנתיב או חבר את הכונן</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">תצוגה מקדימה</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">מדיה שזוהתה תופיע כאן לפני שתתווסף לתור השינויים.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">ביטול</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">מקביל</sys:String>
+    <sys:String x:Key="Downloads_Destination">יעד</sys:String>
+    <sys:String x:Key="Downloads_Pause">השהה</sys:String>
+    <sys:String x:Key="Downloads_Pending">ממתינים</sys:String>
+    <sys:String x:Key="Downloads_Resume">המשך</sys:String>
+    <sys:String x:Key="Downloads_Retry">נסה שוב</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">הצג לוג אבחון</sys:String>
+    <sys:String x:Key="Downloads_Size">גודל</sys:String>
+    <sys:String x:Key="Queue_Paused">מושהה</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">מאמת כלים מנוהלים…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="es-ES">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Tu media, organizada.</sys:String>
     <sys:String x:Key="Nav_Home">Inicio</sys:String>
@@ -344,8 +373,22 @@
     <sys:String x:Key="Settings_Language">Idioma</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">Elige el idioma que usa MediaForge.</sys:String>
     <sys:String x:Key="Settings_Tools">Herramientas administradas</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">Vista previa</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">El contenido resuelto aparece aquí antes de añadirse a la cola en espera.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">Cancelar</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">Paralelo</sys:String>
+    <sys:String x:Key="Downloads_Destination">Destino</sys:String>
+    <sys:String x:Key="Downloads_Pause">Pausar</sys:String>
+    <sys:String x:Key="Downloads_Pending">Pendientes</sys:String>
+    <sys:String x:Key="Downloads_Resume">Reanudar</sys:String>
+    <sys:String x:Key="Downloads_Retry">Reintentar</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">Mostrar registro de diagnóstico</sys:String>
+    <sys:String x:Key="Downloads_Size">Tamaño</sys:String>
+    <sys:String x:Key="Queue_Paused">En pausa</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">Verificando herramientas administradas…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="fr-FR">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Vos médias, bien organisés.</sys:String>
     <sys:String x:Key="Nav_Home">Accueil</sys:String>
@@ -362,8 +405,22 @@
     <sys:String x:Key="Settings_Language">Langue</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">Choisissez la langue utilisée par MediaForge.</sys:String>
     <sys:String x:Key="Settings_Tools">Outils gérés</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">Aperçu</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">Le média résolu apparaît ici avant d’être ajouté à la file d’attente.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">Annuler</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">Parallèle</sys:String>
+    <sys:String x:Key="Downloads_Destination">Destination</sys:String>
+    <sys:String x:Key="Downloads_Pause">Pause</sys:String>
+    <sys:String x:Key="Downloads_Pending">En attente</sys:String>
+    <sys:String x:Key="Downloads_Resume">Reanudar</sys:String>
+    <sys:String x:Key="Downloads_Retry">Réessayer</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">Afficher le journal de diagnostic</sys:String>
+    <sys:String x:Key="Downloads_Size">Taille</sys:String>
+    <sys:String x:Key="Queue_Paused">En pause</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">Vérification des outils gérés…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="de-DE">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Deine Medien. Aufgeräumt.</sys:String>
     <sys:String x:Key="Nav_Home">Startseite</sys:String>
@@ -380,8 +437,22 @@
     <sys:String x:Key="Settings_Language">Sprache</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">Wähle die Sprache für MediaForge.</sys:String>
     <sys:String x:Key="Settings_Tools">Verwaltete Tools</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">Vorschau</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">Aufgelöste Medien werden hier angezeigt, bevor sie der Warteschlange hinzugefügt werden.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">Abbrechen</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">Parallèle</sys:String>
+    <sys:String x:Key="Downloads_Destination">Ziel</sys:String>
+    <sys:String x:Key="Downloads_Pause">Pausieren</sys:String>
+    <sys:String x:Key="Downloads_Pending">Ausstehend</sys:String>
+    <sys:String x:Key="Downloads_Resume">Fortsetzen</sys:String>
+    <sys:String x:Key="Downloads_Retry">Erneut versuchen</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">Diagnoseprotokoll anzeigen</sys:String>
+    <sys:String x:Key="Downloads_Size">Taille</sys:String>
+    <sys:String x:Key="Queue_Paused">Pausiert</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">Verwaltete Tools werden überprüft…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="it-IT">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">I tuoi media, organizzati.</sys:String>
     <sys:String x:Key="Nav_Home">Home</sys:String>
@@ -398,8 +469,22 @@
     <sys:String x:Key="Settings_Language">Lingua</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">Scegli la lingua usata da MediaForge.</sys:String>
     <sys:String x:Key="Settings_Tools">Strumenti gestiti</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">Anteprima</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">I contenuti risolti vengono mostrati qui prima di essere aggiunti alla coda.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">Annulla</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">Parallelo</sys:String>
+    <sys:String x:Key="Downloads_Destination">Destinazione</sys:String>
+    <sys:String x:Key="Downloads_Pause">Pausa</sys:String>
+    <sys:String x:Key="Downloads_Pending">In sospeso</sys:String>
+    <sys:String x:Key="Downloads_Resume">Riprendi</sys:String>
+    <sys:String x:Key="Downloads_Retry">Riprova</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">Mostra log diagnostico</sys:String>
+    <sys:String x:Key="Downloads_Size">Dimensione</sys:String>
+    <sys:String x:Key="Queue_Paused">In pausa</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">Verifica degli strumenti gestiti…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="pt-BR">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Sua mídia, organizada.</sys:String>
     <sys:String x:Key="Nav_Home">Início</sys:String>
@@ -416,8 +501,22 @@
     <sys:String x:Key="Settings_Language">Idioma</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">Escolha o idioma usado pelo MediaForge.</sys:String>
     <sys:String x:Key="Settings_Tools">Ferramentas gerenciadas</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">Pré-visualização</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">A mídia resolvida aparece aqui antes de ser adicionada à fila.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">Cancelar</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">Paralelo</sys:String>
+    <sys:String x:Key="Downloads_Destination">Destino</sys:String>
+    <sys:String x:Key="Downloads_Pause">Pausar</sys:String>
+    <sys:String x:Key="Downloads_Pending">Pendentes</sys:String>
+    <sys:String x:Key="Downloads_Resume">Retomar</sys:String>
+    <sys:String x:Key="Downloads_Retry">Tentar novamente</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">Mostrar log de diagnóstico</sys:String>
+    <sys:String x:Key="Downloads_Size">Tamanho</sys:String>
+    <sys:String x:Key="Queue_Paused">Pausado</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">Verificando ferramentas gerenciadas…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="pt-PT">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Os teus ficheiros multimédia, organizados.</sys:String>
     <sys:String x:Key="Nav_Home">Início</sys:String>
@@ -434,8 +533,22 @@
     <sys:String x:Key="Settings_Language">Idioma</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">Escolhe o idioma usado pelo MediaForge.</sys:String>
     <sys:String x:Key="Settings_Tools">Ferramentas geridas</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">Pré-visualização</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">O conteúdo resolvido aparece aqui antes de ser adicionado à fila.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">Cancelar</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">Paralelo</sys:String>
+    <sys:String x:Key="Downloads_Destination">Destino</sys:String>
+    <sys:String x:Key="Downloads_Pause">Pausar</sys:String>
+    <sys:String x:Key="Downloads_Pending">Pendentes</sys:String>
+    <sys:String x:Key="Downloads_Resume">Retomar</sys:String>
+    <sys:String x:Key="Downloads_Retry">Tentar novamente</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">Mostrar registo de diagnóstico</sys:String>
+    <sys:String x:Key="Downloads_Size">Tamanho</sys:String>
+    <sys:String x:Key="Queue_Paused">Em pausa</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">A verificar ferramentas geridas…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="nl-NL">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Je media, georganiseerd.</sys:String>
     <sys:String x:Key="Nav_Home">Start</sys:String>
@@ -452,8 +565,22 @@
     <sys:String x:Key="Settings_Language">Taal</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">Kies de taal voor MediaForge.</sys:String>
     <sys:String x:Key="Settings_Tools">Beheerde hulpprogramma's</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">Voorbeeld</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">Opgeloste media verschijnen hier voordat ze aan de wachtrij worden toegevoegd.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">Annuleren</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">Parallel</sys:String>
+    <sys:String x:Key="Downloads_Destination">Bestemming</sys:String>
+    <sys:String x:Key="Downloads_Pause">Pauzeren</sys:String>
+    <sys:String x:Key="Downloads_Pending">In behandeling</sys:String>
+    <sys:String x:Key="Downloads_Resume">Hervatten</sys:String>
+    <sys:String x:Key="Downloads_Retry">Opnieuw proberen</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">Diagnostisch logboek tonen</sys:String>
+    <sys:String x:Key="Downloads_Size">Grootte</sys:String>
+    <sys:String x:Key="Queue_Paused">Gepauzeerd</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">Beheerde hulpprogramma's worden gecontroleerd…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="pl-PL">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Twoje multimedia. Uporządkowane.</sys:String>
     <sys:String x:Key="Nav_Home">Strona główna</sys:String>
@@ -470,8 +597,22 @@
     <sys:String x:Key="Settings_Language">Język</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">Wybierz język używany przez MediaForge.</sys:String>
     <sys:String x:Key="Settings_Tools">Zarządzane narzędzia</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">Podgląd</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">Rozwiązane multimedia pojawią się tutaj przed dodaniem do kolejki.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">Anuluj</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">Równoległe</sys:String>
+    <sys:String x:Key="Downloads_Destination">Miejsce docelowe</sys:String>
+    <sys:String x:Key="Downloads_Pause">Wstrzymaj</sys:String>
+    <sys:String x:Key="Downloads_Pending">Oczekujące</sys:String>
+    <sys:String x:Key="Downloads_Resume">Wznów</sys:String>
+    <sys:String x:Key="Downloads_Retry">Ponów</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">Pokaż dziennik diagnostyczny</sys:String>
+    <sys:String x:Key="Downloads_Size">Rozmiar</sys:String>
+    <sys:String x:Key="Queue_Paused">Wstrzymane</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">Sprawdzanie zarządzanych narzędzi…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="tr-TR">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Medyanız, düzenli.</sys:String>
     <sys:String x:Key="Nav_Home">Ana Sayfa</sys:String>
@@ -488,8 +629,22 @@
     <sys:String x:Key="Settings_Language">Dil</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">MediaForge tarafından kullanılan dili seçin.</sys:String>
     <sys:String x:Key="Settings_Tools">Yönetilen araçlar</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">Önizleme</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">Çözümlenen medya kuyruğa eklenmeden önce burada görünür.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">İptal</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">Paralel</sys:String>
+    <sys:String x:Key="Downloads_Destination">Hedef</sys:String>
+    <sys:String x:Key="Downloads_Pause">Duraklat</sys:String>
+    <sys:String x:Key="Downloads_Pending">Bekliyor</sys:String>
+    <sys:String x:Key="Downloads_Resume">Sürdür</sys:String>
+    <sys:String x:Key="Downloads_Retry">Yeniden dene</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">Tanılama günlüğünü göster</sys:String>
+    <sys:String x:Key="Downloads_Size">Boyut</sys:String>
+    <sys:String x:Key="Queue_Paused">Duraklatıldı</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">Yönetilen araçlar doğrulanıyor…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="sv-SE">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Ditt media, organiserat.</sys:String>
     <sys:String x:Key="Nav_Home">Hem</sys:String>
@@ -506,8 +661,22 @@
     <sys:String x:Key="Settings_Language">Språk</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">Välj språket som MediaForge använder.</sys:String>
     <sys:String x:Key="Settings_Tools">Hanterade verktyg</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">Förhandsvisning</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">Identifierat media visas här innan det läggs i kön.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">Avbryt</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">Parallellt</sys:String>
+    <sys:String x:Key="Downloads_Destination">Mål</sys:String>
+    <sys:String x:Key="Downloads_Pause">Pausa</sys:String>
+    <sys:String x:Key="Downloads_Pending">Väntande</sys:String>
+    <sys:String x:Key="Downloads_Resume">Återuppta</sys:String>
+    <sys:String x:Key="Downloads_Retry">Försök igen</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">Visa diagnostiklogg</sys:String>
+    <sys:String x:Key="Downloads_Size">Storlek</sys:String>
+    <sys:String x:Key="Queue_Paused">Pausad</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">Verifierar hanterade verktyg…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="da-DK">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Dine medier, organiseret.</sys:String>
     <sys:String x:Key="Nav_Home">Hjem</sys:String>
@@ -524,8 +693,22 @@
     <sys:String x:Key="Settings_Language">Sprog</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">Vælg sproget, som MediaForge bruger.</sys:String>
     <sys:String x:Key="Settings_Tools">Administrerede værktøjer</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">Forhåndsvisning</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">Fundet medie vises her, før det føjes til køen.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">Annuller</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">Parallel</sys:String>
+    <sys:String x:Key="Downloads_Destination">Destination</sys:String>
+    <sys:String x:Key="Downloads_Pause">Sæt på pause</sys:String>
+    <sys:String x:Key="Downloads_Pending">Afventer</sys:String>
+    <sys:String x:Key="Downloads_Resume">Genoptag</sys:String>
+    <sys:String x:Key="Downloads_Retry">Prøv igen</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">Vis diagnosticeringslog</sys:String>
+    <sys:String x:Key="Downloads_Size">Størrelse</sys:String>
+    <sys:String x:Key="Queue_Paused">Sat på pause</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">Bekræfter administrerede værktøjer…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="nb-NO">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Mediene dine, organisert.</sys:String>
     <sys:String x:Key="Nav_Home">Hjem</sys:String>
@@ -542,8 +725,22 @@
     <sys:String x:Key="Settings_Language">Språk</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">Velg språket som MediaForge bruker.</sys:String>
     <sys:String x:Key="Settings_Tools">Administrerte verktøy</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">Forhåndsvisning</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">Tolket media vises her før det legges i køen.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">Avbryt</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">Parallelt</sys:String>
+    <sys:String x:Key="Downloads_Destination">Mål</sys:String>
+    <sys:String x:Key="Downloads_Pause">Sett på pause</sys:String>
+    <sys:String x:Key="Downloads_Pending">Venter</sys:String>
+    <sys:String x:Key="Downloads_Resume">Fortsett</sys:String>
+    <sys:String x:Key="Downloads_Retry">Prøv igjen</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">Vis diagnose-logg</sys:String>
+    <sys:String x:Key="Downloads_Size">Størrelse</sys:String>
+    <sys:String x:Key="Queue_Paused">Satt på pause</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">Bekrefter administrerte verktøy…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="fi-FI">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Mediasi, järjestyksessä.</sys:String>
     <sys:String x:Key="Nav_Home">Koti</sys:String>
@@ -560,8 +757,22 @@
     <sys:String x:Key="Settings_Language">Kieli</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">Valitse MediaForgen käyttämä kieli.</sys:String>
     <sys:String x:Key="Settings_Tools">Hallinnoidut työkalut</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">Esikatselu</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">Tunnistettu media näkyy tässä ennen sen lisäämistä jonoon.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">Peruuta</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">Rinnakkain</sys:String>
+    <sys:String x:Key="Downloads_Destination">Kohde</sys:String>
+    <sys:String x:Key="Downloads_Pause">Keskeytä</sys:String>
+    <sys:String x:Key="Downloads_Pending">Odottaa</sys:String>
+    <sys:String x:Key="Downloads_Resume">Jatka</sys:String>
+    <sys:String x:Key="Downloads_Retry">Yritä uudelleen</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">Näytä diagnostiikkaloki</sys:String>
+    <sys:String x:Key="Downloads_Size">Koko</sys:String>
+    <sys:String x:Key="Queue_Paused">Keskeytetty</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">Hallinnoituja työkaluja tarkistetaan…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="cs-CZ">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Vaše média. Uspořádaná.</sys:String>
     <sys:String x:Key="Nav_Home">Domů</sys:String>
@@ -578,8 +789,22 @@
     <sys:String x:Key="Settings_Language">Jazyk</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">Vyberte jazyk používaný aplikací MediaForge.</sys:String>
     <sys:String x:Key="Settings_Tools">Spravované nástroje</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">Náhled</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">Rozpoznaná média se zde zobrazí před přidáním do fronty.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">Zrušit</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">Paralelně</sys:String>
+    <sys:String x:Key="Downloads_Destination">Cíl</sys:String>
+    <sys:String x:Key="Downloads_Pause">Pozastavit</sys:String>
+    <sys:String x:Key="Downloads_Pending">Čekající</sys:String>
+    <sys:String x:Key="Downloads_Resume">Pokračovat</sys:String>
+    <sys:String x:Key="Downloads_Retry">Zkusit znovu</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">Zobrazit diagnostický protokol</sys:String>
+    <sys:String x:Key="Downloads_Size">Velikost</sys:String>
+    <sys:String x:Key="Queue_Paused">Pozastaveno</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">Ověřování spravovaných nástrojů…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="uk-UA">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">Ваші медіа. Упорядковані.</sys:String>
     <sys:String x:Key="Nav_Home">Головна</sys:String>
@@ -596,8 +821,22 @@
     <sys:String x:Key="Settings_Language">Мова</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">Виберіть мову, яку використовує MediaForge.</sys:String>
     <sys:String x:Key="Settings_Tools">Керовані інструменти</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">Попередній перегляд</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">Визначені медіа відображаються тут перед додаванням до черги.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">Скасувати</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">Паралельно</sys:String>
+    <sys:String x:Key="Downloads_Destination">Місце призначення</sys:String>
+    <sys:String x:Key="Downloads_Pause">Призупинити</sys:String>
+    <sys:String x:Key="Downloads_Pending">В очікуванні</sys:String>
+    <sys:String x:Key="Downloads_Resume">Продовжити</sys:String>
+    <sys:String x:Key="Downloads_Retry">Повторити</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">Показати журнал діагностики</sys:String>
+    <sys:String x:Key="Downloads_Size">Rozmiar</sys:String>
+    <sys:String x:Key="Queue_Paused">Призупинено</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">Перевірка керованих інструментів…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="ja-JP">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">メディアを、すっきり整理。</sys:String>
     <sys:String x:Key="Nav_Home">ホーム</sys:String>
@@ -614,8 +853,22 @@
     <sys:String x:Key="Settings_Language">言語</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">MediaForgeで使用する言語を選択します。</sys:String>
     <sys:String x:Key="Settings_Tools">管理ツール</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">プレビュー</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">解決したメディアは、キューに追加する前にここに表示されます。</sys:String>
+    <sys:String x:Key="Downloads_Cancel">キャンセル</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">並列</sys:String>
+    <sys:String x:Key="Downloads_Destination">保存先</sys:String>
+    <sys:String x:Key="Downloads_Pause">一時停止</sys:String>
+    <sys:String x:Key="Downloads_Pending">保留中</sys:String>
+    <sys:String x:Key="Downloads_Resume">再開</sys:String>
+    <sys:String x:Key="Downloads_Retry">再試行</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">診断ログを表示</sys:String>
+    <sys:String x:Key="Downloads_Size">サイズ</sys:String>
+    <sys:String x:Key="Queue_Paused">一時停止中</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">管理ツールを確認しています…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="ko-KR">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">미디어를 깔끔하게 정리하세요.</sys:String>
     <sys:String x:Key="Nav_Home">홈</sys:String>
@@ -632,8 +885,22 @@
     <sys:String x:Key="Settings_Language">언어</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">MediaForge에서 사용할 언어를 선택하세요.</sys:String>
     <sys:String x:Key="Settings_Tools">관리 도구</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">미리보기</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">확인된 미디어가 대기열에 추가되기 전에 여기에 표시됩니다.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">취소</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">동시</sys:String>
+    <sys:String x:Key="Downloads_Destination">저장 위치</sys:String>
+    <sys:String x:Key="Downloads_Pause">일시 중지</sys:String>
+    <sys:String x:Key="Downloads_Pending">대기 중</sys:String>
+    <sys:String x:Key="Downloads_Resume">재개</sys:String>
+    <sys:String x:Key="Downloads_Retry">다시 시도</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">진단 로그 보기</sys:String>
+    <sys:String x:Key="Downloads_Size">크기</sys:String>
+    <sys:String x:Key="Queue_Paused">일시 중지됨</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">관리 도구 확인 중…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="zh-CN">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">媒体，井然有序。</sys:String>
     <sys:String x:Key="Nav_Home">主页</sys:String>
@@ -650,8 +917,22 @@
     <sys:String x:Key="Settings_Language">语言</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">选择 MediaForge 使用的语言。</sys:String>
     <sys:String x:Key="Settings_Tools">受管理工具</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">预览</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">解析后的媒体会在加入队列前显示在这里。</sys:String>
+    <sys:String x:Key="Downloads_Cancel">取消</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">并行</sys:String>
+    <sys:String x:Key="Downloads_Destination">目标位置</sys:String>
+    <sys:String x:Key="Downloads_Pause">暂停</sys:String>
+    <sys:String x:Key="Downloads_Pending">待处理</sys:String>
+    <sys:String x:Key="Downloads_Resume">继续</sys:String>
+    <sys:String x:Key="Downloads_Retry">重试</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">显示诊断日志</sys:String>
+    <sys:String x:Key="Downloads_Size">大小</sys:String>
+    <sys:String x:Key="Queue_Paused">已暂停</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">正在验证托管工具…</sys:String>
+</ResourceDictionary>
   <ResourceDictionary x:Key="ar-SA">
+
     <sys:String x:Key="App_Title">MediaForge</sys:String>
     <sys:String x:Key="App_Tagline">وسائطك، منظمة.</sys:String>
     <sys:String x:Key="Nav_Home">الرئيسية</sys:String>
@@ -668,5 +949,18 @@
     <sys:String x:Key="Settings_Language">اللغة</sys:String>
     <sys:String x:Key="Settings_LanguageDescription">اختر اللغة التي يستخدمها MediaForge.</sys:String>
     <sys:String x:Key="Settings_Tools">الأدوات المُدارة</sys:String>
-  </ResourceDictionary>
+      <sys:String x:Key="AddMedia_PreviewTitle">المعاينة</sys:String>
+    <sys:String x:Key="AddMedia_PreviewSubtitle">تظهر الوسائط التي تم تحليلها هنا قبل إضافتها إلى قائمة الانتظار.</sys:String>
+    <sys:String x:Key="Downloads_Cancel">إلغاء</sys:String>
+    <sys:String x:Key="Downloads_Concurrency">متوازي</sys:String>
+    <sys:String x:Key="Downloads_Destination">الوجهة</sys:String>
+    <sys:String x:Key="Downloads_Pause">إيقاف مؤقت</sys:String>
+    <sys:String x:Key="Downloads_Pending">قيد الانتظار</sys:String>
+    <sys:String x:Key="Downloads_Resume">استئناف</sys:String>
+    <sys:String x:Key="Downloads_Retry">إعادة المحاولة</sys:String>
+    <sys:String x:Key="Downloads_ShowLog">عرض سجل التشخيص</sys:String>
+    <sys:String x:Key="Downloads_Size">الحجم</sys:String>
+    <sys:String x:Key="Queue_Paused">متوقف مؤقتًا</sys:String>
+    <sys:String x:Key="Settings_VerifyingTools">جارٍ التحقق من الأدوات المُدارة…</sys:String>
+</ResourceDictionary>
 </ResourceDictionary>
