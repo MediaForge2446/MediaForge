@@ -161,7 +161,8 @@ public sealed class WorkflowCoverageTests
             string outputPath,
             MediaFormat format,
             IProgress<DownloadProgress>? progress = null,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default,
+            MediaQuality quality = MediaQuality.Standard128K)
         {
             Attempts++;
             if (Attempts == 1)
@@ -183,7 +184,13 @@ public sealed class WorkflowCoverageTests
 
     private sealed class FailingDownloader : IMediaDownloader
     {
-        public Task DownloadAsync(string sourceUrl, string outputPath, MediaFormat format, IProgress<DownloadProgress>? progress = null, CancellationToken cancellationToken = default)
+        public Task DownloadAsync(
+            string sourceUrl,
+            string outputPath,
+            MediaFormat format,
+            IProgress<DownloadProgress>? progress = null,
+            CancellationToken cancellationToken = default,
+            MediaQuality quality = MediaQuality.Standard128K)
             => Task.FromException(new InvalidOperationException("Synthetic download failure"));
     }
 }
