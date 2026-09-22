@@ -1,5 +1,6 @@
 using System;
 using System.Windows;
+using MediaForge.App.Localization;
 using MediaForge.App.ViewModels;
 
 namespace MediaForge.App.Views;
@@ -12,6 +13,7 @@ public partial class AddMediaWindow : Window
     {
         _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
         InitializeComponent();
+        LocalizationService.Instance.ApplyToWindow(this);
         DataContext = viewModel;
         _viewModel.MediaStaged += OnMediaStagedAsync;
     }
