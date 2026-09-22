@@ -119,7 +119,10 @@ public sealed class CommitEngine : ICommitEngine
                         outputPath,
                         format.Value,
                         operation.CreatedAt,
-                        DateTimeOffset.UtcNow),
+                        DateTimeOffset.UtcNow,
+                        operation.Payload?.Title,
+                        operation.Payload?.Artist,
+                        operation.Payload?.ThumbnailUrl),
                     cancellationToken).ConfigureAwait(false);
             }
 
