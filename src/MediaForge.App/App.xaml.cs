@@ -79,7 +79,7 @@ public partial class App : System.Windows.Application
                 stagingService,
                 mediaIndex,
                 fileSystem);
-            var explorerViewModel = new ExplorerViewModel(explorerService, stagingService);
+            var explorerViewModel = new ExplorerViewModel(explorerService, stagingService, mediaIndex);
             var updateService = new GitHubAppUpdateService();
             var downloadsViewModel = new DownloadsViewModel(
                 mediaImportService,
