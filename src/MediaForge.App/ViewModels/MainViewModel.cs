@@ -64,6 +64,7 @@ public partial class MainViewModel : ObservableObject
 
         _stagingService.Changed += OnStagingChanged;
         Explorer.AddMediaRequested += OnAddMediaRequested;
+        Downloads.RetryRequested += RetryDownloadAsync;
     }
 
     private void OnAddMediaRequested(string path)
@@ -257,7 +258,13 @@ public partial class MainViewModel : ObservableObject
         StatusText = _localization.Get("Status_SaveChanges");
         try
         {
-            var operations = _stagingService.Operations.ToArray();
+            var order = Downloads.GetOrderedOperationIds()
+                .Select((id, index) => (id, index))
+                .ToDictionary(x => x.id, x => x.index);
+
+            var operations = _stagingService.Operations
+                .OrderBy(x => order.TryGetValue(x.OperationId, out var index) ? index : int.MaxValue)
+                .ToArray();
             CommitProgressPercent = 0;
             CommitProgressStatus = _localization.Get("Status_SavePreparing");
 
@@ -283,6 +290,61 @@ public partial class MainViewModel : ObservableObject
         catch (OperationCanceledException) { StatusText = _localization.Get("Status_SaveCanceled"); }
         catch (Exception ex) { StatusText = $"{_localization.Get("Status_SaveFailed")}: {ex.Message}"; }
         finally { IsBusy = false; }
+    }
+
+    private async Task RetryDownloadAsync(Guid operationId)
+    {
+        if (IsBusy)
+            return;
+
+        var operation = _stagingService.Operations
+            .FirstOrDefault(x => x.OperationId == operationId && x.OperationType == MediaForge.Core.Enums.OperationType.Download);
+
+        if (operation is null)
+            return;
+
+        IsBusy = true;
+        StatusText = _localization.Get("Queue_Retrying");
+
+        try
+        {
+            var progress = new Progress<CommitProgress>(value =>
+            {
+                CommitProgressPercent = Math.Clamp(value.Percent, 0, 100);
+                CommitProgressStatus = value.Status;
+                Downloads.ApplyCommitProgress(value);
+            });
+
+            var result = await _commitEngine
+                .CommitAsync(new[] { operation }, progress, CancellationToken.None)
+                .ConfigureAwait(true);
+
+            Downloads.ApplyCommitResults(result.Items);
+            RefreshPendingCount();
+            Downloads.SyncFromStaging(_stagingService.Operations);
+
+            if (result.Success)
+            {
+                await Explorer.ApplyCommitResultsAsync([operationId], [], CancellationToken.None).ConfigureAwait(true);
+                await Explorer.ReloadAsync(CancellationToken.None).ConfigureAwait(true);
+                await RefreshLibraryCoreAsync(CancellationToken.None).ConfigureAwait(true);
+                StatusText = _localization.Get("Status_ChangesSaved");
+            }
+            else
+            {
+                StatusText = result.Items.FirstOrDefault()?.Error
+                    ?? _localization.Get("Status_SaveFailed");
+            }
+        }
+        catch (Exception ex)
+        {
+            Downloads.ApplyCommitResults([new CommitItemResult(operationId, false, ex.Message)]);
+            StatusText = $"{_localization.Get("Status_SaveFailed")}: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
