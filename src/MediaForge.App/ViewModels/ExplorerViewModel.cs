@@ -258,9 +258,7 @@ public partial class ExplorerViewModel : ObservableObject
 
     public void ApplyCommitProgress(CommitProgress progress)
     {
-        if (progress.OperationId is not Guid operationId)
-            return;
-
+        var operationId = progress.OperationId;
         var entry = Entries.FirstOrDefault(x => x.PendingOperationId == operationId);
         entry?.ApplyProgress(progress);
     }
