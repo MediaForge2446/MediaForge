@@ -2,9 +2,12 @@
     x:Class="DownTrack.App.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:DownTrack.App.Converters"
     RequestedTheme="Dark">
     <Application.Resources>
         <ResourceDictionary>
+            <converters:FolderAccentConverter x:Key="FolderAccentConverter" />
+
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Dark">
                     <SolidColorBrush x:Key="WindowTextBrush" Color="#FFF9FBFF" />
