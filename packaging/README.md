@@ -1,33 +1,31 @@
-# MediaForge Store packaging
+# Windows installer packaging
 
-MediaForge is distributed through the Microsoft Store. The Store is the customer-facing installation and update channel.
+MediaForge uses Inno Setup to create a standard Windows `Setup.exe` installer from the self-contained x64 publish output.
 
-The application remains a native WPF/.NET desktop app. The MSIX package adds Windows package identity and Store eligibility while keeping the app's full-trust desktop process model. The package declares `runFullTrust` and uses `uap10:RuntimeBehavior="packagedClassicApp"` with medium integrity.
+## Build flow
 
-## Store identity
+The release workflow:
 
-The package manifest is templated because the final Store identity must match the app reserved in Partner Center exactly. Microsoft requires the manifest identity values to match the Store account's identity details.
+1. Publishes the WPF app self-contained for `win-x64`.
+2. Bundles and verifies yt-dlp and FFmpeg with SHA-256 checks.
+3. Installs a pinned Inno Setup 7 compiler on the Windows runner.
+4. Compiles `installer/MediaForge.iss` into `artifacts/Setup.exe`.
+5. Runs a silent install/uninstall smoke test.
+6. Publishes `Setup.exe` to the matching GitHub Release.
 
-The release workflow reads these repository variables when they are set:
+The resulting EXE is a normal Windows installer; no MSIX certificate or SignTool step is involved in this release path.
 
-- `MEDIAFORGE_STORE_IDENTITY_NAME`
-- `MEDIAFORGE_STORE_PUBLISHER`
-- `MEDIAFORGE_STORE_PUBLISHER_DISPLAY_NAME`
+## Local build
 
-Until the Partner Center product is associated, the workflow can still produce a technical MSIX using its safe development defaults.
+From a Windows development machine with Inno Setup installed:
 
-## Customer update model
+```powershell
+dotnet publish src/MediaForge.App/MediaForge.App.csproj --configuration Release --runtime win-x64 --self-contained true --output publish
 
-There is intentionally no second customer update channel. Once the app is published as an MSIX package in the Microsoft Store, updates are delivered through the Store. Windows checks Store app updates automatically according to the Store update service.
+& "C:\Program Files\Inno Setup 7\ISCC.exe" `
+  "/DMyAppVersion=0.2.0" `
+  "/O$PWD\artifacts" `
+  "$PWD\installer\MediaForge.iss"
+```
 
-## Package validation
-
-The CI pipeline:
-
-1. Publishes the WPF app self-contained x64.
-2. Bundles and verifies yt-dlp and FFmpeg.
-3. Builds the MSIX with MakeAppx.
-4. Unpacks the generated package again as a structural validation step.
-5. Publishes the MSIX as a CI artifact for internal verification.
-
-Before a real Store submission, the package must be associated with the reserved Partner Center identity and passed through the Windows App Certification Kit / Store certification flow.
+The installer is written to `artifacts/Setup.exe`.
