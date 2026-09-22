@@ -103,6 +103,16 @@
                             <ui:SymbolIcon Symbol="FolderOpen24"/>
                         </ui:Button.Icon>
                     </ui:Button>
+                    <ui:Button Content="{DynamicResource Nav_Downloads}"
+                               Appearance="Secondary"
+                               Command="{Binding NavigateDownloadsCommand}"
+                               HorizontalAlignment="Stretch"
+                               Height="42"
+                               Margin="0,6,0,0">
+                        <ui:Button.Icon>
+                            <ui:SymbolIcon Symbol="ArrowDownload24"/>
+                        </ui:Button.Icon>
+                    </ui:Button>
 
                     <ui:Button Content="{DynamicResource Nav_Settings}"
                                Appearance="Secondary"
