@@ -230,6 +230,14 @@ public partial class SettingsViewModel : ObservableObject
         }
     }
 
+    public Task CheckForUpdatesInBackgroundAsync()
+    {
+        if (IsUpdateBusy)
+            return Task.CompletedTask;
+
+        return CheckForUpdatesAsync(CancellationToken.None);
+    }
+
     [RelayCommand]
     private async Task CheckForUpdatesAsync(CancellationToken cancellationToken)
     {
