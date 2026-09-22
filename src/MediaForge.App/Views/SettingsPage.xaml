@@ -4,125 +4,388 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              Background="Transparent">
 
+    <UserControl.Resources>
+        <Style x:Key="SettingsChoiceStyle" TargetType="ToggleButton">
+            <Setter Property="MinHeight" Value="76"/>
+            <Setter Property="Padding" Value="14"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}"/>
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentControlFillColorSecondaryBrush}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FormatChoiceStyle"
+               TargetType="ToggleButton"
+               BasedOn="{StaticResource SettingsChoiceStyle}">
+            <Setter Property="MinHeight" Value="62"/>
+            <Setter Property="Margin" Value="0,8,8,0"/>
+        </Style>
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="34">
+        <Grid Margin="34,28,34,34">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="190"/>
+                <ColumnDefinition Width="22"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-            <StackPanel HorizontalAlignment="Right">
+            <StackPanel Grid.Column="0">
                 <TextBlock Text="{DynamicResource Settings_Title}"
-                           FontSize="30"
-                           FontWeight="SemiBold"
-                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
-                <TextBlock Text="{DynamicResource App_Tagline}"
-                           Margin="0,6,0,0"
-                           FontSize="12"
-                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                           FontSize="28"
+                           FontWeight="SemiBold"/>
+                <TextBlock Text="{DynamicResource Settings_Description}"
+                           Margin="0,7,0,0"
+                           FontSize="11"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           TextWrapping="Wrap"/>
+
+                <Border Margin="0,22,0,0"
+                        Padding="10,12"
+                        Background="{DynamicResource LayerFillColorAltBrush}"
+                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="14">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource Settings_CategoryAppearance}"
+                                   FontSize="11"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="{DynamicResource Settings_CategoryDownloads}"
+                                   Margin="0,8,0,0"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        <TextBlock Text="{DynamicResource Settings_CategoryTools}"
+                                   Margin="0,8,0,0"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        <TextBlock Text="{DynamicResource Settings_CategoryAbout}"
+                                   Margin="0,8,0,0"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                    </StackPanel>
+                </Border>
             </StackPanel>
 
-            <Grid Margin="0,22,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="14"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="2">
 
-                <ui:Card Grid.Column="0" Padding="20">
+                <ui:Card Padding="22">
                     <StackPanel>
                         <TextBlock Text="{DynamicResource Settings_Appearance}"
-                                   FontSize="17"
+                                   FontSize="18"
                                    FontWeight="SemiBold"/>
+                        <TextBlock Text="{DynamicResource Settings_AppearanceDescription}"
+                                   Margin="0,5,0,18"
+                                   FontSize="10.5"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="Wrap"/>
+
                         <TextBlock Text="{DynamicResource Settings_Language}"
-                                   Margin="0,18,0,0"
                                    FontSize="12"
                                    FontWeight="SemiBold"/>
                         <TextBlock Text="{DynamicResource Settings_LanguageDescription}"
-                                   Margin="0,5,0,8"
+                                   Margin="0,4,0,8"
                                    FontSize="10.5"
-                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                   TextWrapping="Wrap"/>
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
                         <ComboBox ItemsSource="{Binding LanguageOptions}"
                                   SelectedItem="{Binding SelectedLanguage}"
                                   DisplayMemberPath="DisplayName"
-                                  Height="42"
-                                  AutomationProperties.Name="{DynamicResource Settings_Language}"/>
-                    </StackPanel>
-                </ui:Card>
+                                  Height="42"/>
 
-                <ui:Card Grid.Column="2" Padding="20">
-                    <StackPanel>
-                        <TextBlock Text="{DynamicResource Settings_Tools}"
-                                   FontSize="17"
+                        <TextBlock Text="{DynamicResource Settings_Theme}"
+                                   Margin="0,20,0,0"
+                                   FontSize="12"
                                    FontWeight="SemiBold"/>
-                        <TextBlock Text="{DynamicResource Settings_ToolsDescription}"
-                                   Margin="0,6,0,0"
-                                   FontSize="10.5"
-                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                   TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding ToolStatus}"
-                                   Margin="0,18,0,0"
-                                   FontSize="11"
-                                   TextWrapping="Wrap"/>
-                        <ui:Button Content="{DynamicResource Settings_Tools}"
-                                   Command="{Binding VerifyToolsCommand}"
-                                   IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanNotConverter}}"
-                                   Appearance="Primary"
-                                   Height="40"
-                                   Margin="0,12,0,0"/>
-                        <TextBlock Text="{Binding YtDlpPath}"
-                                   Margin="0,14,0,0"
-                                   FontSize="9"
-                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                   TextTrimming="CharacterEllipsis"
-                                   ToolTip="{Binding YtDlpPath}"/>
-                        <TextBlock Text="{Binding FfmpegPath}"
-                                   Margin="0,5,0,0"
-                                   FontSize="9"
-                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                   TextTrimming="CharacterEllipsis"
-                                   ToolTip="{Binding FfmpegPath}"/>
-                    </StackPanel>
-                </ui:Card>
-            </Grid>
-
-            <ui:Card Margin="0,16,0,0" Padding="20">
-                <StackPanel>
-                    <TextBlock Text="{DynamicResource Settings_DefaultFormat}"
-                               FontSize="17"
-                               FontWeight="SemiBold"/>
-                    <TextBlock Text="{DynamicResource Settings_DefaultFormatDescription}"
-                               Margin="0,6,0,0"
-                               FontSize="10.5"
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-                </StackPanel>
-            </ui:Card>
-
-            <ui:Card Margin="0,16,0,0" Padding="20">
-                <Grid>
-                    <StackPanel HorizontalAlignment="Right">
-                        <TextBlock Text="{DynamicResource Settings_About}"
-                                   FontSize="17"
-                                   FontWeight="SemiBold"/>
-                        <TextBlock Text="{DynamicResource App_Title}"
-                                   Margin="0,6,0,0"
+                        <TextBlock Text="{DynamicResource Settings_ThemeDescription}"
+                                   Margin="0,4,0,10"
                                    FontSize="10.5"
                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+
+                        <UniformGrid Columns="3">
+                            <ToggleButton Style="{StaticResource SettingsChoiceStyle}"
+                                          IsChecked="{Binding IsSystemThemeSelected}"
+                                          Command="{Binding SetSystemThemeCommand}"
+                                          Margin="0,0,8,0">
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource Settings_ThemeSystem}"
+                                               FontWeight="SemiBold"/>
+                                    <TextBlock Text="{DynamicResource Settings_ThemeSystemDescription}"
+                                               Margin="0,4,0,0"
+                                               FontSize="9.5"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </ToggleButton>
+
+                            <ToggleButton Style="{StaticResource SettingsChoiceStyle}"
+                                          IsChecked="{Binding IsLightThemeSelected}"
+                                          Command="{Binding SetLightThemeCommand}"
+                                          Margin="0,0,8,0">
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource Settings_ThemeLight}"
+                                               FontWeight="SemiBold"/>
+                                    <TextBlock Text="{DynamicResource Settings_ThemeLightDescription}"
+                                               Margin="0,4,0,0"
+                                               FontSize="9.5"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </ToggleButton>
+
+                            <ToggleButton Style="{StaticResource SettingsChoiceStyle}"
+                                          IsChecked="{Binding IsDarkThemeSelected}">
+                                <ToggleButton.Command>
+                                    <Binding Path="SetDarkThemeCommand"/>
+                                </ToggleButton.Command>
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource Settings_ThemeDark}"
+                                               FontWeight="SemiBold"/>
+                                    <TextBlock Text="{DynamicResource Settings_ThemeDarkDescription}"
+                                               Margin="0,4,0,0"
+                                               FontSize="9.5"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </ToggleButton>
+                        </UniformGrid>
                     </StackPanel>
+                </ui:Card>
 
-                    <Button Content="Terms of Service &amp; Disclaimer"
-                            Click="OpenTerms_Click"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            MinWidth="220"
-                            AutomationProperties.Name="Terms of Service and Disclaimer"/>
-                </Grid>
-            </ui:Card>
+                <ui:Card Margin="0,16,0,0" Padding="22">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource Settings_Downloads}"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="{DynamicResource Settings_DownloadsDescription}"
+                                   Margin="0,5,0,12"
+                                   FontSize="10.5"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="Wrap"/>
 
-            <ui:Button Content="{DynamicResource Nav_Home}"
-                       Command="{Binding DataContext.NavigateHomeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                       HorizontalAlignment="Right"
-                       Margin="0,16,0,0"
-                       MinWidth="130"
-                       Height="40"/>
-        </StackPanel>
+                        <TextBlock Text="{DynamicResource Settings_DefaultFormat}"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="{DynamicResource Settings_DefaultFormatDescription}"
+                                   Margin="0,4,0,10"
+                                   FontSize="10.5"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+
+                        <UniformGrid Columns="4">
+                            <ToggleButton Style="{StaticResource FormatChoiceStyle}"
+                                          Command="{Binding SetDefaultFormatCommand}"
+                                          CommandParameter="Mp3">
+                                <StackPanel>
+                                    <TextBlock Text="MP3" FontSize="15" FontWeight="Bold"/>
+                                    <TextBlock Text="{DynamicResource Settings_FormatAudio}"
+                                               Margin="0,3,0,0"
+                                               FontSize="9.5"/>
+                                </StackPanel>
+                            </ToggleButton>
+                            <ToggleButton Style="{StaticResource FormatChoiceStyle}"
+                                          Command="{Binding SetDefaultFormatCommand}"
+                                          CommandParameter="Mp4">
+                                <StackPanel>
+                                    <TextBlock Text="MP4" FontSize="15" FontWeight="Bold"/>
+                                    <TextBlock Text="{DynamicResource Settings_FormatVideo}"
+                                               Margin="0,3,0,0"
+                                               FontSize="9.5"/>
+                                </StackPanel>
+                            </ToggleButton>
+                            <ToggleButton Style="{StaticResource FormatChoiceStyle}"
+                                          Command="{Binding SetDefaultFormatCommand}"
+                                          CommandParameter="Wav">
+                                <StackPanel>
+                                    <TextBlock Text="WAV" FontSize="15" FontWeight="Bold"/>
+                                    <TextBlock Text="{DynamicResource Settings_FormatAudioLossless}"
+                                               Margin="0,3,0,0"
+                                               FontSize="9.5"/>
+                                </StackPanel>
+                            </ToggleButton>
+                            <ToggleButton Style="{StaticResource FormatChoiceStyle}"
+                                          Command="{Binding SetDefaultFormatCommand}"
+                                          CommandParameter="M4a">
+                                <StackPanel>
+                                    <TextBlock Text="M4A" FontSize="15" FontWeight="Bold"/>
+                                    <TextBlock Text="{DynamicResource Settings_FormatAudioCompact}"
+                                               Margin="0,3,0,0"
+                                               FontSize="9.5"/>
+                                </StackPanel>
+                            </ToggleButton>
+                        </UniformGrid>
+                    </StackPanel>
+                </ui:Card>
+
+                <ui:Card Margin="0,16,0,0" Padding="22">
+                    <Grid>
+                        <StackPanel>
+                            <TextBlock Text="{DynamicResource Settings_Tools}"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"/>
+                            <TextBlock Text="{DynamicResource Settings_ToolsDescription}"
+                                       Margin="0,5,0,14"
+                                       FontSize="10.5"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                       TextWrapping="Wrap"/>
+                            <Border Padding="12"
+                                    Background="{DynamicResource LayerFillColorAltBrush}"
+                                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding ToolStatus}"
+                                               FontSize="11"
+                                               TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding YtDlpPath}"
+                                               Margin="0,6,0,0"
+                                               FontSize="9"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding FfmpegPath}"
+                                               Margin="0,4,0,0"
+                                               FontSize="9"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </Border>
+                            <ui:Button Content="{DynamicResource Settings_VerifyTools}"
+                                       Command="{Binding VerifyToolsCommand}"
+                                       IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanNotConverter}}"
+                                       Appearance="Secondary"
+                                       Height="40"
+                                       Margin="0,12,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </ui:Card>
+
+                <ui:Card Margin="0,16,0,0" Padding="22">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="170"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="{DynamicResource Settings_About}"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"/>
+                            <TextBlock Text="{DynamicResource App_Title}"
+                                       Margin="0,4,0,0"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            <TextBlock Text="{Binding CurrentVersionText, StringFormat={}{0}}"
+                                       Margin="0,8,0,0"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"/>
+                        </StackPanel>
+
+                        <ui:Button Grid.Column="1"
+                                   Content="{DynamicResource Settings_CheckForUpdates}"
+                                   Command="{Binding CheckForUpdatesCommand}"
+                                   IsEnabled="{Binding IsUpdateBusy, Converter={StaticResource BooleanNotConverter}}"
+                                   Appearance="Secondary"
+                                   HorizontalAlignment="Stretch"
+                                   Height="40">
+                            <ui:Button.Icon>
+                                <ui:SymbolIcon Symbol="ArrowSync24"/>
+                            </ui:Button.Icon>
+                        </ui:Button>
+                    </Grid>
+                </ui:Card>
+
+                <ui:Card Margin="0,16,0,0"
+                         Padding="22"
+                         Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BooleanToVisibilityConverterFallback}}">
+                    <StackPanel>
+                        <Grid>
+                            <StackPanel>
+                                <TextBlock Text="{DynamicResource Settings_UpdateReadyTitle}"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding AvailableVersionText}"
+                                           Margin="0,4,0,0"
+                                           FontSize="10.5"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+                            <ui:Button Content="{DynamicResource Settings_DownloadInstallUpdate}"
+                                       Command="{Binding InstallUpdateCommand}"
+                                       IsEnabled="{Binding IsUpdateBusy, Converter={StaticResource BooleanNotConverter}}"
+                                       Appearance="Primary"
+                                       HorizontalAlignment="Left"
+                                       Height="40"
+                                       MinWidth="185">
+                                <ui:Button.Icon>
+                                    <ui:SymbolIcon Symbol="ArrowDownload24"/>
+                                </ui:Button.Icon>
+                            </ui:Button>
+                        </Grid>
+
+                        <ProgressBar Margin="0,16,0,0"
+                                     Height="5"
+                                     Minimum="0"
+                                     Maximum="100"
+                                     Value="{Binding UpdateProgress}"
+                                     Visibility="{Binding IsUpdateBusy, Converter={StaticResource BooleanToVisibilityConverterFallback}}"/>
+
+                        <TextBlock Text="{Binding UpdateStatus}"
+                                   Margin="0,10,0,0"
+                                   FontSize="10.5"
+                                   TextWrapping="Wrap"/>
+
+                        <Border Margin="0,14,0,0"
+                                Padding="12"
+                                MaxHeight="180"
+                                Background="{DynamicResource LayerFillColorAltBrush}"
+                                CornerRadius="10">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <TextBlock Text="{Binding AvailableUpdate.ReleaseNotes}"
+                                           FontSize="10"
+                                           TextWrapping="Wrap"/>
+                            </ScrollViewer>
+                        </Border>
+                    </StackPanel>
+                </ui:Card>
+
+                <ui:Card Margin="0,16,0,0" Padding="18">
+                    <Grid>
+                        <TextBlock Text="{DynamicResource Settings_Terms}"
+                                   VerticalAlignment="Center"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        <ui:Button Content="{DynamicResource Settings_OpenTerms}"
+                                   Click="OpenTerms_Click"
+                                   Appearance="Secondary"
+                                   HorizontalAlignment="Left"
+                                   Height="38"
+                                   MinWidth="170"/>
+                    </Grid>
+                </ui:Card>
+            </StackPanel>
+        </Grid>
     </ScrollViewer>
 </UserControl>
