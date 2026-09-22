@@ -1,6 +1,8 @@
 param([string]$RepositoryRoot)
 $ErrorActionPreference = 'Stop'
-if ([string]::IsNullOrWhiteSpace($RepositoryRoot)) { $RepositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path }
+if ([string]::IsNullOrWhiteSpace($RepositoryRoot)) {
+    $RepositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+}
 
 $targets = @(
     @{ Source = 'installer/assets/MediaForge.png.b64'; Dest = 'src/MediaForge.App/Assets/MediaForge.png' },
@@ -23,6 +25,14 @@ foreach ($item in $targets) {
     $base64 = (Get-Content -Raw -Encoding UTF8 $sourcePath).Trim()
     if ([string]::IsNullOrWhiteSpace($base64)) {
         throw "Branding source is empty: $sourcePath"
+    }
+
+    # The ICO source is stored as Base64 and may contain one extra trailing
+    # padding character. Normalize trailing padding before decoding.
+    $base64 = $base64.TrimEnd('=')
+    $padding = (4 - ($base64.Length % 4)) % 4
+    if ($padding -gt 0) {
+        $base64 += ('=' * $padding)
     }
 
     try {
