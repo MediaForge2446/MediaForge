@@ -1,50 +1,21 @@
 # MediaForge
 
-MediaForge is a Windows media manager/downloader built around a staged desired-state workflow: users organize folders and media first, review pending changes, then apply the complete set with **Save Changes**.
+MediaForge is being rebuilt from the ground up as a premium, Windows-first media library and downloader.
 
-## Product experience
+## v1 reset status
 
-The primary flow is intentionally simple:
+The legacy application implementation has been intentionally removed from the rebuild branch. This is a design-first reset: no legacy WPF UI, no legacy application projects, no legacy test suite, and no legacy installer are being carried forward.
 
-1. Open MediaForge.
-2. Choose or add a root folder.
-3. Work inside a clean, light Explorer-style workspace.
-4. Add folders, rename/delete items, or use **Add Media** to open the floating media dialog.
-5. Review yellow pending changes.
-6. Click **Save Changes** once to apply them.
+The new product direction is:
 
-The app includes local folder scanning, persistent staging, undo, duplicate protection, background downloads, search and sorting, and a quick action to open the current location in Windows Explorer.
+- **WinUI 3 + Windows App SDK**
+- **.NET 10 LTS**
+- Native Windows 11 visual language with Mica and composition-based motion
+- Feature-oriented application architecture with strict UI/domain boundaries
+- 20 first-class display languages, including RTL support for Hebrew and Arabic
+- Media-first workflow: paste link → cinematic preview → choose format → download
+- Local-first storage with explicit user control over files and library structure
 
-## Architecture
+Implementation starts only after the v1 blueprint and visual system are agreed.
 
-```
-WPF UI
-  -> ViewModels
-     -> Application
-        -> Core contracts/models
-           -> Infrastructure
-              -> filesystem / persistence / yt-dlp / FFmpeg
-```
-
-Long-running work is asynchronous, staging is persisted locally, and the UI does not write desired-state changes to disk until the user commits them.
-
-## Distribution
-
-**Primary distribution target: WinGet Community Repository.**
-
-The CI produces a self-contained Windows x64 build and a single Inno Setup installer, `Setup.exe`. The installer is published to the GitHub Release for the corresponding version and is suitable for a WinGet `exe` installer manifest.
-
-The release pipeline intentionally does not build, sign, or validate MSIX packages. This removes the Microsoft Store/MSIX signing dependency from the WinGet release path.
-
-## Current implementation
-
-- .NET 8 WPF application
-- MVVM with CommunityToolkit.Mvvm
-- Core domain model: Library -> RootFolder -> Folder -> MediaItem
-- Persistent desired-state staging and undo
-- Background commit/download engine with bounded concurrency
-- Atomic JSON persistence and local media index
-- yt-dlp + FFmpeg integration
-- MP3 default: 128 kbps stereo
-- Explorer search, sorting, refresh and Windows Explorer shortcut
-- Light Windows-style UI with rounded surfaces and MediaForge branding
+See [docs/REBUILD-V1-BLUEPRINT.md](docs/REBUILD-V1-BLUEPRINT.md).
