@@ -1,14 +1,12 @@
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 using MediaForge.App.ViewModels;
 
 namespace MediaForge.App.Views;
 
-public partial class DownloadsPage : UserControl
+public partial class DownloadsPage : System.Windows.Controls.UserControl
 {
-    private Point _dragStartPoint;
+    private System.Windows.Point _dragStartPoint;
     private DownloadQueueItemViewModel? _draggedItem;
 
     public DownloadsPage()
@@ -23,7 +21,7 @@ public partial class DownloadsPage : UserControl
             as DownloadQueueItemViewModel;
     }
 
-    private void QueueList_OnPreviewMouseMove(object sender, MouseEventArgs e)
+    private void QueueList_OnPreviewMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
     {
         if (e.LeftButton != MouseButtonState.Pressed || _draggedItem is null)
             return;
@@ -41,7 +39,7 @@ public partial class DownloadsPage : UserControl
         DragDrop.DoDragDrop(QueueList, item, DragDropEffects.Move);
     }
 
-    private void QueueList_OnDrop(object sender, DragEventArgs e)
+    private void QueueList_OnDrop(object sender, System.Windows.DragEventArgs e)
     {
         if (DataContext is not DownloadsViewModel viewModel ||
             e.Data.GetData(typeof(DownloadQueueItemViewModel)) is not DownloadQueueItemViewModel source)
@@ -85,11 +83,11 @@ public partial class DownloadsPage : UserControl
             MessageBoxImage.Information);
     }
 
-    private static ListViewItem? FindListItem(DependencyObject? source)
+    private static System.Windows.Controls.ListViewItem? FindListItem(DependencyObject? source)
     {
         while (source is not null)
         {
-            if (source is ListViewItem item)
+            if (source is System.Windows.Controls.ListViewItem item)
                 return item;
 
             source = VisualTreeHelper.GetParent(source);
