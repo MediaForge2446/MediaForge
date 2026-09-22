@@ -33,6 +33,7 @@ public partial class DownloadsViewModel : ObservableObject
     public int SelectedCount => Items.Count(x => x.IsSelected);
     public bool HasSelection => SelectedCount > 0;
     public int QueueCount => QueueItems.Count;
+    public bool HasQueue => QueueItems.Count > 0;
     public int ActiveQueueCount => QueueItems.Count(x => x.IsActive);
     public int QueuedCount => QueueItems.Count(x => x.State is DownloadQueueState.Queued or DownloadQueueState.Retrying);
     public event Func<Task>? MediaStaged;
@@ -128,6 +129,7 @@ public partial class DownloadsViewModel : ObservableObject
     private void NotifyQueueState()
     {
         OnPropertyChanged(nameof(QueueCount));
+        OnPropertyChanged(nameof(HasQueue));
         OnPropertyChanged(nameof(ActiveQueueCount));
         OnPropertyChanged(nameof(QueuedCount));
     }
