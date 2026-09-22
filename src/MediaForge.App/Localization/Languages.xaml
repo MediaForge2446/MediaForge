@@ -23,6 +23,23 @@
     <x:String x:Key="Status_Ready">Ready</x:String>
     <x:String x:Key="Status_Canceled">Operation canceled</x:String>
     <x:String x:Key="Status_ToolsReady">Tools are ready to use</x:String>
+    <x:String x:Key="Common_Settings">Settings</x:String>
+    <x:String x:Key="Library_Subtitle">Choose a root folder to organize and manage your media workspace.</x:String>
+    <x:String x:Key="Settings_Appearance">Appearance</x:String>
+    <x:String x:Key="Settings_ToolsDescription">MediaForge manages yt-dlp and FFmpeg in the background.</x:String>
+    <x:String x:Key="Status_AddLibrary">Add a root folder to get started</x:String>
+    <x:String x:Key="Status_LoadingLibrary">Loading library…</x:String>
+    <x:String x:Key="Status_Scanning">Scanning…</x:String>
+    <x:String x:Key="Status_LibraryUpdated">Library updated</x:String>
+    <x:String x:Key="Status_SaveChanges">Saving changes to disk…</x:String>
+    <x:String x:Key="Status_ChangesSaved">All changes were saved and verified</x:String>
+    <x:String x:Key="Status_Discarding">Discarding pending changes…</x:String>
+    <x:String x:Key="Status_Discarded">All pending changes were discarded</x:String>
+    <x:String x:Key="Status_AddingLibrary">Adding root folder…</x:String>
+    <x:String x:Key="Status_RootAdded">Root folder added</x:String>
+    <x:String x:Key="Status_DuplicateRoot">That folder is already in the library</x:String>
+    <x:String x:Key="Status_SavePreparing">Preparing changes…</x:String>
+    <x:String x:Key="Status_VerifyingChanges">Verifying changes…</x:String>
   </ResourceDictionary>
   <ResourceDictionary x:Key="he-IL">
     <x:String x:Key="App_Title">MediaForge</x:String>
