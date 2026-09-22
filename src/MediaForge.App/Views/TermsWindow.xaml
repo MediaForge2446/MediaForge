@@ -9,7 +9,6 @@
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize"
         Background="#EEF3F8"
-        FlowDirection="LeftToRight"
         ShowInTaskbar="False">
 
     <Border Margin="12"
