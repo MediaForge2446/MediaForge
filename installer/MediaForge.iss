@@ -1,7 +1,7 @@
 ; WinGet release path: standard unsigned Inno Setup EXE.
 ; MediaForge standard Windows installer for WinGet/GitHub Releases.
 #define MyAppName "MediaForge"
-#define MyAppPublisher "MediaForge"
+#define MyAppPublisher "MediaForge2446"
 #define MyAppURL "https://github.com/MediaForge2446/MediaForge"
 #define MyAppExeName "MediaForge.exe"
 
@@ -38,7 +38,7 @@ VersionInfoProductVersion={#MyAppVersion}
 VersionInfoDescription=MediaForge setup
 VersionInfoProductName=MediaForge
 VersionInfoTextVersion={#MyAppVersion}
-VersionInfoCompany=MediaForge
+VersionInfoCompany=MediaForge2446
 VersionInfoCopyright=Copyright 2026 MediaForge
 AllowNoIcons=no
 SetupLogging=yes
