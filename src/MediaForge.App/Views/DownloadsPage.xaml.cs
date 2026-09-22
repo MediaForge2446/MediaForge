@@ -73,7 +73,7 @@ public partial class DownloadsPage : System.Windows.Controls.UserControl
             ? item.Title
             : $"{item.Title} — {item.ErrorMessage}";
 
-        MessageBox.Show(
+        System.Windows.MessageBox.Show(
             Window.GetWindow(this),
             string.IsNullOrWhiteSpace(item.LogText)
                 ? "No diagnostic log is available for this item."
