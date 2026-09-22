@@ -7,8 +7,7 @@ if ([string]::IsNullOrWhiteSpace($RepositoryRoot)) {
 $targets = @(
     @{ Source = 'installer/assets/MediaForge.png.b64'; Dest = 'src/MediaForge.App/Assets/MediaForge.png' },
     @{ Source = 'installer/assets/MediaForge.png.b64'; Dest = 'installer/assets/MediaForge.png' },
-    @{ Source = 'installer/assets/WizardImage.png.b64'; Dest = 'installer/assets/WizardImage.png' },
-    @{ Source = 'installer/assets/MediaForge.ico.b64'; Dest = 'installer/assets/MediaForge.ico' }
+    @{ Source = 'installer/assets/WizardImage.png.b64'; Dest = 'installer/assets/WizardImage.png' }
 )
 
 foreach ($item in $targets) {
@@ -27,14 +26,6 @@ foreach ($item in $targets) {
         throw "Branding source is empty: $sourcePath"
     }
 
-    # The ICO source is stored as Base64 and may contain one extra trailing
-    # padding character. Normalize trailing padding before decoding.
-    $base64 = $base64.TrimEnd('=')
-    $padding = (4 - ($base64.Length % 4)) % 4
-    if ($padding -gt 0) {
-        $base64 += ('=' * $padding)
-    }
-
     try {
         [IO.File]::WriteAllBytes($destPath, [Convert]::FromBase64String($base64))
     } catch {
@@ -45,8 +36,7 @@ foreach ($item in $targets) {
 $requiredFiles = @(
     (Join-Path $RepositoryRoot 'src/MediaForge.App/Assets/MediaForge.png'),
     (Join-Path $RepositoryRoot 'installer/assets/MediaForge.png'),
-    (Join-Path $RepositoryRoot 'installer/assets/WizardImage.png'),
-    (Join-Path $RepositoryRoot 'installer/assets/MediaForge.ico')
+    (Join-Path $RepositoryRoot 'installer/assets/WizardImage.png')
 )
 
 foreach ($path in $requiredFiles) {
