@@ -182,6 +182,27 @@
                                        Appearance="Secondary"
                                        Height="34"
                                        Margin="6,0,0,0"/>
+                            <ui:Button Content="{DynamicResource Downloads_PauseAll}"
+                                       Command="{Binding PauseAllCommand}"
+                                       Appearance="Secondary"
+                                       Height="34"
+                                       Margin="6,0,0,0"/>
+                            <ui:Button Content="{DynamicResource Downloads_ResumeAll}"
+                                       Command="{Binding ResumeAllCommand}"
+                                       Appearance="Secondary"
+                                       Height="34"
+                                       Margin="6,0,0,0"/>
+                            <ui:Button Content="{DynamicResource Downloads_CancelAll}"
+                                       Command="{Binding CancelAllCommand}"
+                                       Appearance="Secondary"
+                                       Height="34"
+                                       Margin="6,0,0,0"/>
+                            <ui:Button Content="{DynamicResource Downloads_ClearCompleted}"
+                                       Command="{Binding ClearFinishedCommand}"
+                                       IsEnabled="{Binding HasFinishedItems}"
+                                       Appearance="Secondary"
+                                       Height="34"
+                                       Margin="6,0,0,0"/>
                         </StackPanel>
                     </Grid>
 
@@ -211,6 +232,19 @@
                                             BorderThickness="1"
                                             BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                                             Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Opacity" Value="1"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding State}" Value="Paused">
+                                                        <Setter Property="Opacity" Value="0.72"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding State}" Value="Failed">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
@@ -309,6 +343,21 @@
                                                            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
                                                            TextWrapping="Wrap"
                                                            MaxHeight="34"/>
+                                                <StackPanel Orientation="Horizontal"
+                                                            Margin="0,6,0,0"
+                                                            Visibility="{Binding CanRetry, Converter={StaticResource BooleanToVisibilityConverterFallback}}">
+                                                    <ui:Button Content="{DynamicResource Downloads_Retry}"
+                                                               Command="{Binding DataContext.RetryQueueItemCommand, ElementName=QueuePage}"
+                                                               CommandParameter="{Binding}"
+                                                               Appearance="Secondary"
+                                                               Height="28"/>
+                                                    <ui:Button Content="{DynamicResource Downloads_ShowLog}"
+                                                               Command="{Binding DataContext.ShowQueueLogCommand, ElementName=QueuePage}"
+                                                               CommandParameter="{Binding}"
+                                                               Appearance="Secondary"
+                                                               Height="28"
+                                                               Margin="6,0,0,0"/>
+                                                </StackPanel>
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="3"

@@ -16,6 +16,7 @@ public static class YtDlpArgumentBuilder
         var arguments = new List<string>
         {
             "--newline",
+            "--continue",
             "--no-playlist",
             "--no-warnings",
             "--ffmpeg-location", ffmpegPath

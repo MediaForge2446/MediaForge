@@ -180,6 +180,13 @@
     <sys:String x:Key="Settings_VerifyingTools">Verifying managed tools…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">Release notes</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">No release notes were provided.</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">Pause all</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">Resume all</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">Cancel all</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">Clear finished</sys:String>
+    <sys:String x:Key="Downloads_Finished">Finished</sys:String>
+    <sys:String x:Key="AddMedia_Quality">Quality</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Choose the audio quality before adding to the queue.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="he-IL">
 
@@ -360,6 +367,13 @@
     <sys:String x:Key="Settings_VerifyingTools">מאמת כלים מנוהלים…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">פרטי גרסה</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">לא סופקו פרטי גרסה.</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">השהה הכול</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">המשך הכול</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">בטל הכול</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">נקה שהסתיימו</sys:String>
+    <sys:String x:Key="Downloads_Finished">הסתיימו</sys:String>
+    <sys:String x:Key="AddMedia_Quality">איכות</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">בחר איכות שמע לפני ההוספה לתור.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="es-ES">
 
@@ -395,6 +409,20 @@
     <sys:String x:Key="Settings_VerifyingTools">Verificando herramientas administradas…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">Notas de la versión</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">No se proporcionaron notas de la versión.</sys:String>
+    <sys:String x:Key="Downloads_Speed">Velocidad</sys:String>
+    <sys:String x:Key="Downloads_Eta">Tiempo restante</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">Buscando actualizaciones de GitHub…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">La versión {0} está disponible.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">Hay una versión nueva disponible.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">Tienes la versión más reciente.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">Resolviendo medios…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">Pausar todo</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">Reanudar todo</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">Cancelar todo</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">Limpiar finalizadas</sys:String>
+    <sys:String x:Key="Downloads_Finished">Finalizadas</sys:String>
+    <sys:String x:Key="AddMedia_Quality">Calidad</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Elige la calidad de audio antes de añadir a la cola.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="fr-FR">
 
@@ -430,6 +458,20 @@
     <sys:String x:Key="Settings_VerifyingTools">Vérification des outils gérés…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">Notes de version</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">Aucune note de version n’a été fournie.</sys:String>
+    <sys:String x:Key="Downloads_Speed">Vitesse</sys:String>
+    <sys:String x:Key="Downloads_Eta">Temps restant</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">Recherche de mises à jour GitHub…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">La version {0} est disponible.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">Une nouvelle version est disponible.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">Vous êtes à jour.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">Résolution du média…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">Tout mettre en pause</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">Tout reprendre</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">Tout annuler</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">Effacer les terminés</sys:String>
+    <sys:String x:Key="Downloads_Finished">Terminés</sys:String>
+    <sys:String x:Key="AddMedia_Quality">Qualité</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Choisissez la qualité audio avant l’ajout à la file.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="de-DE">
 
@@ -465,6 +507,20 @@
     <sys:String x:Key="Settings_VerifyingTools">Verwaltete Tools werden überprüft…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">Versionshinweise</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">Es wurden keine Versionshinweise bereitgestellt.</sys:String>
+    <sys:String x:Key="Downloads_Speed">Geschwindigkeit</sys:String>
+    <sys:String x:Key="Downloads_Eta">Verbleibende Zeit</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">Suche nach GitHub-Updates…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">Version {0} ist verfügbar.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">Eine neue Version ist verfügbar.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">Du bist auf dem neuesten Stand.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">Medien werden aufgelöst…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">Alle pausieren</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">Alle fortsetzen</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">Alle abbrechen</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">Abgeschlossene löschen</sys:String>
+    <sys:String x:Key="Downloads_Finished">Abgeschlossen</sys:String>
+    <sys:String x:Key="AddMedia_Quality">Qualität</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Audioqualität vor dem Hinzufügen zur Warteschlange auswählen.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="it-IT">
 
@@ -500,6 +556,20 @@
     <sys:String x:Key="Settings_VerifyingTools">Verifica degli strumenti gestiti…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">Note di rilascio</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">Non sono state fornite note di rilascio.</sys:String>
+    <sys:String x:Key="Downloads_Speed">Velocità</sys:String>
+    <sys:String x:Key="Downloads_Eta">Tempo rimanente</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">Controllo degli aggiornamenti GitHub…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">È disponibile la versione {0}.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">È disponibile una nuova versione.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">Hai già l'ultima versione.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">Risoluzione del contenuto…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">Metti tutto in pausa</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">Riprendi tutto</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">Annulla tutto</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">Cancella completati</sys:String>
+    <sys:String x:Key="Downloads_Finished">Completati</sys:String>
+    <sys:String x:Key="AddMedia_Quality">Qualità</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Scegli la qualità audio prima di aggiungere alla coda.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="pt-BR">
 
@@ -535,6 +605,20 @@
     <sys:String x:Key="Settings_VerifyingTools">Verificando ferramentas gerenciadas…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">Notas da versão</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">Nenhuma nota da versão foi fornecida.</sys:String>
+    <sys:String x:Key="Downloads_Speed">Velocidade</sys:String>
+    <sys:String x:Key="Downloads_Eta">Tempo restante</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">Procurando atualizações do GitHub…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">A versão {0} está disponível.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">Há uma nova versão disponível.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">Você está atualizado.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">Resolvendo mídia…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">Pausar tudo</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">Retomar tudo</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">Cancelar tudo</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">Limpar concluídos</sys:String>
+    <sys:String x:Key="Downloads_Finished">Concluídos</sys:String>
+    <sys:String x:Key="AddMedia_Quality">Qualidade</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Escolha a qualidade de áudio antes de adicionar à fila.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="pt-PT">
 
@@ -570,6 +654,20 @@
     <sys:String x:Key="Settings_VerifyingTools">A verificar ferramentas geridas…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">Notas da versão</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">Não foram fornecidas notas de versão.</sys:String>
+    <sys:String x:Key="Downloads_Speed">Velocidade</sys:String>
+    <sys:String x:Key="Downloads_Eta">Tempo restante</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">A procurar atualizações no GitHub…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">A versão {0} está disponível.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">Está disponível uma versão nova.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">Tem a versão mais recente.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">A resolver multimédia…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">Pausar tudo</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">Retomar tudo</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">Cancelar tudo</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">Limpar concluídos</sys:String>
+    <sys:String x:Key="Downloads_Finished">Concluídos</sys:String>
+    <sys:String x:Key="AddMedia_Quality">Qualidade</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Escolha a qualidade de áudio antes de adicionar à fila.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="nl-NL">
 
@@ -605,6 +703,20 @@
     <sys:String x:Key="Settings_VerifyingTools">Beheerde hulpprogramma's worden gecontroleerd…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">Releaseopmerkingen</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">Er zijn geen releaseopmerkingen beschikbaar.</sys:String>
+    <sys:String x:Key="Downloads_Speed">Snelheid</sys:String>
+    <sys:String x:Key="Downloads_Eta">Resterende tijd</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">Controleren op GitHub-updates…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">Versie {0} is beschikbaar.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">Er is een nieuwe versie beschikbaar.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">Je hebt de nieuwste versie.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">Media wordt opgelost…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">Alles pauzeren</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">Alles hervatten</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">Alles annuleren</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">Voltooide wissen</sys:String>
+    <sys:String x:Key="Downloads_Finished">Voltooid</sys:String>
+    <sys:String x:Key="AddMedia_Quality">Kwaliteit</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Kies de audiokwaliteit voordat je aan de wachtrij toevoegt.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="pl-PL">
 
@@ -640,6 +752,20 @@
     <sys:String x:Key="Settings_VerifyingTools">Sprawdzanie zarządzanych narzędzi…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">Informacje o wydaniu</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">Nie udostępniono informacji o wydaniu.</sys:String>
+    <sys:String x:Key="Downloads_Speed">Prędkość</sys:String>
+    <sys:String x:Key="Downloads_Eta">Pozostały czas</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">Sprawdzanie aktualizacji GitHub…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">Wersja {0} jest dostępna.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">Dostępna jest nowa wersja.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">Masz najnowszą wersję.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">Rozpoznawanie multimediów…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">Wstrzymaj wszystko</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">Wznów wszystko</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">Anuluj wszystko</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">Wyczyść ukończone</sys:String>
+    <sys:String x:Key="Downloads_Finished">Ukończone</sys:String>
+    <sys:String x:Key="AddMedia_Quality">Jakość</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Wybierz jakość audio przed dodaniem do kolejki.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="tr-TR">
 
@@ -675,6 +801,20 @@
     <sys:String x:Key="Settings_VerifyingTools">Yönetilen araçlar doğrulanıyor…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">Sürüm notları</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">Sürüm notu sağlanmadı.</sys:String>
+    <sys:String x:Key="Downloads_Speed">Hız</sys:String>
+    <sys:String x:Key="Downloads_Eta">Kalan süre</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">GitHub güncellemeleri denetleniyor…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">{0} sürümü mevcut.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">Yeni bir sürüm kullanıma hazır.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">En son sürümdesiniz.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">Medya çözümleniyor…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">Tümünü duraklat</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">Tümünü sürdür</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">Tümünü iptal et</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">Tamamlananları temizle</sys:String>
+    <sys:String x:Key="Downloads_Finished">Tamamlandı</sys:String>
+    <sys:String x:Key="AddMedia_Quality">Kalite</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Kuyruğa eklemeden önce ses kalitesini seçin.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="sv-SE">
 
@@ -710,6 +850,20 @@
     <sys:String x:Key="Settings_VerifyingTools">Verifierar hanterade verktyg…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">Versionsanteckningar</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">Inga versionsanteckningar angavs.</sys:String>
+    <sys:String x:Key="Downloads_Speed">Hastighet</sys:String>
+    <sys:String x:Key="Downloads_Eta">Återstående tid</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">Söker efter GitHub-uppdateringar…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">Version {0} är tillgänglig.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">En ny version är tillgänglig.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">Du har den senaste versionen.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">Identifierar media…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">Pausa alla</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">Återuppta alla</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">Avbryt alla</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">Rensa slutförda</sys:String>
+    <sys:String x:Key="Downloads_Finished">Slutförda</sys:String>
+    <sys:String x:Key="AddMedia_Quality">Kvalitet</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Välj ljudkvalitet innan du lägger till i kön.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="da-DK">
 
@@ -745,6 +899,20 @@
     <sys:String x:Key="Settings_VerifyingTools">Bekræfter administrerede værktøjer…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">Udgivelsesnoter</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">Der blev ikke angivet nogen udgivelsesnoter.</sys:String>
+    <sys:String x:Key="Downloads_Speed">Hastighed</sys:String>
+    <sys:String x:Key="Downloads_Eta">Resterende tid</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">Søger efter GitHub-opdateringer…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">Version {0} er tilgængelig.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">En ny version er tilgængelig.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">Du har den nyeste version.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">Løser medie…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">Sæt alle på pause</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">Genoptag alle</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">Annuller alle</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">Ryd afsluttede</sys:String>
+    <sys:String x:Key="Downloads_Finished">Afsluttede</sys:String>
+    <sys:String x:Key="AddMedia_Quality">Kvalitet</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Vælg lydkvalitet, før du tilføjer til køen.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="nb-NO">
 
@@ -780,6 +948,20 @@
     <sys:String x:Key="Settings_VerifyingTools">Bekrefter administrerte verktøy…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">Versjonsnotater</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">Ingen versjonsnotater ble oppgitt.</sys:String>
+    <sys:String x:Key="Downloads_Speed">Hastighet</sys:String>
+    <sys:String x:Key="Downloads_Eta">Gjenstående tid</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">Ser etter GitHub-oppdateringer…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">Versjon {0} er tilgjengelig.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">En ny versjon er tilgjengelig.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">Du har den nyeste versjonen.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">Løser medier…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">Sett alle på pause</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">Gjenoppta alle</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">Avbryt alle</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">Fjern fullførte</sys:String>
+    <sys:String x:Key="Downloads_Finished">Fullført</sys:String>
+    <sys:String x:Key="AddMedia_Quality">Kvalitet</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Velg lydkvalitet før du legger til i køen.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="fi-FI">
 
@@ -815,6 +997,20 @@
     <sys:String x:Key="Settings_VerifyingTools">Hallinnoituja työkaluja tarkistetaan…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">Julkaisutiedot</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">Julkaisutietoja ei annettu.</sys:String>
+    <sys:String x:Key="Downloads_Speed">Nopeus</sys:String>
+    <sys:String x:Key="Downloads_Eta">Jäljellä oleva aika</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">Tarkistetaan GitHub-päivityksiä…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">Versio {0} on saatavilla.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">Uusi versio on saatavilla.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">Käytössäsi on uusin versio.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">Selvitetään mediaa…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">Keskeytä kaikki</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">Jatka kaikki</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">Peruuta kaikki</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">Tyhjennä valmiit</sys:String>
+    <sys:String x:Key="Downloads_Finished">Valmiit</sys:String>
+    <sys:String x:Key="AddMedia_Quality">Laatu</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Valitse äänenlaatu ennen kuin lisäät jonoon.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="cs-CZ">
 
@@ -850,6 +1046,20 @@
     <sys:String x:Key="Settings_VerifyingTools">Ověřování spravovaných nástrojů…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">Poznámky k vydání</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">Poznámky k vydání nebyly poskytnuty.</sys:String>
+    <sys:String x:Key="Downloads_Speed">Rychlost</sys:String>
+    <sys:String x:Key="Downloads_Eta">Zbývající čas</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">Kontroluji aktualizace GitHub…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">Je k dispozici verze {0}.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">Je k dispozici nová verze.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">Máte nejnovější verzi.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">Načítání médií…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">Pozastavit vše</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">Pokračovat ve všem</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">Zrušit vše</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">Vymazat dokončené</sys:String>
+    <sys:String x:Key="Downloads_Finished">Dokončené</sys:String>
+    <sys:String x:Key="AddMedia_Quality">Kvalita</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Před přidáním do fronty vyberte kvalitu zvuku.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="uk-UA">
 
@@ -885,6 +1095,20 @@
     <sys:String x:Key="Settings_VerifyingTools">Перевірка керованих інструментів…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">Примітки до випуску</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">Примітки до випуску не надано.</sys:String>
+    <sys:String x:Key="Downloads_Speed">Швидкість</sys:String>
+    <sys:String x:Key="Downloads_Eta">Залишився час</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">Перевірка оновлень GitHub…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">Доступна версія {0}.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">Доступна нова версія.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">У вас найновіша версія.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">Визначення медіа…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">Призупинити все</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">Продовжити все</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">Скасувати все</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">Очистити завершені</sys:String>
+    <sys:String x:Key="Downloads_Finished">Завершені</sys:String>
+    <sys:String x:Key="AddMedia_Quality">Якість</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Виберіть якість аудіо перед додаванням до черги.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="ja-JP">
 
@@ -920,6 +1144,20 @@
     <sys:String x:Key="Settings_VerifyingTools">管理ツールを確認しています…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">リリースノート</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">リリースノートは提供されていません。</sys:String>
+    <sys:String x:Key="Downloads_Speed">速度</sys:String>
+    <sys:String x:Key="Downloads_Eta">残り時間</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">GitHub の更新を確認しています…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">バージョン {0} を利用できます。</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">新しいバージョンを利用できます。</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">最新バージョンを利用しています。</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">メディアを解析しています…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">すべて一時停止</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">すべて再開</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">すべてキャンセル</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">完了済みをクリア</sys:String>
+    <sys:String x:Key="Downloads_Finished">完了</sys:String>
+    <sys:String x:Key="AddMedia_Quality">品質</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">キューに追加する前に音質を選択してください。</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="ko-KR">
 
@@ -955,6 +1193,20 @@
     <sys:String x:Key="Settings_VerifyingTools">관리 도구 확인 중…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">릴리스 노트</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">릴리스 노트가 제공되지 않았습니다.</sys:String>
+    <sys:String x:Key="Downloads_Speed">속도</sys:String>
+    <sys:String x:Key="Downloads_Eta">남은 시간</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">GitHub 업데이트 확인 중…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">버전 {0}을(를) 사용할 수 있습니다.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">새 버전을 설치할 수 있습니다.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">최신 버전을 사용하고 있습니다.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">미디어 확인 중…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">모두 일시 중지</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">모두 재개</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">모두 취소</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">완료된 항목 지우기</sys:String>
+    <sys:String x:Key="Downloads_Finished">완료됨</sys:String>
+    <sys:String x:Key="AddMedia_Quality">품질</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">대기열에 추가하기 전에 오디오 품질을 선택하세요.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="zh-CN">
 
@@ -990,6 +1242,20 @@
     <sys:String x:Key="Settings_VerifyingTools">正在验证托管工具…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">发行说明</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">未提供发行说明。</sys:String>
+    <sys:String x:Key="Downloads_Speed">速度</sys:String>
+    <sys:String x:Key="Downloads_Eta">剩余时间</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">正在检查 GitHub 更新…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">版本 {0} 可用。</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">有新版本可用。</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">你已使用最新版本。</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">正在解析媒体…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">全部暂停</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">全部继续</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">全部取消</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">清除已完成</sys:String>
+    <sys:String x:Key="Downloads_Finished">已完成</sys:String>
+    <sys:String x:Key="AddMedia_Quality">质量</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">加入队列前请选择音频质量。</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="ar-SA">
 
@@ -1025,5 +1291,19 @@
     <sys:String x:Key="Settings_VerifyingTools">جارٍ التحقق من الأدوات المُدارة…</sys:String>
     <sys:String x:Key="Settings_ReleaseNotes">ملاحظات الإصدار</sys:String>
     <sys:String x:Key="Settings_NoReleaseNotes">لم يتم توفير ملاحظات الإصدار.</sys:String>
+    <sys:String x:Key="Downloads_Speed">السرعة</sys:String>
+    <sys:String x:Key="Downloads_Eta">الوقت المتبقي</sys:String>
+    <sys:String x:Key="Settings_CheckingUpdates">جارٍ التحقق من تحديثات GitHub…</sys:String>
+    <sys:String x:Key="Settings_UpdateAvailableVersion">الإصدار {0} متاح.</sys:String>
+    <sys:String x:Key="Settings_UpdateReady">يتوفر إصدار جديد.</sys:String>
+    <sys:String x:Key="Settings_NoUpdate">لديك أحدث إصدار.</sys:String>
+    <sys:String x:Key="AddMedia_Resolving">جارٍ تحليل الوسائط…</sys:String>
+    <sys:String x:Key="Downloads_PauseAll">إيقاف الكل مؤقتًا</sys:String>
+    <sys:String x:Key="Downloads_ResumeAll">استئناف الكل</sys:String>
+    <sys:String x:Key="Downloads_CancelAll">إلغاء الكل</sys:String>
+    <sys:String x:Key="Downloads_ClearCompleted">مسح المكتمل</sys:String>
+    <sys:String x:Key="Downloads_Finished">مكتمل</sys:String>
+    <sys:String x:Key="AddMedia_Quality">الجودة</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">اختر جودة الصوت قبل الإضافة إلى قائمة الانتظار.</sys:String>
 </ResourceDictionary>
 </ResourceDictionary>

@@ -8,7 +8,8 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
 {
     private readonly IYtDlpRunner _runner;
 
-    public YtDlpMediaDownloader(IYtDlpRunner runner) => _runner = runner;
+    public YtDlpMediaDownloader(IYtDlpRunner runner)
+        => _runner = runner ?? throw new ArgumentNullException(nameof(runner));
 
     public async Task DownloadAsync(
         string sourceUrl,
@@ -18,40 +19,45 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
         CancellationToken cancellationToken = default,
         MediaQuality quality = MediaQuality.Standard128K)
     {
-        if (string.IsNullOrWhiteSpace(sourceUrl))
-            throw new ArgumentException("A source URL is required.", nameof(sourceUrl));
-
-        if (string.IsNullOrWhiteSpace(outputPath))
-            throw new ArgumentException("An output path is required.", nameof(outputPath));
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceUrl);
+        ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
 
         var extension = GetExtension(format);
-        var finalPath = Path.GetExtension(outputPath).Equals(extension, StringComparison.OrdinalIgnoreCase)
+        var finalPath = Path.GetExtension(outputPath)
+            .Equals(extension, StringComparison.OrdinalIgnoreCase)
             ? outputPath
             : Path.ChangeExtension(outputPath, extension);
 
         var stagingBase = finalPath + ".mediaforge-temp";
         var parentDirectory = Path.GetDirectoryName(finalPath) ?? ".";
-        TryDeleteMatching(stagingBase);
 
         try
         {
             Directory.CreateDirectory(parentDirectory);
-            progress?.Report(new DownloadProgress(0, "Downloading"));
+
+            var hasResumableWork = Directory
+                .GetFiles(
+                    parentDirectory,
+                    Path.GetFileName(stagingBase) + "*",
+                    SearchOption.TopDirectoryOnly)
+                .Length > 0;
+
+            progress?.Report(new DownloadProgress(
+                0,
+                hasResumableWork ? "Resuming" : "Downloading"));
 
             await _runner.RunAsync(
                 sourceUrl,
                 stagingBase,
                 format,
-                new Progress<DownloadProgress>(value =>
-                {
-                    progress?.Report(value);
-                }),
+                new Progress<DownloadProgress>(value => progress?.Report(value)),
                 cancellationToken,
                 quality).ConfigureAwait(false);
 
             var produced = ResolveProducedPath(stagingBase, extension);
             if (produced is null)
-                throw new FileNotFoundException("Download completed without a valid output file.");
+                throw new FileNotFoundException(
+                    "Download completed without a valid output file.");
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -62,16 +68,37 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
             try
             {
                 if (File.Exists(finalPath))
-                    File.Replace(replacement, finalPath, null, ignoreMetadataErrors: true);
+                {
+                    File.Replace(
+                        replacement,
+                        finalPath,
+                        null,
+                        ignoreMetadataErrors: true);
+                }
                 else
+                {
                     File.Move(replacement, finalPath);
+                }
             }
             finally
             {
                 TryDelete(replacement);
+                TryDeleteMatching(stagingBase);
             }
 
-            progress?.Report(new DownloadProgress(100, "Completed"));
+            var finalSize = new FileInfo(finalPath).Length;
+            progress?.Report(new DownloadProgress(
+                100,
+                "Completed",
+                null,
+                TimeSpan.Zero,
+                finalSize,
+                finalSize));
+        }
+        catch (OperationCanceledException)
+        {
+            // Keep partial files so Pause -> Resume can continue from disk.
+            throw;
         }
         catch
         {
@@ -100,11 +127,14 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
             return null;
 
         var prefix = Path.GetFileName(stagingBase);
-        return Directory.GetFiles(
+
+        return Directory
+            .GetFiles(
                 directory,
                 prefix + ".*",
                 SearchOption.TopDirectoryOnly)
-            .FirstOrDefault(path => path.EndsWith(extension, StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(path =>
+                path.EndsWith(extension, StringComparison.OrdinalIgnoreCase));
     }
 
     private static void TryDeleteMatching(string prefix)

@@ -284,13 +284,14 @@
                                             </Style>
                                         </Border.Style>
 
-                                        <Grid MinHeight="60">
+                                        <Grid MinHeight="72">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="38"/>
+                                                <ColumnDefinition Width="56"/>
                                                 <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="95"/>
                                                 <ColumnDefinition Width="110"/>
-                                                <ColumnDefinition Width="100"/>
-                                                <ColumnDefinition Width="118"/>
+                                                <ColumnDefinition Width="160"/>
                                             </Grid.ColumnDefinitions>
 
                                             <ui:SymbolIcon Grid.Column="0"
@@ -310,7 +311,25 @@
                                                 </ui:SymbolIcon.Style>
                                             </ui:SymbolIcon>
 
-                                            <StackPanel Grid.Column="1"
+                                            <Border Grid.Column="1"
+                                                    Width="48"
+                                                    Height="48"
+                                                    CornerRadius="10"
+                                                    ClipToBounds="True"
+                                                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                                    VerticalAlignment="Center">
+                                                <Grid>
+                                                    <ui:SymbolIcon Symbol="Document24"
+                                                                   FontSize="22"
+                                                                   HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"
+                                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                                                    <Image Source="{Binding ThumbnailUrl}"
+                                                           Stretch="UniformToFill"/>
+                                                </Grid>
+                                            </Border>
+
+                                            <StackPanel Grid.Column="2"
                                                         Margin="10,0,18,0"
                                                         VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Name}"
@@ -318,27 +337,44 @@
                                                            FontWeight="SemiBold"
                                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                                                            TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{Binding FullPath}"
-                                                           Margin="0,3,0,0"
+                                                <TextBlock Text="{Binding MediaTitle}"
+                                                           Margin="0,2,0,0"
+                                                           FontSize="9"
+                                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           Visibility="{Binding IsMedia, Converter={StaticResource BooleanToVisibilityConverterFallback}}"/>
+                                                <TextBlock Text="{Binding MediaArtist}"
+                                                           Margin="0,2,0,0"
                                                            FontSize="8.5"
                                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                                           TextTrimming="CharacterEllipsis"/>
+                                                           TextTrimming="CharacterEllipsis"
+                                                           Visibility="{Binding IsMedia, Converter={StaticResource BooleanToVisibilityConverterFallback}}"/>
+                                                <TextBlock Text="{Binding FullPath}"
+                                                           Margin="0,3,0,0"
+                                                           FontSize="8"
+                                                           Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           ToolTip="{Binding FullPath}"/>
+                                                <ProgressBar Height="5"
+                                                             Margin="0,6,0,0"
+                                                             Maximum="100"
+                                                             Value="{Binding ProgressPercent}"
+                                                             Visibility="{Binding HasProgress, Converter={StaticResource BooleanToVisibilityConverterFallback}}"/>
                                             </StackPanel>
 
-                                            <TextBlock Grid.Column="2"
+                                            <TextBlock Grid.Column="3"
                                                        Text="{Binding KindText}"
                                                        VerticalAlignment="Center"
                                                        FontSize="10"
                                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
 
-                                            <TextBlock Grid.Column="3"
+                                            <TextBlock Grid.Column="4"
                                                        Text="{Binding SizeText}"
                                                        VerticalAlignment="Center"
                                                        FontSize="10"
                                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
 
-                                            <StackPanel Grid.Column="4"
-                                                        Orientation="Horizontal"
+                                            <StackPanel Grid.Column="5"
                                                         VerticalAlignment="Center">
                                                 <Ellipse Width="7"
                                                          Height="7"
@@ -362,6 +398,18 @@
                                                            FontSize="9.5"
                                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                                            TextTrimming="CharacterEllipsis"/>
+                                                <StackPanel Orientation="Horizontal"
+                                                            Margin="7,4,0,0">
+                                                    <TextBlock Text="{Binding SpeedText}"
+                                                               FontSize="8"
+                                                               Foreground="{DynamicResource TextFillColorTertiaryBrush}"/>
+                                                    <TextBlock Text=" · "
+                                                               FontSize="8"
+                                                               Foreground="{DynamicResource TextFillColorTertiaryBrush}"/>
+                                                    <TextBlock Text="{Binding EtaText}"
+                                                               FontSize="8"
+                                                               Foreground="{DynamicResource TextFillColorTertiaryBrush}"/>
+                                                </StackPanel>
                                             </StackPanel>
                                         </Grid>
                                     </Border>

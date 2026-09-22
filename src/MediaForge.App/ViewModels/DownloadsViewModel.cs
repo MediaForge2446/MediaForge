@@ -52,6 +52,9 @@ public partial class DownloadsViewModel : ObservableObject
     public bool HasQueue => QueueItems.Count > 0;
     public int ActiveQueueCount => QueueItems.Count(x => x.IsActive);
     public int QueuedCount => QueueItems.Count(x => x.State is DownloadQueueState.Queued or DownloadQueueState.Retrying);
+    public int FailedCount => QueueItems.Count(x => x.State == DownloadQueueState.Failed);
+    public bool HasFailedItems => FailedCount > 0;
+    public bool HasFinishedItems => QueueItems.Any(x => x.IsTerminal);
     public event Func<Task>? MediaStaged;
     public event Func<Guid, Task>? RetryRequested;
     public event Action<string>? LogRequested;
@@ -125,6 +128,7 @@ public partial class DownloadsViewModel : ObservableObject
                 _localization));
         }
 
+        RefreshQueuePriorities();
         NotifyQueueState();
     }
 
@@ -159,9 +163,16 @@ public partial class DownloadsViewModel : ObservableObject
             return;
 
         QueueItems.Move(currentIndex, targetIndex);
+        RefreshQueuePriorities();
+        NotifyQueueState();
+    }
 
+    private void RefreshQueuePriorities()
+    {
         for (var i = 0; i < QueueItems.Count; i++)
-            _downloadQueue.SetPriority(QueueItems[i].OperationId, QueueItems.Count - i);
+            _downloadQueue.SetPriority(
+                QueueItems[i].OperationId,
+                QueueItems.Count - i);
     }
 
     [RelayCommand]
@@ -182,6 +193,51 @@ public partial class DownloadsViewModel : ObservableObject
 
         if (_downloadQueue.Resume(item.OperationId))
             item.SetControlState(DownloadQueueState.Queued);
+    }
+
+    [RelayCommand]
+    private void PauseAll()
+    {
+        foreach (var item in QueueItems.Where(x => x.CanPause).ToArray())
+        {
+            if (_downloadQueue.Pause(item.OperationId))
+                item.SetControlState(DownloadQueueState.Paused);
+        }
+
+        NotifyQueueState();
+    }
+
+    [RelayCommand]
+    private void ResumeAll()
+    {
+        foreach (var item in QueueItems.Where(x => x.CanResume).ToArray())
+        {
+            if (_downloadQueue.Resume(item.OperationId))
+                item.SetControlState(DownloadQueueState.Queued);
+        }
+
+        NotifyQueueState();
+    }
+
+    [RelayCommand]
+    private void CancelAll()
+    {
+        foreach (var item in QueueItems.Where(x => x.CanCancel).ToArray())
+        {
+            if (_downloadQueue.Cancel(item.OperationId))
+                item.SetControlState(DownloadQueueState.Cancelled);
+        }
+
+        NotifyQueueState();
+    }
+
+    [RelayCommand]
+    private void ClearFinished()
+    {
+        foreach (var item in QueueItems.Where(x => x.IsTerminal).ToArray())
+            QueueItems.Remove(item);
+
+        NotifyQueueState();
     }
 
     [RelayCommand]
@@ -234,6 +290,9 @@ public partial class DownloadsViewModel : ObservableObject
         OnPropertyChanged(nameof(HasQueue));
         OnPropertyChanged(nameof(ActiveQueueCount));
         OnPropertyChanged(nameof(QueuedCount));
+        OnPropertyChanged(nameof(FailedCount));
+        OnPropertyChanged(nameof(HasFailedItems));
+        OnPropertyChanged(nameof(HasFinishedItems));
     }
 
     private void NotifySelectionState()
@@ -709,6 +768,7 @@ public partial class DownloadQueueItemViewModel : ObservableObject
     private string GetLocalizedState() => State switch
     {
         DownloadQueueState.Downloading => _localization.Get("Queue_Downloading"),
+        DownloadQueueState.Paused => _localization.Get("Queue_Paused"),
         DownloadQueueState.Retrying => _localization.Get("Queue_Retrying"),
         DownloadQueueState.Completed => _localization.Get("Queue_Completed"),
         DownloadQueueState.Failed => _localization.Get("Queue_Failed"),
