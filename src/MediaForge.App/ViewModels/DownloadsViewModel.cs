@@ -37,6 +37,8 @@ public partial class DownloadsViewModel : ObservableObject
     public IReadOnlyList<MediaQuality> Qualities { get; } =
         [MediaQuality.Standard128K, MediaQuality.High192K, MediaQuality.VeryHigh256K, MediaQuality.Maximum320K];
 
+    public int DownloadQueueConcurrency => _downloadQueue.MaxConcurrency;
+
     public bool IsMp3Selected => SelectedFormat == MediaFormat.Mp3;
     public bool IsMp4Selected => SelectedFormat == MediaFormat.Mp4;
     public bool IsWavSelected => SelectedFormat == MediaFormat.Wav;
@@ -507,6 +509,14 @@ public partial class DownloadQueueItemViewModel : ObservableObject
     public string DestinationPath { get; }
     public MediaFormat Format { get; }
     public MediaQuality Quality { get; }
+    public string FormatText => Format switch
+    {
+        MediaFormat.Mp3 => "MP3",
+        MediaFormat.Mp4 => "MP4",
+        MediaFormat.Wav => "WAV",
+        MediaFormat.M4a => "M4A",
+        _ => Format.ToString()
+    };
 
     [ObservableProperty] private DownloadQueueState _state = DownloadQueueState.Queued;
     [ObservableProperty] private double _progressPercent;
@@ -628,6 +638,7 @@ public partial class DownloadQueueItemViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(QualityText));
+        OnPropertyChanged(nameof(FormatText));
     }
 
     public void SetControlState(DownloadQueueState state)
