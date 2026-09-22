@@ -1,4 +1,5 @@
 using MediaForge.Core.Enums;
+using MediaForge.Core.Models;
 
 namespace MediaForge.Core.Interfaces;
 
@@ -8,6 +9,6 @@ public interface IYtDlpRunner
         string url,
         string outputPath,
         MediaFormat format,
-        IProgress<double>? progress = null,
+        IProgress<DownloadProgress>? progress = null,
         CancellationToken cancellationToken = default);
 }
