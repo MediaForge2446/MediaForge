@@ -85,7 +85,8 @@ public partial class App : System.Windows.Application
                 mediaImportService,
                 folderPicker,
                 LocalizationService.Instance,
-                preferences);
+                preferences,
+                downloadQueue);
             var settingsViewModel = new SettingsViewModel(
                 toolManager,
                 LocalizationService.Instance,
@@ -106,6 +107,8 @@ public partial class App : System.Windows.Application
             MainWindow = window;
             window.Show();
             await mainViewModel.InitializeAsync();
+
+            _ = settingsViewModel.CheckForUpdatesInBackgroundAsync();
         }
         catch (Exception ex)
         {
