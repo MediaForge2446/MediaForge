@@ -21,6 +21,7 @@ public partial class App : Application
             .ConfigureServices(services =>
             {
                 services.AddSingleton<ILibraryCatalog, InMemoryLibraryCatalog>();
+                services.AddSingleton<IStagingService, InMemoryStagingService>();
                 services.AddSingleton<IFolderPicker, WinUiFolderPicker>();
                 services.AddTransient<HomeViewModel>();
                 services.AddTransient<MainWindow>();

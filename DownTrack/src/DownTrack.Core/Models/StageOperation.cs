@@ -22,5 +22,14 @@ public sealed record StageOperation(
     Guid Id,
     StageOperationKind Kind,
     string TargetPath,
+    string? SourcePath = null,
+    Guid? NodeId = null,
+    DateTimeOffset? CreatedAt = null,
     StageOperationState State = StageOperationState.Pending,
-    string? Error = null);
+    string? Error = null,
+    IReadOnlyList<Guid>? DependsOn = null)
+{
+    public DateTimeOffset CreatedAtUtc => CreatedAt ?? DateTimeOffset.UtcNow;
+
+    public IReadOnlyList<Guid> Dependencies => DependsOn ?? [];
+}
