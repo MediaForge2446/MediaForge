@@ -14,7 +14,7 @@ public partial class DownloadsPage : System.Windows.Controls.UserControl
         InitializeComponent();
     }
 
-    private void QueueList_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    private void QueueList_OnPreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         _dragStartPoint = e.GetPosition(QueueList);
         _draggedItem = FindListItem(e.OriginalSource as DependencyObject)?.DataContext
@@ -23,7 +23,7 @@ public partial class DownloadsPage : System.Windows.Controls.UserControl
 
     private void QueueList_OnPreviewMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
     {
-        if (e.LeftButton != MouseButtonState.Pressed || _draggedItem is null)
+        if (e.LeftButton != System.Windows.Input.MouseButtonState.Pressed || _draggedItem is null)
             return;
 
         var position = e.GetPosition(QueueList);
@@ -36,7 +36,7 @@ public partial class DownloadsPage : System.Windows.Controls.UserControl
 
         var item = _draggedItem;
         _draggedItem = null;
-        DragDrop.DoDragDrop(QueueList, item, DragDropEffects.Move);
+        System.Windows.DragDrop.DoDragDrop(QueueList, item, System.Windows.DragDropEffects.Move);
     }
 
     private void QueueList_OnDrop(object sender, System.Windows.DragEventArgs e)
