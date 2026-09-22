@@ -21,6 +21,10 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
         new(@"ETA\s+(?<eta>\d{2}:\d{2}(?::\d{2})?)",
             RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
+    private static readonly Regex TotalSizeRegex =
+        new(@"of\s+~?\s*(?<size>\d+(?:[.,]\d+)?)\s*(?<unit>[KMGTPE]?i?B)\b",
+            RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
     private readonly IToolManager _toolManager;
     private readonly LocalAppPaths _paths;
 
