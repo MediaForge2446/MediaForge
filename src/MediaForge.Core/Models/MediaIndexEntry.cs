@@ -8,4 +8,7 @@ public sealed record MediaIndexEntry(
     string PhysicalPath,
     MediaFormat Format,
     DateTimeOffset AddedAtUtc,
-    DateTimeOffset LastVerifiedAtUtc);
+    DateTimeOffset LastVerifiedAtUtc,
+    string? Title = null,
+    string? Artist = null,
+    string? ThumbnailUrl = null);
