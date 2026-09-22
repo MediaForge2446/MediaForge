@@ -80,7 +80,7 @@ public partial class App : System.Windows.Application
                 mediaIndex,
                 fileSystem);
             var explorerViewModel = new ExplorerViewModel(explorerService, stagingService);
-            var downloadsViewModel = new DownloadsViewModel(mediaImportService, folderPicker);
+            var downloadsViewModel = new DownloadsViewModel(mediaImportService, folderPicker, LocalizationService.Instance);
             var settingsViewModel = new SettingsViewModel(toolManager, LocalizationService.Instance);
             var mainViewModel = new MainViewModel(
                 libraryService,
