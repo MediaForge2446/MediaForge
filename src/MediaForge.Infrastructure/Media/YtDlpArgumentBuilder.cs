@@ -8,7 +8,7 @@ public static class YtDlpArgumentBuilder
     // Balanced default for everyday listening: good enough quality while keeping MP3 files compact.
     public const string DefaultMp3AudioQuality = "128K";
 
-    public static IReadOnlyList<string> Build(string outputPath, string ffmpegPath, MediaFormat format)
+    public static IReadOnlyList<string> Build(string outputPath, string ffmpegPath, MediaFormat format, MediaQuality quality = MediaQuality.Standard128K)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
         ArgumentException.ThrowIfNullOrWhiteSpace(ffmpegPath);
