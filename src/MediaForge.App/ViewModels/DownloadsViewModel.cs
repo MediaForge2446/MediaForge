@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MediaForge.App.Localization;
+using MediaForge.Application.Abstractions;
 using MediaForge.Application.Downloads;
 using MediaForge.Core.Enums;
 using MediaForge.Core.Models;
@@ -12,35 +14,51 @@ public partial class DownloadsViewModel : ObservableObject
 {
     private readonly MediaImportService _importService;
     private readonly IFolderPicker _folderPicker;
+    private readonly LocalizationService _localization;
 
     [ObservableProperty] private string _sourceUrl = string.Empty;
     [ObservableProperty] private string _destinationDirectory = string.Empty;
     [ObservableProperty] private MediaFormat _selectedFormat = MediaFormat.Mp3;
     [ObservableProperty] private string _collectionTitle = string.Empty;
     [ObservableProperty] private bool _isBusy;
-    [ObservableProperty] private string _statusText = "הדבק קישור כדי להתחיל";
+    [ObservableProperty] private string _statusText = string.Empty;
 
     public ObservableCollection<ResolvedMediaItemViewModel> Items { get; } = [];
-    public IReadOnlyList<MediaFormat> Formats { get; } = [MediaFormat.Mp3, MediaFormat.Mp4, MediaFormat.Wav, MediaFormat.M4a];
+    public ObservableCollection<DownloadQueueItemViewModel> QueueItems { get; } = [];
+
+    public IReadOnlyList<MediaFormat> Formats { get; } =
+        [MediaFormat.Mp3, MediaFormat.Mp4, MediaFormat.Wav, MediaFormat.M4a];
+
     public bool HasItems => Items.Count > 0;
     public int SelectedCount => Items.Count(x => x.IsSelected);
     public bool HasSelection => SelectedCount > 0;
+    public int QueueCount => QueueItems.Count;
+    public int ActiveQueueCount => QueueItems.Count(x => x.IsActive);
+    public int QueuedCount => QueueItems.Count(x => x.State is DownloadQueueState.Queued or DownloadQueueState.Retrying);
     public event Func<Task>? MediaStaged;
 
-    public DownloadsViewModel(MediaImportService importService, IFolderPicker folderPicker)
+    public DownloadsViewModel(
+        MediaImportService importService,
+        IFolderPicker folderPicker,
+        LocalizationService localization)
     {
         _importService = importService;
         _folderPicker = folderPicker;
+        _localization = localization;
+        _localization.CultureChanged += OnCultureChanged;
+        StatusText = _localization.Get("Downloads_PastePrompt");
     }
 
     public void SetDefaultDestination(string path)
     {
-        if (string.IsNullOrWhiteSpace(DestinationDirectory)) DestinationDirectory = path;
+        if (string.IsNullOrWhiteSpace(DestinationDirectory))
+            DestinationDirectory = path;
     }
 
     public void SetDestination(string path)
     {
-        if (!string.IsNullOrWhiteSpace(path)) DestinationDirectory = path;
+        if (!string.IsNullOrWhiteSpace(path))
+            DestinationDirectory = path;
     }
 
     public void PrepareForFolder(string path)
@@ -48,10 +66,70 @@ public partial class DownloadsViewModel : ObservableObject
         DestinationDirectory = path;
         SourceUrl = string.Empty;
         CollectionTitle = string.Empty;
-        StatusText = "הדבק קישור כדי להתחיל";
+        StatusText = _localization.Get("Downloads_PastePrompt");
         UnsubscribeItems();
         Items.Clear();
         NotifySelectionState();
+    }
+
+    public void SyncFromStaging(IEnumerable<StagingOperation> operations)
+    {
+        var downloadOperations = operations
+            .Where(x => x.OperationType == OperationType.Download)
+            .OrderBy(x => x.CreatedAt)
+            .ToArray();
+
+        var activeIds = downloadOperations.Select(x => x.OperationId).ToHashSet();
+
+        foreach (var item in QueueItems.Where(x =>
+                     !activeIds.Contains(x.OperationId) &&
+                     !x.IsTerminal).ToArray())
+        {
+            QueueItems.Remove(item);
+        }
+
+        foreach (var operation in downloadOperations)
+        {
+            if (QueueItems.Any(x => x.OperationId == operation.OperationId))
+                continue;
+
+            QueueItems.Add(DownloadQueueItemViewModel.FromStaging(
+                operation,
+                _localization));
+        }
+
+        NotifyQueueState();
+    }
+
+    public void ApplyCommitProgress(CommitProgress progress)
+    {
+        var item = QueueItems.FirstOrDefault(x => x.OperationId == progress.OperationId);
+        if (item is null)
+            return;
+
+        item.ApplyProgress(progress);
+        NotifyQueueState();
+    }
+
+    public void ApplyCommitResults(IEnumerable<CommitItemResult> results)
+    {
+        foreach (var result in results)
+        {
+            var item = QueueItems.FirstOrDefault(x => x.OperationId == result.OperationId);
+            if (item is null)
+                continue;
+
+            item.ApplyResult(result);
+        }
+
+        NotifyQueueState();
+    }
+
+    private void NotifyQueueState()
+    {
+        OnPropertyChanged(nameof(QueueCount));
+        OnPropertyChanged(nameof(ActiveQueueCount));
+        OnPropertyChanged(nameof(QueuedCount));
     }
 
     private void NotifySelectionState()
@@ -59,6 +137,16 @@ public partial class DownloadsViewModel : ObservableObject
         OnPropertyChanged(nameof(HasItems));
         OnPropertyChanged(nameof(SelectedCount));
         OnPropertyChanged(nameof(HasSelection));
+    }
+
+    private void OnCultureChanged(object? sender, EventArgs e)
+    {
+        foreach (var item in QueueItems)
+            item.RefreshLocalizedState();
+        StatusText = _localization.Get("Downloads_PastePrompt");
+        OnPropertyChanged(nameof(QueueCount));
+        OnPropertyChanged(nameof(ActiveQueueCount));
+        OnPropertyChanged(nameof(QueuedCount));
     }
 
     private void SubscribeItem(ResolvedMediaItemViewModel item)
@@ -70,7 +158,9 @@ public partial class DownloadsViewModel : ObservableObject
             item.PropertyChanged -= OnMediaItemPropertyChanged;
     }
 
-    private void OnMediaItemPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void OnMediaItemPropertyChanged(
+        object? sender,
+        System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(ResolvedMediaItemViewModel.IsSelected))
         {
@@ -82,17 +172,24 @@ public partial class DownloadsViewModel : ObservableObject
     [RelayCommand]
     private async Task ResolveAsync(CancellationToken cancellationToken)
     {
-        if (IsBusy || string.IsNullOrWhiteSpace(SourceUrl)) return;
+        if (IsBusy || string.IsNullOrWhiteSpace(SourceUrl))
+            return;
+
         IsBusy = true;
         UnsubscribeItems();
         Items.Clear();
         CollectionTitle = string.Empty;
-        StatusText = "בודק קישור ומביא פרטי מדיה…";
+        StatusText = _localization.Get("Downloads_Resolving");
         NotifySelectionState();
+
         try
         {
-            var result = await _importService.ResolveAsync(SourceUrl.Trim(), cancellationToken).ConfigureAwait(true);
+            var result = await _importService.ResolveAsync(
+                SourceUrl.Trim(),
+                cancellationToken).ConfigureAwait(true);
+
             CollectionTitle = result.CollectionTitle ?? string.Empty;
+
             foreach (var item in result.Items)
             {
                 var itemViewModel = new ResolvedMediaItemViewModel(item, Formats);
@@ -101,13 +198,27 @@ public partial class DownloadsViewModel : ObservableObject
             }
 
             StatusText = result.IsPlaylist
-                ? $"נמצאו {Items.Count} שירים · נבחרו {SelectedCount}"
-                : "נמצא שיר אחד";
+                ? string.Format(
+                    _localization.CurrentCulture,
+                    _localization.Get("Downloads_PlaylistFound"),
+                    Items.Count,
+                    SelectedCount)
+                : _localization.Get("Downloads_SingleFound");
+
             NotifySelectionState();
         }
-        catch (OperationCanceledException) { StatusText = "הפעולה בוטלה"; }
-        catch (Exception ex) { StatusText = $"לא ניתן לקרוא את הקישור: {ex.Message}"; }
-        finally { IsBusy = false; }
+        catch (OperationCanceledException)
+        {
+            StatusText = _localization.Get("Status_Canceled");
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"{_localization.Get("Downloads_ResolveFailed")}: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
@@ -116,7 +227,12 @@ public partial class DownloadsViewModel : ObservableObject
         foreach (var item in Items)
             item.IsSelected = true;
 
-        StatusText = $"נבחרו {SelectedCount} מתוך {Items.Count} שירים";
+        StatusText = string.Format(
+            _localization.CurrentCulture,
+            _localization.Get("Downloads_Selected"),
+            SelectedCount,
+            Items.Count);
+
         NotifySelectionState();
     }
 
@@ -130,47 +246,262 @@ public partial class DownloadsViewModel : ObservableObject
         }
 
         SelectedFormat = MediaFormat.Mp3;
-        StatusText = $"כל {SelectedCount} השירים הוגדרו כ־MP3";
+        StatusText = string.Format(
+            _localization.CurrentCulture,
+            _localization.Get("Downloads_Mp3Selected"),
+            SelectedCount);
+
         NotifySelectionState();
     }
 
     [RelayCommand]
     private async Task StageSelectedAsync(CancellationToken cancellationToken)
     {
-        if (IsBusy) return;
-        if (string.IsNullOrWhiteSpace(DestinationDirectory)) { StatusText = "לא נבחרה תיקייה"; return; }
+        if (IsBusy)
+            return;
 
-        var selected = Items.Where(x => x.IsSelected).Select(x => x.ToResolvedItem()).ToArray();
-        if (selected.Length == 0) { StatusText = "בחר לפחות שיר אחד"; return; }
+        if (string.IsNullOrWhiteSpace(DestinationDirectory))
+        {
+            StatusText = _localization.Get("Downloads_NoDestination");
+            return;
+        }
+
+        var selected = Items
+            .Where(x => x.IsSelected)
+            .Select(x => x.ToResolvedItem())
+            .ToArray();
+
+        if (selected.Length == 0)
+        {
+            StatusText = _localization.Get("Downloads_NoSelection");
+            return;
+        }
 
         IsBusy = true;
-        StatusText = "מוסיף את השירים לשינויים הממתינים…";
+        StatusText = _localization.Get("Downloads_Staging");
+
         try
         {
-            var staged = await _importService.StageDownloadsAsync(selected, DestinationDirectory, SelectedFormat, cancellationToken).ConfigureAwait(true);
+            var staged = await _importService.StageDownloadsAsync(
+                selected,
+                DestinationDirectory,
+                SelectedFormat,
+                cancellationToken).ConfigureAwait(true);
+
+            foreach (var operation in staged)
+            {
+                QueueItems.Add(DownloadQueueItemViewModel.FromStaging(
+                    operation,
+                    _localization));
+            }
+
+            NotifyQueueState();
+
             StatusText = staged.Count == selected.Length
-                ? $"{staged.Count} שירים נוספו לשינויים הממתינים"
-                : $"{staged.Count} שירים נוספו; כפילויות דולגו";
+                ? string.Format(
+                    _localization.CurrentCulture,
+                    _localization.Get("Downloads_StagedAll"),
+                    staged.Count)
+                : string.Format(
+                    _localization.CurrentCulture,
+                    _localization.Get("Downloads_StagedPartial"),
+                    staged.Count);
+
             if (MediaStaged is { } handler)
                 await handler().ConfigureAwait(true);
         }
-        catch (OperationCanceledException) { StatusText = "הפעולה בוטלה"; }
-        catch (Exception ex) { StatusText = $"לא ניתן להוסיף את השירים: {ex.Message}"; }
-        finally { IsBusy = false; }
+        catch (OperationCanceledException)
+        {
+            StatusText = _localization.Get("Status_Canceled");
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"{_localization.Get("Downloads_StageFailed")}: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
     private async Task PickDestinationAsync(CancellationToken cancellationToken)
     {
-        if (IsBusy) return;
-        var path = await _folderPicker.PickFolderAsync(cancellationToken).ConfigureAwait(true);
-        if (!string.IsNullOrWhiteSpace(path)) DestinationDirectory = path;
+        if (IsBusy)
+            return;
+
+        var path = await _folderPicker
+            .PickFolderAsync(cancellationToken)
+            .ConfigureAwait(true);
+
+        if (!string.IsNullOrWhiteSpace(path))
+            DestinationDirectory = path;
+    }
+}
+
+public enum DownloadQueueState
+{
+    Queued,
+    Downloading,
+    Retrying,
+    Completed,
+    Failed,
+    Cancelled
+}
+
+public partial class DownloadQueueItemViewModel : ObservableObject
+{
+    private readonly LocalizationService _localization;
+
+    public Guid OperationId { get; }
+    public string Title { get; }
+    public string Artist { get; }
+    public string? ThumbnailUrl { get; }
+    public string DestinationPath { get; }
+    public MediaFormat Format { get; }
+
+    [ObservableProperty] private DownloadQueueState _state = DownloadQueueState.Queued;
+    [ObservableProperty] private double _progressPercent;
+    [ObservableProperty] private double? _speedBytesPerSecond;
+    [ObservableProperty] private TimeSpan? _eta;
+    [ObservableProperty] private string _errorMessage = string.Empty;
+
+    public bool IsActive => State is DownloadQueueState.Downloading or DownloadQueueState.Retrying;
+    public bool IsTerminal => State is DownloadQueueState.Completed or DownloadQueueState.Failed or DownloadQueueState.Cancelled;
+    public string StatusText => GetLocalizedState();
+    public string SpeedText => SpeedBytesPerSecond is { } speed && speed > 0
+        ? FormatSpeed(speed)
+        : "—";
+    public string EtaText => Eta is { } eta && eta.TotalSeconds >= 0
+        ? FormatEta(eta)
+        : "—";
+
+    public DownloadQueueItemViewModel(
+        Guid operationId,
+        string title,
+        string artist,
+        string? thumbnailUrl,
+        string destinationPath,
+        MediaFormat format,
+        LocalizationService localization)
+    {
+        OperationId = operationId;
+        Title = string.IsNullOrWhiteSpace(title)
+            ? Path.GetFileNameWithoutExtension(destinationPath)
+            : title;
+        Artist = string.IsNullOrWhiteSpace(artist) ? "YouTube" : artist;
+        ThumbnailUrl = thumbnailUrl;
+        DestinationPath = destinationPath;
+        Format = format;
+        _localization = localization;
+    }
+
+    public static DownloadQueueItemViewModel FromStaging(
+        StagingOperation operation,
+        LocalizationService localization)
+    {
+        var payload = operation.Payload
+            ?? throw new InvalidOperationException("Download operation payload is missing.");
+
+        return new DownloadQueueItemViewModel(
+            operation.OperationId,
+            payload.Title ?? string.Empty,
+            payload.Artist ?? string.Empty,
+            payload.ThumbnailUrl,
+            payload.DestinationPath ?? operation.Target,
+            payload.DesiredFormat ?? MediaFormat.Mp3,
+            localization);
+    }
+
+    public void ApplyProgress(CommitProgress progress)
+    {
+        ProgressPercent = Math.Clamp(progress.Percent, 0, 100);
+        SpeedBytesPerSecond = progress.SpeedBytesPerSecond;
+        Eta = progress.Eta;
+
+        State = progress.Status switch
+        {
+            var status when status.StartsWith("Retrying", StringComparison.OrdinalIgnoreCase)
+                => DownloadQueueState.Retrying,
+            var status when status.Equals("Completed", StringComparison.OrdinalIgnoreCase)
+                => DownloadQueueState.Completed,
+            var status when status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase)
+                => DownloadQueueState.Cancelled,
+            var status when status.Equals("Downloading", StringComparison.OrdinalIgnoreCase)
+                => DownloadQueueState.Downloading,
+            _ when progress.IsTerminal && progress.Percent <= 0
+                => DownloadQueueState.Failed,
+            _ => State
+        };
+
+        ErrorMessage = State == DownloadQueueState.Failed
+            ? progress.Status
+            : string.Empty;
+
+        NotifyDerivedProperties();
+    }
+
+    public void ApplyResult(CommitItemResult result)
+    {
+        State = result.Success
+            ? DownloadQueueState.Completed
+            : DownloadQueueState.Failed;
+
+        ProgressPercent = result.Success ? 100 : ProgressPercent;
+        ErrorMessage = result.Error ?? string.Empty;
+        NotifyDerivedProperties();
+    }
+
+    public void RefreshLocalizedState()
+    {
+        OnPropertyChanged(nameof(StatusText));
+    }
+
+    private void NotifyDerivedProperties()
+    {
+        OnPropertyChanged(nameof(IsActive));
+        OnPropertyChanged(nameof(IsTerminal));
+        OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(SpeedText));
+        OnPropertyChanged(nameof(EtaText));
+    }
+
+    private string GetLocalizedState() => State switch
+    {
+        DownloadQueueState.Downloading => _localization.Get("Queue_Downloading"),
+        DownloadQueueState.Retrying => _localization.Get("Queue_Retrying"),
+        DownloadQueueState.Completed => _localization.Get("Queue_Completed"),
+        DownloadQueueState.Failed => _localization.Get("Queue_Failed"),
+        DownloadQueueState.Cancelled => _localization.Get("Queue_Cancelled"),
+        _ => _localization.Get("Queue_Queued")
+    };
+
+    private static string FormatSpeed(double bytesPerSecond)
+    {
+        var kb = bytesPerSecond / 1024d;
+        if (kb < 1024)
+            return $"{kb:0.0} KB/s";
+
+        var mb = kb / 1024d;
+        if (mb < 1024)
+            return $"{mb:0.0} MB/s";
+
+        return $"{mb / 1024d:0.00} GB/s";
+    }
+
+    private static string FormatEta(TimeSpan value)
+    {
+        if (value.TotalHours >= 1)
+            return value.ToString(@"h:mm:ss");
+
+        return value.ToString(@"mm:ss");
     }
 }
 
 public partial class ResolvedMediaItemViewModel : ObservableObject
 {
     private readonly ResolvedMediaItem _item;
+
     [ObservableProperty] private string _title;
     [ObservableProperty] private bool _isSelected = true;
     [ObservableProperty] private MediaFormat _desiredFormat = MediaFormat.Mp3;
@@ -179,10 +510,14 @@ public partial class ResolvedMediaItemViewModel : ObservableObject
     public string VideoId => _item.VideoId;
     public string SourceUrl => _item.SourceUrl;
     public string Artist => _item.Metadata.Artist ?? "YouTube";
-    public string DurationText => _item.Metadata.Duration is { } duration ? duration.ToString(@"hh\:mm\:ss") : "—";
+    public string DurationText => _item.Metadata.Duration is { } duration
+        ? duration.ToString(@"hh\:mm\:ss")
+        : "—";
     public string? ThumbnailUrl => _item.Metadata.ThumbnailUrl;
 
-    public ResolvedMediaItemViewModel(ResolvedMediaItem item, IReadOnlyList<MediaFormat> formats)
+    public ResolvedMediaItemViewModel(
+        ResolvedMediaItem item,
+        IReadOnlyList<MediaFormat> formats)
     {
         _item = item;
         _title = item.Metadata.Title;
@@ -191,5 +526,9 @@ public partial class ResolvedMediaItemViewModel : ObservableObject
     }
 
     public ResolvedMediaItem ToResolvedItem()
-        => _item with { Metadata = _item.Metadata with { Title = Title.Trim() }, DesiredFormat = DesiredFormat };
+        => _item with
+        {
+            Metadata = _item.Metadata with { Title = Title.Trim() },
+            DesiredFormat = DesiredFormat
+        };
 }
