@@ -156,8 +156,9 @@ public sealed class DownloadQueue
             ?? throw new InvalidOperationException("Download operation destination path is missing.");
 
         Exception? lastError = null;
+        var attempt = 0;
 
-        for (var attempt = 0; attempt <= _maxRetries; attempt++)
+        while (attempt <= _maxRetries)
         {
             cancellationToken.ThrowIfCancellationRequested();
             await WaitIfPausedAsync(operation.OperationId, control, progress, cancellationToken).ConfigureAwait(false);
@@ -165,23 +166,15 @@ public sealed class DownloadQueue
             if (IsCancelled(control))
             {
                 progress?.Report(new CommitProgress(
-                    operation.OperationId, 0, "Cancelled", true));
+                    operation.OperationId,
+                    CurrentPercent(operation.OperationId),
+                    "Cancelled",
+                    true));
                 return new CommitItemResult(operation.OperationId, false, "Cancelled by user.");
             }
 
-            if (attempt > 0)
-            {
-                var delay = TimeSpan.FromSeconds(Math.Min(8, Math.Pow(2, attempt - 1)));
-                progress?.Report(new CommitProgress(
-                    operation.OperationId,
-                    CurrentPercent(operation.OperationId),
-                    $"Retrying ({attempt}/{_maxRetries})"));
-
-                await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-                await WaitIfPausedAsync(operation.OperationId, control, progress, cancellationToken).ConfigureAwait(false);
-            }
-
             await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
             try
             {
                 using var localCancellation =
@@ -192,19 +185,24 @@ public sealed class DownloadQueue
                     if (control.Cancelled)
                     {
                         progress?.Report(new CommitProgress(
-                            operation.OperationId, 0, "Cancelled", true));
+                            operation.OperationId,
+                            CurrentPercent(operation.OperationId),
+                            "Cancelled",
+                            true));
                         return new CommitItemResult(operation.OperationId, false, "Cancelled by user.");
                     }
 
                     control.ActiveCancellation = localCancellation;
                 }
 
+                var paused = false;
+
                 try
                 {
                     progress?.Report(new CommitProgress(
                         operation.OperationId,
                         CurrentPercent(operation.OperationId),
-                        "Downloading"));
+                        attempt == 0 ? "Downloading" : $"Retrying ({attempt}/{_maxRetries})"));
 
                     var itemProgress = new Progress<DownloadProgress>(value =>
                     {
@@ -233,7 +231,10 @@ public sealed class DownloadQueue
                     _lastPercents[operation.OperationId] = 100;
 
                     progress?.Report(new CommitProgress(
-                        operation.OperationId, 100, "Completed", true));
+                        operation.OperationId,
+                        100,
+                        "Completed",
+                        true));
 
                     return new CommitItemResult(operation.OperationId, true);
                 }
@@ -241,6 +242,7 @@ public sealed class DownloadQueue
                     !cancellationToken.IsCancellationRequested &&
                     IsPaused(control))
                 {
+                    paused = true;
                     progress?.Report(new CommitProgress(
                         operation.OperationId,
                         CurrentPercent(operation.OperationId),
@@ -251,7 +253,10 @@ public sealed class DownloadQueue
                     IsCancelled(control))
                 {
                     progress?.Report(new CommitProgress(
-                        operation.OperationId, 0, "Cancelled", true));
+                        operation.OperationId,
+                        CurrentPercent(operation.OperationId),
+                        "Cancelled",
+                        true));
 
                     return new CommitItemResult(
                         operation.OperationId,
@@ -261,13 +266,15 @@ public sealed class DownloadQueue
                 catch (Exception ex)
                 {
                     lastError = ex;
-                    if (attempt == _maxRetries)
+
+                    if (attempt >= _maxRetries)
                     {
                         progress?.Report(new CommitProgress(
                             operation.OperationId,
                             CurrentPercent(operation.OperationId),
                             ex.Message,
                             true));
+
                         return new CommitItemResult(
                             operation.OperationId,
                             false,
@@ -282,25 +289,49 @@ public sealed class DownloadQueue
                             control.ActiveCancellation = null;
                     }
                 }
+
+                if (paused)
+                {
+                    await WaitIfPausedAsync(
+                        operation.OperationId,
+                        control,
+                        progress,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (IsCancelled(control))
+                    {
+                        progress?.Report(new CommitProgress(
+                            operation.OperationId,
+                            CurrentPercent(operation.OperationId),
+                            "Cancelled",
+                            true));
+
+                        return new CommitItemResult(
+                            operation.OperationId,
+                            false,
+                            "Cancelled by user.");
+                    }
+
+                    continue;
+                }
             }
             finally
             {
                 semaphore.Release();
             }
 
-            if (IsPaused(control))
+            attempt++;
+
+            if (attempt <= _maxRetries)
             {
-                await WaitIfPausedAsync(
-                    operation.OperationId,
-                    control,
-                    progress,
+                await Task.Delay(
+                    TimeSpan.FromSeconds(Math.Min(8, Math.Pow(2, attempt - 1))),
                     cancellationToken).ConfigureAwait(false);
             }
-
-            cancellationToken.ThrowIfCancellationRequested();
         }
 
         var message = lastError?.Message ?? "Download failed.";
+
         progress?.Report(new CommitProgress(
             operation.OperationId,
             CurrentPercent(operation.OperationId),
