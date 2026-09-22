@@ -24,6 +24,10 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private LanguageOption? _selectedLanguage;
     [ObservableProperty] private MediaFormat _defaultFormat;
     [ObservableProperty] private ThemePreference _theme = ThemePreference.System;
+    [ObservableProperty] private bool _isMp3FormatSelected;
+    [ObservableProperty] private bool _isMp4FormatSelected;
+    [ObservableProperty] private bool _isWavFormatSelected;
+    [ObservableProperty] private bool _isM4aFormatSelected;
     [ObservableProperty] private bool _isSystemThemeSelected;
     [ObservableProperty] private bool _isLightThemeSelected;
     [ObservableProperty] private bool _isDarkThemeSelected;
@@ -71,6 +75,7 @@ public partial class SettingsViewModel : ObservableObject
         _defaultFormat = _preferences.DefaultFormat;
         _theme = _preferences.Theme;
         RefreshThemeSelection();
+        RefreshFormatSelection();
         ToolStatus = _localization.Get("Status_Ready");
         UpdateStatus = _localization.Get("Settings_CheckingUpdates");
     }
@@ -93,6 +98,15 @@ public partial class SettingsViewModel : ObservableObject
     {
         _preferences.SetTheme(value);
         RefreshThemeSelection();
+    }
+
+    partial void OnDefaultFormatChanged(MediaFormat value)
+    {
+        if (!Enum.IsDefined(value))
+            return;
+
+        _preferences.SetDefaultFormat(value);
+        RefreshFormatSelection();
     }
 
     partial void OnAvailableUpdateChanged(AppUpdateInfo? value)
@@ -155,6 +169,19 @@ public partial class SettingsViewModel : ObservableObject
         IsDarkThemeSelected = Theme == ThemePreference.Dark;
     }
 
+    private void RefreshFormatSelection()
+    {
+        IsMp3FormatSelected = DefaultFormat == MediaFormat.Mp3;
+        IsMp4FormatSelected = DefaultFormat == MediaFormat.Mp4;
+        IsWavFormatSelected = DefaultFormat == MediaFormat.Wav;
+        IsM4aFormatSelected = DefaultFormat == MediaFormat.M4a;
+    }
+
+    private void SetDefaultFormatCore(MediaFormat format)
+    {
+        DefaultFormat = format;
+    }
+
     [RelayCommand]
     private void SetSystemTheme() => Theme = ThemePreference.System;
 
@@ -163,6 +190,18 @@ public partial class SettingsViewModel : ObservableObject
 
     [RelayCommand]
     private void SetDarkTheme() => Theme = ThemePreference.Dark;
+
+    [RelayCommand]
+    private void SetMp3DefaultFormat() => SetDefaultFormatCore(MediaFormat.Mp3);
+
+    [RelayCommand]
+    private void SetMp4DefaultFormat() => SetDefaultFormatCore(MediaFormat.Mp4);
+
+    [RelayCommand]
+    private void SetWavDefaultFormat() => SetDefaultFormatCore(MediaFormat.Wav);
+
+    [RelayCommand]
+    private void SetM4aDefaultFormat() => SetDefaultFormatCore(MediaFormat.M4a);
 
     [RelayCommand]
     private async Task VerifyToolsAsync(CancellationToken cancellationToken)
