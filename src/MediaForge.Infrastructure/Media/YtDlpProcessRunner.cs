@@ -11,14 +11,14 @@ namespace MediaForge.Infrastructure.Media;
 public sealed class YtDlpProcessRunner : IYtDlpRunner
 {
     private static readonly Regex PercentRegex =
-        new(@"(?<percent>\\d+(?:\\.\\d+)?)%", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        new(@"(?<percent>\d+(?:\.\d+)?)%", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     private static readonly Regex SpeedRegex =
-        new(@"(?<speed>\\d+(?:[.,]\\d+)?)\\s*(?<unit>[KMGTP]?i?B/s|B/s)",
+        new(@"(?<speed>\d+(?:[.,]\d+)?)\s*(?<unit>[KMGTP]?i?B/s|B/s)",
             RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
     private static readonly Regex EtaRegex =
-        new(@"ETA\\s+(?<eta>\\d{2}:\\d{2}(?::\\d{2})?)",
+        new(@"ETA\s+(?<eta>\d{2}:\d{2}(?::\d{2})?)",
             RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
     private readonly IToolManager _toolManager;
@@ -195,7 +195,7 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
                 out var sizeValue))
         {
             totalBytes = (long)Math.Round(
-                sizeValue * GetUnitMultiplier(sizeMatch.Groups["unit"].Value, bytes: true));
+                sizeValue * GetUnitMultiplier(sizeMatch.Groups["unit"].Value));
         }
 
         long? downloadedBytes = totalBytes is > 0
@@ -211,7 +211,7 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
             totalBytes);
     }
 
-    private static double GetUnitMultiplier(string unit, bool bytes = false) =>
+    private static double GetUnitMultiplier(string unit) =>
         unit.ToUpperInvariant() switch
         {
             "B/S" => 1d,
