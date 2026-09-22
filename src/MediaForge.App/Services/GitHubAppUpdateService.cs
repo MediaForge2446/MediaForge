@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using System.Diagnostics;
 using System.Net.Http;
@@ -160,8 +161,8 @@ public sealed class GitHubAppUpdateService
                 UseShellExecute = true
             });
 
-            Application.Current?.Dispatcher.BeginInvoke(
-                new Action(() => Application.Current.Shutdown()));
+            System.Windows.Application.Current?.Dispatcher.BeginInvoke(
+                new Action(() => System.Windows.Application.Current.Shutdown()));
 
             return installerPath;
         }
