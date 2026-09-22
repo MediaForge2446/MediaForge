@@ -104,6 +104,28 @@ public sealed class WorkflowCoverageTests
     }
 
     [Fact]
+    public async Task DownloadQueue_RetriesTransientFailures()
+    {
+        var fileSystem = new InMemoryFileSystem();
+        var staging = new StagingService(new InMemoryStagingRepository(), new StagingHistory());
+        await staging.InitializeAsync();
+
+        var operation = Download("C:\\Music\\retry.mp3", MediaFormat.Mp3);
+        var downloader = new FailOnceDownloader(fileSystem);
+        var queue = new DownloadQueue(maxConcurrency: 1, maxRetries: 1);
+
+        var result = await queue.ExecuteAsync(
+            [operation],
+            downloader,
+            cancellationToken: CancellationToken.None);
+
+        Assert.True(result.Single().Success, result.Single().Error);
+        Assert.Equal(2, downloader.Attempts);
+        Assert.True(await fileSystem.FileExistsAsync(operation.Payload!.DestinationPath!));
+    }
+
+    [Fact]
+    [Fact]
     public async Task CommitEngine_CancellationStopsBeforeNextOperation()
     {
         var fileSystem = new InMemoryFileSystem();
@@ -126,6 +148,39 @@ public sealed class WorkflowCoverageTests
         new(Guid.NewGuid(), DateTimeOffset.UtcNow, OperationType.Download, destination,
             nameof(MediaState.Missing), nameof(MediaState.Pending),
             new StagingPayload(SourceUrl: "https://youtube.example/test", DestinationPath: destination, DesiredFormat: format, VideoId: Guid.NewGuid().ToString("N")));
+
+    private sealed class FailOnceDownloader : IMediaDownloader
+    {
+        private readonly InMemoryFileSystem _fileSystem;
+
+        public FailOnceDownloader(InMemoryFileSystem fileSystem) => _fileSystem = fileSystem;
+
+        public int Attempts { get; private set; }
+
+        public Task DownloadAsync(
+            string sourceUrl,
+            string outputPath,
+            MediaFormat format,
+            IProgress<DownloadProgress>? progress = null,
+            CancellationToken cancellationToken = default)
+        {
+            Attempts++;
+            if (Attempts == 1)
+                return Task.FromException(new InvalidOperationException("Transient failure"));
+
+            return CompleteAsync(outputPath, progress, cancellationToken);
+        }
+
+        private async Task CompleteAsync(
+            string outputPath,
+            IProgress<DownloadProgress>? progress,
+            CancellationToken cancellationToken)
+        {
+            await _fileSystem.CreateDirectoryAsync(Path.GetDirectoryName(outputPath) ?? "C:\\Music", cancellationToken);
+            _fileSystem.AddFile(outputPath);
+            progress?.Report(new DownloadProgress(100, "Completed"));
+        }
+    }
 
     private sealed class FailingDownloader : IMediaDownloader
     {
