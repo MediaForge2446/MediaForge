@@ -561,3 +561,126 @@ Reference:
 **First Run = 4 screens, 1 clear decision per screen, zero technical friction.**
 
 The user should reach the Command Center feeling that MediaForge is already configured and ready for work.
+
+
+---
+
+# חלק 2 — מסך הבית (Home)
+
+**סטטוס:** Product / UX / UI Specification  
+**עיקרון:** פשוט, נקי, יפה, ללא עומס.
+
+## 13. ברכת שלום
+
+בחלק העליון של אזור התוכן מוצגת כותרת גדולה:
+
+**שלום**
+
+או:
+
+**Hello**
+
+לפי השפה הפעילה.
+
+## 14. התיקיות הראשיות
+
+במרכז המסך מוצגים כרטיסים גדולים ונקיים של התיקיות הראשיות.
+
+ברירת מחדל לדוגמה:
+
+- Music
+- Videos
+- Downloads
+
+כל כרטיס כולל:
+
+- אייקון ברור.
+- שם התיקייה.
+- תיאור קצר.
+- חיווי פתיחה.
+
+לחיצה על הכרטיס פותחת את התיקייה המתאימה.
+
+## 15. Settings
+
+כפתור גלגל שיניים נקי ונגיש בצד:
+
+**Settings**
+
+לחיצה אחת פותחת את הגדרות התוכנה.
+
+הכפתור אינו מתחרה בכרטיסי התיקיות.
+
+## 16. Background
+
+כל המסך משתמש ב-Dark Mica בסגנון Windows 11.
+
+בסיס צבע:
+
+`#0B0D10`
+
+אין:
+
+- URL Composer.
+- Dashboard.
+- Charts.
+- סטטיסטיקות.
+- חלונות קופצים כחלק מה-home הרגיל.
+- עומס של Widgets.
+
+## 17. Layout
+
+המבנה:
+
+**Header → Greeting → Folder Cards**
+
+הכרטיסים הם האלמנט המרכזי.
+
+המסך נשאר intentionally spacious עם whitespace משמעותי.
+
+## 18. Interaction
+
+### Folder Cards
+לחיצה אחת → פתיחת התיקייה.
+
+### Hover
+- elevation עדינה.
+- שינוי opacity קטן.
+- arrow/icon מגיב בעדינות.
+
+### Keyboard
+כל הכרטיסים וכפתור Settings נגישים באמצעות Focus ברור.
+
+## 19. Localization
+
+LTR:
+
+**Hello**
+
+RTL:
+
+**שלום**
+
+ה-layout מבוסס על Start / End ולא על Left / Right.
+
+## 20. Visual Reference
+
+הדמיית העיצוב הרשמית של Part 2 מציגה את Home במצב Dark, עם Mica, ברכת שלום, שלושת הכרטיסים ו-Settings.
+
+## 21. Acceptance Criteria
+
+- ברכת שלום אחת וברורה.
+- Music / Videos / Downloads במרכז.
+- כל כרטיס ניתן לפתיחה.
+- Settings נגיש בלחיצה אחת.
+- Dark Mica כרקע.
+- אין URL Composer ב-Home.
+- אין Dashboard או סטטיסטיקות.
+- אין Popup כחלק מה-home הרגיל.
+- המסך נשאר נקי גם ב-RTL.
+
+## 22. Product Rule
+
+**Home = שלום + התיקיות שלי + Settings.**
+
+אין להוסיף למסך הבית פיצ'רים נוספים ללא אישור מפורש באפיון עתידי.
