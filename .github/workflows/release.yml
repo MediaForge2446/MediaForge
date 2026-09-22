@@ -17,8 +17,7 @@ on:
       - "main"
 
 permissions:
-  contents: read
-  actions: write
+  contents: write
 
 concurrency:
   group: microsoft-store-package
@@ -26,7 +25,13 @@ concurrency:
 
 jobs:
   package-msix:
-    if: github.event_name != 'pull_request'
+    if: >
+      github.event_name != 'pull_request' &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        github.ref_type == 'tag' ||
+        startsWith(github.event.head_commit.message, 'release:')
+      )
     runs-on: windows-latest
     timeout-minutes: 60
     env:
@@ -74,7 +79,6 @@ jobs:
             throw 'Configure the real Microsoft Store identity variables before pushing a production Store tag.'
           }
 
-
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
@@ -113,8 +117,6 @@ jobs:
 
           Invoke-WebRequest -Uri $env:FFMPEG_URL -OutFile $archive
 
-          # Verify the exact immutable release asset against the digest pinned in
-          # this workflow so packaging is independent of runtime GitHub API calls.
           $expected = $env:FFMPEG_SHA256.ToLowerInvariant()
           if ($expected -notmatch '^[0-9a-f]{64}$') {
             throw "FFmpeg SHA-256 pin is invalid."
@@ -194,35 +196,6 @@ jobs:
 
           Write-Host "Validated package identity: $($identity.Name) $($identity.Version)"
 
-      - name: Prune previous MediaForge package artifacts
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $headers = @{
-            Authorization = "Bearer $env:GH_TOKEN"
-            Accept = "application/vnd.github+json"
-            "X-GitHub-Api-Version" = "2022-11-28"
-          }
-
-          $page = 1
-          do {
-            $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/artifacts?per_page=100&page=$page"
-            $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $headers
-
-            foreach ($artifact in $response.artifacts) {
-              if ($artifact.name -like 'MediaForge-*') {
-                Write-Host "Deleting previous package artifact $($artifact.id) ($($artifact.name))..."
-                $deleteUri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/artifacts/$($artifact.id)"
-                Invoke-RestMethod -Method Delete -Uri $deleteUri -Headers $headers
-              }
-            }
-
-            $page++
-          } while ($response.artifacts.Count -eq 100)
-
-          Write-Host 'Previous MediaForge package artifacts have been pruned.'
-
       - name: Report package sizes
         shell: pwsh
         run: |
@@ -251,10 +224,31 @@ jobs:
 
           Get-ChildItem $inspection -File | Format-Table Name,Length -AutoSize
 
-      - name: Upload Store submission container
-        uses: actions/upload-artifact@v4
-        with:
-          name: MediaForge-Store-Upload
-          path: artifacts/MediaForge.msixupload
-          if-no-files-found: error
-          retention-days: 7
+      - name: Publish Store submission package to GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: v${{ steps.version.outputs.version }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          $upload = Join-Path $env:GITHUB_WORKSPACE 'artifacts\MediaForge.msixupload'
+          if (-not (Test-Path $upload)) { throw 'MediaForge.msixupload was not created.' }
+
+          gh release view $env:RELEASE_TAG --json tagName *> $null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Release $env:RELEASE_TAG exists. Replacing the Store package asset."
+            gh release upload $env:RELEASE_TAG $upload --clobber
+          } else {
+            $notes = @"
+          ## MediaForge $env:VERSION
+
+          Microsoft Store submission package for Windows x64.
+
+          Package: MediaForge.msixupload
+          "@
+            $notesFile = Join-Path $env:RUNNER_TEMP 'release-notes.md'
+            Set-Content -Path $notesFile -Value $notes -Encoding UTF8
+            gh release create $env:RELEASE_TAG $upload --target $env:GITHUB_SHA --title "MediaForge $env:VERSION" --notes-file $notesFile
+          }
+
+          gh release view $env:RELEASE_TAG --json tagName,name,isDraft,isPrerelease,assets
