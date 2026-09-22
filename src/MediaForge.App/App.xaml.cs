@@ -90,7 +90,8 @@ public partial class App : System.Windows.Application
                 commitEngine,
                 explorerViewModel,
                 downloadsViewModel,
-                settingsViewModel);
+                settingsViewModel,
+                LocalizationService.Instance);
 
             var window = new MainWindow(mainViewModel);
             MainWindow = window;
