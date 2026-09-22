@@ -59,7 +59,7 @@ public sealed class LocalizationService : INotifyPropertyChanged
 
     public string Get(string key)
     {
-        if (Application.Current?.Resources[key] is string value)
+        if (System.Windows.Application.Current?.Resources[key] is string value)
             return value;
 
         return key;
@@ -101,14 +101,14 @@ public sealed class LocalizationService : INotifyPropertyChanged
 
     private void ReplaceLanguageDictionary()
     {
-        var dispatcher = Application.Current?.Dispatcher;
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
         if (dispatcher is not null && !dispatcher.CheckAccess())
         {
             dispatcher.Invoke(ReplaceLanguageDictionary);
             return;
         }
 
-        var dictionaries = Application.Current?.Resources.MergedDictionaries;
+        var dictionaries = System.Windows.Application.Current?.Resources.MergedDictionaries;
         if (dictionaries is null)
             return;
 
@@ -127,11 +127,12 @@ public sealed class LocalizationService : INotifyPropertyChanged
         if (selected is not null && !ReferenceEquals(selected, english))
             CopyEntries(selected, active);
 
-        for (var i = dictionaries.Count - 1; i >= 0; i--)
+        foreach (var dictionary in dictionaries
+                     .Where(x => x.Source?.OriginalString is not null &&
+                                 x.Source.OriginalString.Contains("/Localization/" + ResourceFileName, StringComparison.OrdinalIgnoreCase))
+                     .ToArray())
         {
-            var source = dictionaries[i].Source?.OriginalString;
-            if (source is not null && source.Contains("/Localization/" + ResourceFileName, StringComparison.OrdinalIgnoreCase))
-                dictionaries.RemoveAt(i);
+            dictionaries.Remove(dictionary);
         }
 
         dictionaries.Add(active);
@@ -224,7 +225,7 @@ public sealed class LocalizationService : INotifyPropertyChanged
 
     private static void ApplyToOpenWindows()
     {
-        var application = Application.Current;
+        var application = System.Windows.Application.Current;
         var dispatcher = application?.Dispatcher;
         if (application is null || dispatcher is null)
             return;
