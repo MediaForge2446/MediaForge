@@ -9,7 +9,6 @@ using MediaForge.Application.Library;
 using MediaForge.Application.Staging;
 using MediaForge.App.Services;
 using MediaForge.App.Localization;
-using Wpf.Ui.Appearance;
 using MediaForge.App.ViewModels;
 using MediaForge.App.Views;
 using MediaForge.Core.Interfaces;
@@ -28,7 +27,8 @@ public partial class App : System.Windows.Application
         base.OnStartup(e);
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         LocalizationService.Instance.Initialize();
-        ApplicationThemeManager.ApplySystemTheme();
+        var preferences = new UserPreferencesService();
+        preferences.Initialize();
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
         try
@@ -80,8 +80,17 @@ public partial class App : System.Windows.Application
                 mediaIndex,
                 fileSystem);
             var explorerViewModel = new ExplorerViewModel(explorerService, stagingService);
-            var downloadsViewModel = new DownloadsViewModel(mediaImportService, folderPicker, LocalizationService.Instance);
-            var settingsViewModel = new SettingsViewModel(toolManager, LocalizationService.Instance);
+            var updateService = new GitHubAppUpdateService();
+            var downloadsViewModel = new DownloadsViewModel(
+                mediaImportService,
+                folderPicker,
+                LocalizationService.Instance,
+                preferences);
+            var settingsViewModel = new SettingsViewModel(
+                toolManager,
+                LocalizationService.Instance,
+                preferences,
+                updateService);
             var mainViewModel = new MainViewModel(
                 libraryService,
                 libraryScanService,
