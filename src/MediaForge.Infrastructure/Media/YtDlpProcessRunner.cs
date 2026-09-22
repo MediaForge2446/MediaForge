@@ -35,7 +35,8 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
         string outputPath,
         MediaFormat format,
         IProgress<DownloadProgress>? progress = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        MediaQuality quality = MediaQuality.Standard128K)
     {
         if (string.IsNullOrWhiteSpace(url))
             throw new ArgumentException("A source URL is required.", nameof(url));
@@ -67,7 +68,7 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
         foreach (var argument in YtDlpArgumentBuilder.Build(
                      outputPath,
                      tools.FfmpegExecutablePath,
-                     format))
+                     format, quality))
         {
             process.StartInfo.ArgumentList.Add(argument);
         }
@@ -184,14 +185,33 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
             eta = parsedEta;
         }
 
+        long? totalBytes = null;
+        var sizeMatch = TotalSizeRegex.Match(line);
+        if (sizeMatch.Success &&
+            double.TryParse(
+                sizeMatch.Groups["size"].Value.Replace(',', '.'),
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out var sizeValue))
+        {
+            totalBytes = (long)Math.Round(
+                sizeValue * GetUnitMultiplier(sizeMatch.Groups["unit"].Value, bytes: true));
+        }
+
+        long? downloadedBytes = totalBytes is > 0
+            ? (long)Math.Round(totalBytes.Value * Math.Clamp(percent, 0d, 100d) / 100d)
+            : null;
+
         return new DownloadProgress(
             Math.Clamp(percent, 0d, 100d),
             "Downloading",
             speed,
-            eta);
+            eta,
+            downloadedBytes,
+            totalBytes);
     }
 
-    private static double GetUnitMultiplier(string unit) =>
+    private static double GetUnitMultiplier(string unit, bool bytes = false) =>
         unit.ToUpperInvariant() switch
         {
             "B/S" => 1d,
@@ -200,6 +220,16 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
             "GB/S" => 1000d * 1000d * 1000d,
             "TB/S" => 1000d * 1000d * 1000d * 1000d,
             "PB/S" => 1000d * 1000d * 1000d * 1000d * 1000d,
+            "KB" => 1000d,
+            "MB" => 1000d * 1000d,
+            "GB" => 1000d * 1000d * 1000d,
+            "TB" => 1000d * 1000d * 1000d * 1000d,
+            "PB" => 1000d * 1000d * 1000d * 1000d * 1000d,
+            "KIB" => 1024d,
+            "MIB" => 1024d * 1024d,
+            "GIB" => 1024d * 1024d * 1024d,
+            "TIB" => 1024d * 1024d * 1024d * 1024d,
+            "PIB" => 1024d * 1024d * 1024d * 1024d * 1024d,
             "KIB/S" => 1024d,
             "MIB/S" => 1024d * 1024d,
             "GIB/S" => 1024d * 1024d * 1024d,
