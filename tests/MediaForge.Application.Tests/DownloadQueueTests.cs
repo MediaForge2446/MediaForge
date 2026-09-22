@@ -52,7 +52,7 @@ public sealed class DownloadQueueTests
     private static StagingOperation CreateOperation(string name)
     {
         var id = Guid.NewGuid();
-        var path = Path.Combine("C:\MediaForge.Tests", name + ".mp3");
+        var path = Path.Combine(@"C:\MediaForge.Tests", name + ".mp3");
 
         return new StagingOperation(
             id,
