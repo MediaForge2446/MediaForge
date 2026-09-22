@@ -1,28 +1,107 @@
-using MediaForge.Application.Abstractions;
+using System.Collections.Concurrent;
+using MediaForge.Core.Enums;
 using MediaForge.Core.Interfaces;
 using MediaForge.Core.Models;
 
 namespace MediaForge.Application.Downloads;
 
 /// <summary>
-/// Executes staged download operations with bounded concurrency and automatic retry/backoff.
+/// Smart bounded-concurrency download executor with per-item pause/resume/cancel controls,
+/// retry/backoff, stable priority ordering, and cooperative cancellation.
 /// </summary>
 public sealed class DownloadQueue
 {
+    private sealed class Control
+    {
+        public readonly object Gate = new();
+        public bool Paused;
+        public bool Cancelled;
+        public CancellationTokenSource? ActiveCancellation;
+        public TaskCompletionSource<bool> ResumeSignal = NewSignal();
+
+        private static TaskCompletionSource<bool> NewSignal() =>
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+
     private readonly int _maxConcurrency;
     private readonly int _maxRetries;
+    private readonly ConcurrentDictionary<Guid, Control> _controls = new();
+    private readonly ConcurrentDictionary<Guid, int> _priorities = new();
 
     public DownloadQueue(int maxConcurrency = 2, int maxRetries = 2)
     {
         if (maxConcurrency < 1)
             throw new ArgumentOutOfRangeException(nameof(maxConcurrency));
-
         if (maxRetries < 0)
             throw new ArgumentOutOfRangeException(nameof(maxRetries));
 
         _maxConcurrency = maxConcurrency;
         _maxRetries = maxRetries;
     }
+
+    public int MaxConcurrency => _maxConcurrency;
+    public int MaxRetries => _maxRetries;
+
+    public bool Pause(Guid operationId)
+    {
+        var control = GetControl(operationId);
+        lock (control.Gate)
+        {
+            if (control.Cancelled)
+                return false;
+
+            control.Paused = true;
+            control.ActiveCancellation?.Cancel();
+            return true;
+        }
+    }
+
+    public bool Resume(Guid operationId)
+    {
+        var control = GetControl(operationId);
+        lock (control.Gate)
+        {
+            if (control.Cancelled)
+                return false;
+
+            control.Paused = false;
+            control.ResumeSignal.TrySetResult(true);
+            return true;
+        }
+    }
+
+    public bool Cancel(Guid operationId)
+    {
+        var control = GetControl(operationId);
+        lock (control.Gate)
+        {
+            control.Cancelled = true;
+            control.Paused = false;
+            control.ResumeSignal.TrySetResult(true);
+            control.ActiveCancellation?.Cancel();
+            return true;
+        }
+    }
+
+    public void PrepareForRetry(Guid operationId)
+    {
+        var control = GetControl(operationId);
+        lock (control.Gate)
+        {
+            control.Cancelled = false;
+            control.Paused = false;
+            control.ActiveCancellation?.Cancel();
+            control.ResumeSignal.TrySetResult(true);
+            control.ResumeSignal = new TaskCompletionSource<bool>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+        }
+    }
+
+    public void SetPriority(Guid operationId, int priority)
+        => _priorities[operationId] = priority;
+
+    public int GetPriority(Guid operationId)
+        => _priorities.TryGetValue(operationId, out var priority) ? priority : 0;
 
     public async Task<IReadOnlyList<CommitItemResult>> ExecuteAsync(
         IReadOnlyList<StagingOperation> operations,
@@ -34,15 +113,20 @@ public sealed class DownloadQueue
         ArgumentNullException.ThrowIfNull(downloader);
 
         using var semaphore = new SemaphoreSlim(_maxConcurrency);
-        var tasks = operations
-            .OrderBy(operation => operation.CreatedAt)
-            .Select(operation =>
-                ExecuteOneAsync(
-                    operation,
-                    downloader,
-                    semaphore,
-                    progress,
-                    cancellationToken));
+        var ordered = operations
+            .Select((operation, index) =>
+            {
+                var priority = GetPriority(operation.OperationId);
+                _controls.TryAdd(operation.OperationId, new Control());
+                return (operation, priority, index);
+            })
+            .OrderByDescending(x => x.priority)
+            .ThenBy(x => x.index)
+            .Select(x => x.operation)
+            .ToArray();
+
+        var tasks = ordered.Select(operation =>
+            ExecuteOneAsync(operation, downloader, semaphore, progress, cancellationToken));
 
         return await Task.WhenAll(tasks).ConfigureAwait(false);
     }
@@ -54,96 +138,186 @@ public sealed class DownloadQueue
         IProgress<CommitProgress>? progress,
         CancellationToken cancellationToken)
     {
-        await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var control = GetControl(operation.OperationId);
 
         try
         {
-            var payload = operation.Payload
-                ?? throw new InvalidOperationException("Download operation payload is missing.");
+            await WaitIfPausedAsync(operation.OperationId, control, progress, cancellationToken).ConfigureAwait(false);
 
-            var sourceUrl = payload.SourceUrl
-                ?? throw new InvalidOperationException("Download operation source URL is missing.");
-
-            var outputPath = payload.DestinationPath
-                ?? throw new InvalidOperationException("Download operation destination path is missing.");
-
-            Exception? lastError = null;
-
-            for (var attempt = 0; attempt <= _maxRetries; attempt++)
+            if (IsCancelled(control))
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (attempt > 0)
-                {
-                    var delay = TimeSpan.FromSeconds(Math.Min(8, Math.Pow(2, attempt - 1)));
-                    progress?.Report(new CommitProgress(
-                        operation.OperationId,
-                        0,
-                        $"Retrying ({attempt}/{_maxRetries})"));
-
-                    await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-                }
-
-                try
-                {
-                    progress?.Report(new CommitProgress(
-                        operation.OperationId,
-                        0,
-                        "Downloading"));
-
-                    var itemProgress = new Progress<DownloadProgress>(value =>
-                        progress?.Report(new CommitProgress(
-                            operation.OperationId,
-                            Math.Clamp(value.Percent, 0, 100),
-                            value.Status ?? "Downloading",
-                            false,
-                            value.SpeedBytesPerSecond,
-                            value.Eta)));
-
-                    await downloader.DownloadAsync(
-                        sourceUrl,
-                        outputPath,
-                        payload.DesiredFormat ?? MediaForge.Core.Enums.MediaFormat.Mp3,
-                        itemProgress,
-                        cancellationToken).ConfigureAwait(false);
-
-                    progress?.Report(new CommitProgress(
-                        operation.OperationId,
-                        100,
-                        "Completed",
-                        true));
-
-                    return new CommitItemResult(operation.OperationId, true);
-                }
-                catch (OperationCanceledException)
-                {
-                    progress?.Report(new CommitProgress(
-                        operation.OperationId,
-                        0,
-                        "Cancelled",
-                        true));
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    lastError = ex;
-                    if (attempt == _maxRetries)
-                        break;
-                }
+                progress?.Report(new CommitProgress(
+                    operation.OperationId, 0, "Cancelled", true));
+                return new CommitItemResult(operation.OperationId, false, "Cancelled by user.");
             }
 
-            var message = lastError?.Message ?? "Download failed.";
-            progress?.Report(new CommitProgress(
-                operation.OperationId,
-                0,
-                message,
-                true));
+            await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                var payload = operation.Payload
+                    ?? throw new InvalidOperationException("Download operation payload is missing.");
 
-            return new CommitItemResult(operation.OperationId, false, message);
+                var sourceUrl = payload.SourceUrl
+                    ?? throw new InvalidOperationException("Download operation source URL is missing.");
+
+                var outputPath = payload.DestinationPath
+                    ?? throw new InvalidOperationException("Download operation destination path is missing.");
+
+                Exception? lastError = null;
+
+                for (var attempt = 0; attempt <= _maxRetries; attempt++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await WaitIfPausedAsync(operation.OperationId, control, progress, cancellationToken).ConfigureAwait(false);
+
+                    if (IsCancelled(control))
+                    {
+                        progress?.Report(new CommitProgress(
+                            operation.OperationId, 0, "Cancelled", true));
+                        return new CommitItemResult(operation.OperationId, false, "Cancelled by user.");
+                    }
+
+                    if (attempt > 0)
+                    {
+                        var delay = TimeSpan.FromSeconds(Math.Min(8, Math.Pow(2, attempt - 1)));
+                        progress?.Report(new CommitProgress(
+                            operation.OperationId, 0, $"Retrying ({attempt}/{_maxRetries})"));
+
+                        await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                        await WaitIfPausedAsync(operation.OperationId, control, progress, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    using var localCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    lock (control.Gate)
+                    {
+                        if (control.Cancelled)
+                        {
+                            progress?.Report(new CommitProgress(
+                                operation.OperationId, 0, "Cancelled", true));
+                            return new CommitItemResult(operation.OperationId, false, "Cancelled by user.");
+                        }
+
+                        control.ActiveCancellation = localCancellation;
+                    }
+
+                    try
+                    {
+                        progress?.Report(new CommitProgress(
+                            operation.OperationId, 0, "Downloading"));
+
+                        var itemProgress = new Progress<DownloadProgress>(value =>
+                            progress?.Report(new CommitProgress(
+                                operation.OperationId,
+                                Math.Clamp(value.Percent, 0, 100),
+                                value.Status ?? "Downloading",
+                                false,
+                                value.SpeedBytesPerSecond,
+                                value.Eta,
+                                value.DownloadedBytes,
+                                value.TotalBytes)));
+
+                        await downloader.DownloadAsync(
+                            sourceUrl,
+                            outputPath,
+                            payload.DesiredFormat ?? MediaFormat.Mp3,
+                            itemProgress,
+                            localCancellation.Token,
+                            payload.DesiredQuality ?? MediaQuality.Standard128K).ConfigureAwait(false);
+
+                        progress?.Report(new CommitProgress(
+                            operation.OperationId, 100, "Completed", true));
+                        return new CommitItemResult(operation.OperationId, true);
+                    }
+                    catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && IsPaused(control))
+                    {
+                        progress?.Report(new CommitProgress(
+                            operation.OperationId,
+                            CurrentPercent(progress, operation.OperationId),
+                            "Paused"));
+                        await WaitIfPausedAsync(operation.OperationId, control, progress, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && IsCancelled(control))
+                    {
+                        progress?.Report(new CommitProgress(
+                            operation.OperationId, 0, "Cancelled", true));
+                        return new CommitItemResult(operation.OperationId, false, "Cancelled by user.");
+                    }
+                    catch (Exception ex)
+                    {
+                        lastError = ex;
+                        if (attempt == _maxRetries)
+                            break;
+                    }
+                    finally
+                    {
+                        lock (control.Gate)
+                        {
+                            if (ReferenceEquals(control.ActiveCancellation, localCancellation))
+                                control.ActiveCancellation = null;
+                        }
+                    }
+                }
+
+                var message = lastError?.Message ?? "Download failed.";
+                progress?.Report(new CommitProgress(
+                    operation.OperationId, 0, message, true));
+
+                return new CommitItemResult(operation.OperationId, false, message);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }
         finally
         {
-            semaphore.Release();
+            lock (control.Gate)
+                control.ActiveCancellation = null;
         }
     }
+
+    private static bool IsPaused(Control control)
+    {
+        lock (control.Gate)
+            return control.Paused && !control.Cancelled;
+    }
+
+    private static bool IsCancelled(Control control)
+    {
+        lock (control.Gate)
+            return control.Cancelled;
+    }
+
+    private static async Task WaitIfPausedAsync(
+        Guid operationId,
+        Control control,
+        IProgress<CommitProgress>? progress,
+        CancellationToken cancellationToken)
+    {
+        while (true)
+        {
+            Task resumeTask;
+            lock (control.Gate)
+            {
+                if (control.Cancelled)
+                    return;
+
+                if (!control.Paused)
+                    return;
+
+                resumeTask = control.ResumeSignal.Task;
+            }
+
+            progress?.Report(new CommitProgress(
+                operationId, 0, "Paused"));
+
+            await resumeTask.WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static double CurrentPercent(IProgress<CommitProgress>? progress, Guid operationId)
+        => 0;
+
+    private Control GetControl(Guid operationId)
+        => _controls.GetOrAdd(operationId, _ => new Control());
 }
