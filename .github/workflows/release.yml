@@ -152,7 +152,7 @@ jobs:
       - name: Install Inno Setup 7
         shell: pwsh
         run: |
-          winget install --id JRSoftware.InnoSetup.7 -e --source winget --accept-source-agreements --accept-package-agreements --silent
+          winget install --id JRSoftware.InnoSetup.7 -e --version 7.1.0 --source winget --accept-source-agreements --accept-package-agreements --silent
 
       - name: Locate Inno Setup compiler
         id: inno
@@ -160,12 +160,12 @@ jobs:
         run: |
           $candidates = @(
             "$env:ProgramFiles\Inno Setup 7\ISCC.exe",
-            "$env:ProgramFiles(x86)\Inno Setup 7\ISCC.exe"
+            "${env:ProgramFiles(x86)}\Inno Setup 7\ISCC.exe"
           )
 
           $iscc = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
           if (-not $iscc) {
-            $iscc = (Get-ChildItem "$env:ProgramFiles" "$env:ProgramFiles(x86)" -Recurse -Filter ISCC.exe -ErrorAction SilentlyContinue |
+            $iscc = (Get-ChildItem "$env:ProgramFiles" "${env:ProgramFiles(x86)}" -Recurse -Filter ISCC.exe -ErrorAction SilentlyContinue |
               Select-Object -First 1 -ExpandProperty FullName)
           }
 
