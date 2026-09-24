@@ -38,6 +38,9 @@ public partial class DownloadsViewModel : ObservableObject
     public IReadOnlyList<MediaQuality> Qualities { get; } =
         [MediaQuality.Standard128K, MediaQuality.High192K, MediaQuality.VeryHigh256K, MediaQuality.Maximum320K];
 
+    public IReadOnlyList<MediaVideoQuality> VideoQualities { get; } =
+        [MediaVideoQuality.DataSaver480p, MediaVideoQuality.Balanced720p, MediaVideoQuality.High1080p, MediaVideoQuality.BestAvailable];
+
     public int DownloadQueueConcurrency => _downloadQueue.MaxConcurrency;
 
     public bool IsMp3Selected => SelectedFormat == MediaFormat.Mp3;
@@ -832,6 +835,7 @@ public partial class ResolvedMediaItemViewModel : ObservableObject
     [ObservableProperty] private bool _isSelected = true;
     [ObservableProperty] private MediaFormat _desiredFormat = MediaFormat.Mp3;
     [ObservableProperty] private MediaQuality _desiredQuality = MediaQuality.High192K;
+    [ObservableProperty] private MediaVideoQuality _desiredVideoQuality = MediaVideoQuality.Balanced720p;
 
     public IReadOnlyList<MediaFormat> Formats { get; }
     public IReadOnlyList<MediaQuality> Qualities { get; } =
@@ -840,6 +844,8 @@ public partial class ResolvedMediaItemViewModel : ObservableObject
     public string VideoId => _item.VideoId;
     public string SourceUrl => _item.SourceUrl;
     public string Artist => _item.Metadata.Artist ?? "YouTube";
+    public bool IsVideoFormat => DesiredFormat == MediaFormat.Mp4;
+    public bool IsAudioFormat => !IsVideoFormat;
     public string DurationText => _item.Metadata.Duration is { } duration
         ? duration.ToString(@"hh\:mm\:ss")
         : "—";
@@ -853,6 +859,7 @@ public partial class ResolvedMediaItemViewModel : ObservableObject
         _title = item.Metadata.Title;
         _desiredFormat = item.DesiredFormat;
         _desiredQuality = item.DesiredQuality;
+        _desiredVideoQuality = item.DesiredVideoQuality;
         Formats = formats;
     }
 
@@ -861,6 +868,7 @@ public partial class ResolvedMediaItemViewModel : ObservableObject
         {
             Metadata = _item.Metadata with { Title = Title.Trim() },
             DesiredFormat = DesiredFormat,
-            DesiredQuality = DesiredQuality
+            DesiredQuality = DesiredQuality,
+            DesiredVideoQuality = DesiredVideoQuality
         };
 }
