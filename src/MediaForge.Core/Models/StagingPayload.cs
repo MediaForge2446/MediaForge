@@ -11,6 +11,7 @@ public sealed record StagingPayload(
     bool Recursive = false,
     MediaFormat? DesiredFormat = null,
     MediaQuality? DesiredQuality = null,
+    MediaVideoQuality? DesiredVideoQuality = null,
     string? VideoId = null,
     bool? IsDirectory = null,
     string? Title = null,
