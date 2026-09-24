@@ -23,7 +23,7 @@ public partial class DownloadsViewModel : ObservableObject
     [ObservableProperty] private string _sourceUrl = string.Empty;
     [ObservableProperty] private string _destinationDirectory = string.Empty;
     [ObservableProperty] private MediaFormat _selectedFormat = MediaFormat.Mp3;
-    [ObservableProperty] private MediaQuality _selectedQuality = MediaQuality.Standard128K;
+    [ObservableProperty] private MediaQuality _selectedQuality = MediaQuality.High192K;
     [ObservableProperty] private string _collectionTitle = string.Empty;
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string _statusText = string.Empty;
@@ -95,7 +95,7 @@ public partial class DownloadsViewModel : ObservableObject
         CollectionTitle = string.Empty;
         PreviewItem = null;
         SelectedFormat = _preferences.DefaultFormat;
-        SelectedQuality = MediaQuality.Standard128K;
+        SelectedQuality = MediaQuality.High192K;
         StatusText = _localization.Get("Downloads_PastePrompt");
         UnsubscribeItems();
         Items.Clear();
@@ -506,7 +506,7 @@ public partial class DownloadsViewModel : ObservableObject
 
         var selected = Items
             .Where(x => x.IsSelected)
-            .Select(x => x.ToResolvedItem() with { DesiredQuality = SelectedQuality })
+            .Select(x => x.ToResolvedItem())
             .ToArray();
 
         if (selected.Length == 0)
@@ -822,6 +822,7 @@ public partial class ResolvedMediaItemViewModel : ObservableObject
     [ObservableProperty] private string _title;
     [ObservableProperty] private bool _isSelected = true;
     [ObservableProperty] private MediaFormat _desiredFormat = MediaFormat.Mp3;
+    [ObservableProperty] private MediaQuality _desiredQuality = MediaQuality.High192K;
 
     public IReadOnlyList<MediaFormat> Formats { get; }
     public string VideoId => _item.VideoId;
@@ -839,6 +840,7 @@ public partial class ResolvedMediaItemViewModel : ObservableObject
         _item = item;
         _title = item.Metadata.Title;
         _desiredFormat = item.DesiredFormat;
+        _desiredQuality = item.DesiredQuality;
         Formats = formats;
     }
 
@@ -846,6 +848,7 @@ public partial class ResolvedMediaItemViewModel : ObservableObject
         => _item with
         {
             Metadata = _item.Metadata with { Title = Title.Trim() },
-            DesiredFormat = DesiredFormat
+            DesiredFormat = DesiredFormat,
+            DesiredQuality = DesiredQuality
         };
 }
