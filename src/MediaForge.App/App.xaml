@@ -16,6 +16,9 @@
             <conv:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
             <conv:DirectoryGlyphConverter x:Key="DirectoryGlyphConverter"/>
             <conv:StringEqualsConverter x:Key="StringEqualsConverter"/>
+            <conv:MediaFormatDisplayConverter x:Key="MediaFormatDisplayConverter"/>
+            <conv:MediaQualityDisplayConverter x:Key="MediaQualityDisplayConverter"/>
+            <conv:MediaVideoQualityDisplayConverter x:Key="MediaVideoQualityDisplayConverter"/>
 
             <SolidColorBrush x:Key="MediaForgeBackgroundBrush" Color="#F4F7FB"/>
             <SolidColorBrush x:Key="MediaForgeSurfaceBrush" Color="#FFFFFF"/>
