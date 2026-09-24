@@ -268,7 +268,8 @@ public sealed class DownloadQueue
                         payload.DesiredFormat ?? Core.Enums.MediaFormat.Mp3,
                         itemProgress,
                         localCancellation.Token,
-                        payload.DesiredQuality ?? Core.Enums.MediaQuality.Standard128K)
+                        payload.DesiredQuality ?? Core.Enums.MediaQuality.High192K,
+                        payload.DesiredVideoQuality ?? Core.Enums.MediaVideoQuality.Balanced720p)
                         .ConfigureAwait(false);
 
                     _lastPercents[operation.OperationId] = 100;
