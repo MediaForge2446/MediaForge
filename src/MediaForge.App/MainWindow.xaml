@@ -35,204 +35,129 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="48"/>
+            <RowDefinition Height="68"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="32"/>
+            <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
 
         <ui:TitleBar Grid.Row="0"
                      Title="{DynamicResource App_Title}"
                      Icon="pack://application:,,,/Assets/MediaForge.png"/>
 
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="232"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <Border Grid.Column="0"
-                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="0,0,1,0">
-                <StackPanel Margin="14,18">
-                    <Border Padding="12"
-                            CornerRadius="14"
-                            Background="{DynamicResource ControlFillColorDefaultBrush}"
-                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
-                            BorderThickness="1">
-                        <StackPanel Orientation="Horizontal">
-                            <Image Width="38"
-                                   Height="38"
-                                   Source="{StaticResource MediaForgeIconImage}"
-                                   Stretch="Uniform"/>
-                            <StackPanel Margin="10,0,0,0"
-                                        VerticalAlignment="Center">
-                                <TextBlock Text="{DynamicResource App_Title}"
-                                           FontSize="16"
-                                           FontWeight="SemiBold"/>
-                                <TextBlock Text="{DynamicResource App_Tagline}"
-                                           Margin="0,2,0,0"
-                                           FontSize="10"
-                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <TextBlock Text="{DynamicResource Nav_Home}"
-                               Margin="6,24,6,7"
-                               FontSize="11"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-
-                    <ui:Button Content="{DynamicResource Nav_Home}"
-                               Appearance="Secondary"
-                               Command="{Binding NavigateHomeCommand}"
-                               HorizontalAlignment="Stretch"
-                               Height="42">
-                        <ui:Button.Icon>
-                            <ui:SymbolIcon Symbol="Home24"/>
-                        </ui:Button.Icon>
-                    </ui:Button>
-
-                    <ui:Button Content="{DynamicResource Nav_Explorer}"
-                               Appearance="Secondary"
-                               Command="{Binding NavigateExplorerCommand}"
-                               HorizontalAlignment="Stretch"
-                               Height="42"
-                               Margin="0,6,0,0">
-                        <ui:Button.Icon>
-                            <ui:SymbolIcon Symbol="FolderOpen24"/>
-                        </ui:Button.Icon>
-                    </ui:Button>
-                    <ui:Button Content="{DynamicResource Nav_Downloads}"
-                               Appearance="Secondary"
-                               Command="{Binding NavigateDownloadsCommand}"
-                               HorizontalAlignment="Stretch"
-                               Height="42"
-                               Margin="0,6,0,0">
-                        <ui:Button.Icon>
-                            <ui:SymbolIcon Symbol="ArrowDownload24"/>
-                        </ui:Button.Icon>
-                    </ui:Button>
-
-                    <ui:Button Content="{DynamicResource Nav_Settings}"
-                               Appearance="Secondary"
-                               Command="{Binding NavigateSettingsCommand}"
-                               HorizontalAlignment="Stretch"
-                               Height="42"
-                               Margin="0,6,0,0">
-                        <ui:Button.Icon>
-                            <ui:SymbolIcon Symbol="Settings24"/>
-                        </ui:Button.Icon>
-                    </ui:Button>
-
-                    <Border Margin="0,20,0,0"
-                            Padding="12"
-                            CornerRadius="12"
-                            Background="{DynamicResource LayerFillColorAltBrush}"
-                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1">
-                        <StackPanel>
-                            <TextBlock Text="{DynamicResource Common_SaveChanges}"
-                                       FontSize="11"
-                                       FontWeight="SemiBold"/>
-                            <TextBlock Text="{Binding PendingCount, StringFormat={}{0} pending}"
-                                       Margin="0,3,0,10"
-                                       FontSize="10"
-                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-                            <ui:Button Content="{DynamicResource Common_SaveChanges}"
-                                       Appearance="Primary"
-                                       Command="{Binding SaveChangesCommand}"
-                                       IsEnabled="{Binding HasPendingChanges}"
-                                       HorizontalAlignment="Stretch"
-                                       Height="38">
-                                <ui:Button.Icon>
-                                    <ui:SymbolIcon Symbol="Save24"/>
-                                </ui:Button.Icon>
-                            </ui:Button>
-                            <ui:Button Content="{DynamicResource Common_Discard}"
-                                       Appearance="Secondary"
-                                       Command="{Binding DiscardPendingChangesCommand}"
-                                       IsEnabled="{Binding HasPendingChanges}"
-                                       HorizontalAlignment="Stretch"
-                                       Height="36"
-                                       Margin="0,6,0,0"/>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Margin="0,10,0,0"
-                            Padding="10"
-                            CornerRadius="10"
-                            Background="{DynamicResource LayerFillColorDefaultBrush}">
-                        <TextBlock Text="{Binding StatusText}"
-                                   TextWrapping="Wrap"
-                                   FontSize="9.5"
-                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-                    </Border>
-                </StackPanel>
-            </Border>
-
-            <Grid Grid.Column="1"
-                  Background="{DynamicResource ApplicationBackgroundBrush}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <Border Grid.Row="0"
-                        Padding="28,22,32,16"
-                        Background="Transparent">
-                    <Grid>
-                        <StackPanel HorizontalAlignment="Right">
-                            <TextBlock Text="{Binding PageTitle}"
-                                       FontSize="28"
-                                       FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
-                            <TextBlock Text="{Binding StatusText}"
-                                       Margin="0,5,0,0"
-                                       FontSize="11"
-                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                       TextTrimming="CharacterEllipsis"/>
-                        </StackPanel>
-
-                        <ui:Button Content="{DynamicResource Common_Settings}"
-                                   Command="{Binding NavigateSettingsCommand}"
-                                   Appearance="Secondary"
-                                   HorizontalAlignment="Left"
-                                   VerticalAlignment="Center"
-                                   Height="38">
-                            <ui:Button.Icon>
-                                <ui:SymbolIcon Symbol="Settings24"/>
-                            </ui:Button.Icon>
-                        </ui:Button>
-                    </Grid>
-                </Border>
-
-                <Border Grid.Row="1"
-                        Margin="18,0,18,18"
-                        CornerRadius="16"
-                        Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        ClipToBounds="True">
-                    <ContentControl Content="{Binding CurrentPage}"/>
-                </Border>
-            </Grid>
-        </Grid>
-
-        <Border Grid.Row="2"
+        <Border Grid.Row="1"
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                BorderThickness="0,1,0,0">
-            <Grid Margin="18,0">
+                BorderThickness="0,0,0,1"
+                Padding="18,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="18"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Width="40"
+                        Height="40"
+                        CornerRadius="12"
+                        Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                        VerticalAlignment="Center">
+                    <Image Source="{StaticResource MediaForgeIconImage}"
+                           Width="28"
+                           Height="28"
+                           Stretch="Uniform"/>
+                </Border>
+
+                <StackPanel Grid.Column="2"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="{Binding PageTitle}"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding StatusText}"
+                               Margin="0,2,0,0"
+                               FontSize="10"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+
+                <ui:Button Grid.Column="3"
+                           Content="{DynamicResource Nav_Home}"
+                           Command="{Binding NavigateHomeCommand}"
+                           Appearance="Secondary"
+                           Height="38"
+                           MinWidth="96">
+                    <ui:Button.Icon>
+                        <ui:SymbolIcon Symbol="Home24"/>
+                    </ui:Button.Icon>
+                </ui:Button>
+
+                <Border Grid.Column="5"
+                        Padding="12,7"
+                        CornerRadius="12"
+                        Background="{DynamicResource AccentFillColorTertiaryBrush}"
+                        VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="ArrowDownload24"
+                                       FontSize="16"
+                                       VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding PendingCount, StringFormat={}{0} pending}"
+                                   Margin="7,0,0,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="10.5"
+                                   FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Border>
+
+                <ui:Button Grid.Column="7"
+                           Content="{DynamicResource Common_Settings}"
+                           Command="{Binding NavigateSettingsCommand}"
+                           Appearance="Secondary"
+                           Height="38"
+                           MinWidth="104">
+                    <ui:Button.Icon>
+                        <ui:SymbolIcon Symbol="Settings24"/>
+                    </ui:Button.Icon>
+                </ui:Button>
+
+                <ui:Button Grid.Column="6"
+                           Grid.ColumnSpan="1"
+                           Content="{DynamicResource Common_SaveChanges}"
+                           Command="{Binding SaveChangesCommand}"
+                           IsEnabled="{Binding HasPendingChanges}"
+                           Appearance="Primary"
+                           Height="38"
+                           MinWidth="116"
+                           HorizontalAlignment="Left"/>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="2"
+                Margin="14,12,14,10"
+                CornerRadius="18"
+                Background="{DynamicResource ApplicationBackgroundBrush}">
+            <ContentControl Content="{Binding CurrentPage}"/>
+        </Border>
+
+        <Border Grid.Row="3"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="18,0">
+            <Grid>
                 <TextBlock Text="{Binding StatusText}"
                            VerticalAlignment="Center"
-                           FontSize="9"
+                           FontSize="9.5"
                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                            TextTrimming="CharacterEllipsis"/>
                 <TextBlock Text="{Binding PendingCount, StringFormat={}{0} pending}"
                            HorizontalAlignment="Left"
                            VerticalAlignment="Center"
-                           FontSize="9"
+                           FontSize="9.5"
                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
             </Grid>
         </Border>
