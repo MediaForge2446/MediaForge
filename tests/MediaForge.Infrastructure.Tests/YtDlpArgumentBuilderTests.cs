@@ -21,7 +21,7 @@ public sealed class YtDlpArgumentBuilderTests
     }
 
     [Fact]
-    public void Mp3UsesCompact128KAudioQuality()
+    public void Mp3UsesBalanced192KAudioQuality()
     {
         var args = YtDlpArgumentBuilder.Build(@"C:\temp\song.tmp", @"C:\tools\ffmpeg.exe", MediaFormat.Mp3);
 
@@ -56,7 +56,7 @@ public sealed class YtDlpArgumentBuilderTests
         var args = YtDlpArgumentBuilder.Build(@"C:\\temp\\video.tmp", @"C:\\tools\\ffmpeg.exe", MediaFormat.Mp4);
 
         Assert.Contains("-f", args);
-        Assert.Contains("bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]", args);
+        Assert.Contains("bestvideo[height<=720]+bestaudio/best[height<=720]/bestvideo+bestaudio/best", args);
         Assert.Contains("--merge-output-format", args);
         Assert.Contains("mp4", args);
         Assert.DoesNotContain("-x", args);
@@ -76,3 +76,32 @@ public sealed class YtDlpArgumentBuilderTests
         Assert.Contains(@"C:\\temp\\output.tmp", args);
     }
 }
+
+    [Theory]
+    [InlineData(MediaVideoQuality.DataSaver480p, "height<=480")]
+    [InlineData(MediaVideoQuality.Balanced720p, "height<=720")]
+    [InlineData(MediaVideoQuality.High1080p, "height<=1080")]
+    public void Mp4AppliesVideoHeightCap(MediaVideoQuality quality, string heightFilter)
+    {
+        var args = YtDlpArgumentBuilder.Build(
+            @"C:\temp\video.tmp",
+            @"C:\tools\ffmpeg.exe",
+            MediaFormat.Mp4,
+            MediaQuality.High192K,
+            quality);
+
+        Assert.Contains(heightFilter, args.Single(x => x.Contains("bestvideo")));
+    }
+
+    [Fact]
+    public void Mp4BestAvailableDoesNotApplyHeightCap()
+    {
+        var args = YtDlpArgumentBuilder.Build(
+            @"C:\temp\video.tmp",
+            @"C:\tools\ffmpeg.exe",
+            MediaFormat.Mp4,
+            MediaQuality.High192K,
+            MediaVideoQuality.BestAvailable);
+
+        Assert.Contains("bestvideo+bestaudio/best", args);
+    }
