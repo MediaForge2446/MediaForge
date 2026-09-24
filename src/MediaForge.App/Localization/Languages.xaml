@@ -186,7 +186,11 @@
     <sys:String x:Key="Downloads_ClearCompleted">Clear finished</sys:String>
     <sys:String x:Key="Downloads_Finished">Finished</sys:String>
     <sys:String x:Key="AddMedia_Quality">Quality</sys:String>
-    <sys:String x:Key="AddMedia_QualitySubtitle">Choose the audio quality before adding to the queue.</sys:String>
+    <sys:String x:Key="AddMedia_QualitySubtitle">Choose quality per item. MP3/M4A/WAV use audio quality; MP4 uses video resolution.</sys:String>
+    <sys:String x:Key="AddMedia_CurrentFolder">Current folder</sys:String>
+    <sys:String x:Key="AddMedia_RenameHint">You can rename the file before adding it.</sys:String>
+    <sys:String x:Key="Downloads_ApplyQualityAll">Apply quality to all</sys:String>
+    <sys:String x:Key="Downloads_QualityApplied">Quality applied to all tracks.</sys:String>
 </ResourceDictionary>
   <ResourceDictionary x:Key="he-IL">
 
