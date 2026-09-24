@@ -97,7 +97,7 @@
                         </ui:Button.Icon>
                     </ui:Button>
                     <ui:Button Content="{DynamicResource Explorer_AddMedia}"
-                               Appearance="Secondary"
+                               Appearance="Primary"
                                Click="AddMediaButton_OnClick"
                                Margin="6,0,0,0">
                         <ui:Button.Icon>
