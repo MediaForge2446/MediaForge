@@ -40,7 +40,8 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
         MediaFormat format,
         IProgress<DownloadProgress>? progress = null,
         CancellationToken cancellationToken = default,
-        MediaQuality quality = MediaQuality.Standard128K)
+        MediaQuality quality = MediaQuality.High192K,
+        MediaVideoQuality videoQuality = MediaVideoQuality.Balanced720p)
     {
         if (string.IsNullOrWhiteSpace(url))
             throw new ArgumentException("A source URL is required.", nameof(url));
@@ -72,7 +73,7 @@ public sealed class YtDlpProcessRunner : IYtDlpRunner
         foreach (var argument in YtDlpArgumentBuilder.Build(
                      outputPath,
                      tools.FfmpegExecutablePath,
-                     format, quality))
+                     format, quality, videoQuality))
         {
             process.StartInfo.ArgumentList.Add(argument);
         }
