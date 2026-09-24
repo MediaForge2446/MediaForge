@@ -6,9 +6,14 @@ namespace MediaForge.Infrastructure.Media;
 public static class YtDlpArgumentBuilder
 {
     // Balanced default for everyday listening: good enough quality while keeping MP3 files compact.
-    public const string DefaultMp3AudioQuality = "128K";
+    public const string DefaultMp3AudioQuality = "192K";
 
-    public static IReadOnlyList<string> Build(string outputPath, string ffmpegPath, MediaFormat format, MediaQuality quality = MediaQuality.Standard128K)
+    public static IReadOnlyList<string> Build(
+        string outputPath,
+        string ffmpegPath,
+        MediaFormat format,
+        MediaQuality quality = MediaQuality.High192K,
+        MediaVideoQuality videoQuality = MediaVideoQuality.Balanced720p)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
         ArgumentException.ThrowIfNullOrWhiteSpace(ffmpegPath);
@@ -55,7 +60,7 @@ public static class YtDlpArgumentBuilder
 
             case MediaFormat.Mp4:
                 arguments.Add("-f");
-                arguments.Add("bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]");
+                arguments.Add(BuildVideoFormatSelector(videoQuality));
                 arguments.Add("--merge-output-format");
                 arguments.Add("mp4");
                 arguments.Add("--add-metadata");
@@ -69,4 +74,18 @@ public static class YtDlpArgumentBuilder
         arguments.Add(outputPath);
         return arguments;
     }
+
+    private static string BuildVideoFormatSelector(MediaVideoQuality quality) =>
+        quality switch
+        {
+            MediaVideoQuality.DataSaver480p =>
+                "bestvideo[height<=480]+bestaudio/best[height<=480]/bestvideo+bestaudio/best",
+            MediaVideoQuality.Balanced720p =>
+                "bestvideo[height<=720]+bestaudio/best[height<=720]/bestvideo+bestaudio/best",
+            MediaVideoQuality.High1080p =>
+                "bestvideo[height<=1080]+bestaudio/best[height<=1080]/bestvideo+bestaudio/best",
+            MediaVideoQuality.BestAvailable =>
+                "bestvideo+bestaudio/best",
+            _ => "bestvideo[height<=720]+bestaudio/best[height<=720]/bestvideo+bestaudio/best"
+        };
 }
