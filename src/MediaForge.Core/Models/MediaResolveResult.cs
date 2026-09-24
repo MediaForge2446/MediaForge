@@ -7,7 +7,8 @@ public sealed record ResolvedMediaItem(
     string SourceUrl,
     MediaMetadata Metadata,
     MediaFormat DesiredFormat = MediaFormat.Mp3,
-    MediaQuality DesiredQuality = MediaQuality.High192K);
+    MediaQuality DesiredQuality = MediaQuality.High192K,
+    MediaVideoQuality DesiredVideoQuality = MediaVideoQuality.Balanced720p);
 
 public sealed record MediaResolveResult(
     bool IsPlaylist,
