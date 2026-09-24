@@ -11,5 +11,6 @@ public interface IMediaDownloader
         MediaFormat format,
         IProgress<DownloadProgress>? progress = null,
         CancellationToken cancellationToken = default,
-        MediaQuality quality = MediaQuality.Standard128K);
+        MediaQuality quality = MediaQuality.High192K,
+        MediaVideoQuality videoQuality = MediaVideoQuality.Balanced720p);
 }
