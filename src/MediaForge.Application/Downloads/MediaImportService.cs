@@ -106,6 +106,7 @@ public sealed class MediaImportService
                     DestinationPath: destinationPath,
                     DesiredFormat: format,
                     DesiredQuality: Enum.IsDefined(item.DesiredQuality) ? item.DesiredQuality : defaultQuality,
+                    DesiredVideoQuality: Enum.IsDefined(item.DesiredVideoQuality) ? item.DesiredVideoQuality : MediaVideoQuality.Balanced720p,
                     VideoId: item.VideoId,
                     Title: item.Metadata.Title,
                     Artist: item.Metadata.Artist,
