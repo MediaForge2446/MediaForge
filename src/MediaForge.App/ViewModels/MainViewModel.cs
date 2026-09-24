@@ -165,7 +165,21 @@ public partial class MainViewModel : ObservableObject
             Downloads.SyncFromStaging(_stagingService.Operations);
             CurrentPage = this;
             await RefreshLibraryCoreAsync(cancellationToken).ConfigureAwait(true);
-            ApplyHomeText();
+
+            if (RootFolders.Count == 1 && RootFolders[0].Exists)
+            {
+                await Explorer.SetInitialPathAsync(
+                    RootFolders[0].Path,
+                    cancellationToken).ConfigureAwait(true);
+                ActiveSection = "explorer";
+                PageTitle = RootFolders[0].Name;
+                CurrentPage = Explorer;
+                StatusText = RootFolders[0].Path;
+            }
+            else
+            {
+                ApplyHomeText();
+            }
         }
         finally
         {
