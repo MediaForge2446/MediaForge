@@ -611,6 +611,7 @@ public partial class DownloadQueueItemViewModel : ObservableObject
     public string DestinationPath { get; }
     public MediaFormat Format { get; }
     public MediaQuality Quality { get; }
+    public MediaVideoQuality VideoQuality { get; }
     public string FormatText => Format switch
     {
         MediaFormat.Mp3 => "MP3",
@@ -644,13 +645,21 @@ public partial class DownloadQueueItemViewModel : ObservableObject
         : "—";
     public string SizeText => TotalBytes is { } total ? FormatBytes(total) : "—";
     public string DownloadedSizeText => DownloadedBytes is { } value ? FormatBytes(value) : "—";
-    public string QualityText => Quality switch
-    {
-        MediaQuality.High192K => "192 kbps",
-        MediaQuality.VeryHigh256K => "256 kbps",
-        MediaQuality.Maximum320K => "320 kbps",
-        _ => "128 kbps"
-    };
+    public string QualityText => Format == MediaFormat.Mp4
+        ? VideoQuality switch
+        {
+            MediaVideoQuality.DataSaver480p => "480p",
+            MediaVideoQuality.High1080p => "1080p",
+            MediaVideoQuality.BestAvailable => "Source",
+            _ => "720p"
+        }
+        : Quality switch
+        {
+            MediaQuality.High192K => "192 kbps",
+            MediaQuality.VeryHigh256K => "256 kbps",
+            MediaQuality.Maximum320K => "320 kbps",
+            _ => "128 kbps"
+        };
 
     public DownloadQueueItemViewModel(
         Guid operationId,
@@ -660,6 +669,7 @@ public partial class DownloadQueueItemViewModel : ObservableObject
         string destinationPath,
         MediaFormat format,
         MediaQuality quality,
+        MediaVideoQuality videoQuality,
         LocalizationService localization)
     {
         OperationId = operationId;
@@ -671,6 +681,7 @@ public partial class DownloadQueueItemViewModel : ObservableObject
         DestinationPath = destinationPath;
         Format = format;
         Quality = quality;
+        VideoQuality = videoQuality;
         _localization = localization;
     }
 
@@ -688,7 +699,8 @@ public partial class DownloadQueueItemViewModel : ObservableObject
             payload.ThumbnailUrl,
             payload.DestinationPath ?? operation.Target,
             payload.DesiredFormat ?? MediaFormat.Mp3,
-            payload.DesiredQuality ?? MediaQuality.Standard128K,
+            payload.DesiredQuality ?? MediaQuality.High192K,
+            payload.DesiredVideoQuality ?? MediaVideoQuality.Balanced720p,
             localization);
     }
 
