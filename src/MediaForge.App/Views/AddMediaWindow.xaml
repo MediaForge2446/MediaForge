@@ -3,10 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         Title="{DynamicResource AddMedia_Title}"
-        Width="1060"
-        Height="760"
-        MinWidth="900"
-        MinHeight="640"
+        Width="1120"
+        Height="820"
+        MinWidth="960"
+        MinHeight="700"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
         ResizeMode="CanResize"
@@ -392,9 +392,9 @@
                                 </Grid.ColumnDefinitions>
 
                                 <ui:Button Grid.Column="0"
-                                           Content="{DynamicResource AddMedia_ChooseFolder}"
-                                           Command="{Binding PickDestinationCommand}"
+                                           Content="התיקייה הנוכחית"
                                            Appearance="Secondary"
+                                           IsEnabled="False"
                                            Height="38">
                                     <ui:Button.Icon>
                                         <ui:SymbolIcon Symbol="FolderOpen24"/>
@@ -434,6 +434,11 @@
                                        Command="{Binding Mp3ToAllCommand}"
                                        Appearance="Secondary"
                                        Height="36"/>
+                            <ui:Button Content="החל איכות לכולם"
+                                       Command="{Binding ApplyQualityToAllCommand}"
+                                       Appearance="Secondary"
+                                       Height="36"
+                                       Margin="8,0,0,0"/>
                             <ui:Button Content="{DynamicResource AddMedia_SelectAll}"
                                        Command="{Binding SelectAllCommand}"
                                        Appearance="Secondary"
@@ -469,8 +474,9 @@
                                             <ColumnDefinition Width="28"/>
                                             <ColumnDefinition Width="58"/>
                                             <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="100"/>
-                                            <ColumnDefinition Width="84"/>
+                                            <ColumnDefinition Width="88"/>
+                                            <ColumnDefinition Width="112"/>
+                                            <ColumnDefinition Width="112"/>
                                         </Grid.ColumnDefinitions>
 
                                         <CheckBox Grid.Column="0"
@@ -491,14 +497,19 @@
                                         <StackPanel Grid.Column="2"
                                                     Margin="11,0,14,0"
                                                     VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Title}"
-                                                       FontSize="11.5"
-                                                       FontWeight="SemiBold"
-                                                       TextTrimming="CharacterEllipsis"/>
+                                            <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"
+                                                     FontSize="11.5"
+                                                     FontWeight="SemiBold"
+                                                     BorderThickness="0"
+                                                     Background="Transparent"
+                                                     Padding="0"
+                                                     MaxLength="180"
+                                                     ToolTip="ניתן לשנות את שם הקובץ לפני ההוספה"/>
                                             <TextBlock Text="{Binding Artist}"
                                                        Margin="0,3,0,0"
                                                        FontSize="9.5"
-                                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                       TextTrimming="CharacterEllipsis"/>
                                         </StackPanel>
 
                                         <TextBlock Grid.Column="3"
@@ -509,7 +520,13 @@
 
                                         <ComboBox Grid.Column="4"
                                                   ItemsSource="{Binding Formats}"
-                                                  SelectedItem="{Binding DesiredFormat}"
+                                                  SelectedItem="{Binding DesiredFormat, UpdateSourceTrigger=PropertyChanged}"
+                                                  Height="34"
+                                                  FontSize="10.5"/>
+
+                                        <ComboBox Grid.Column="5"
+                                                  ItemsSource="{Binding Qualities}"
+                                                  SelectedItem="{Binding DesiredQuality, UpdateSourceTrigger=PropertyChanged}"
                                                   Height="34"
                                                   FontSize="10.5"/>
                                     </Grid>
