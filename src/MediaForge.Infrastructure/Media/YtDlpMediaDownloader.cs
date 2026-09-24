@@ -17,7 +17,8 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
         MediaFormat format,
         IProgress<DownloadProgress>? progress = null,
         CancellationToken cancellationToken = default,
-        MediaQuality quality = MediaQuality.Standard128K)
+        MediaQuality quality = MediaQuality.High192K,
+        MediaVideoQuality videoQuality = MediaVideoQuality.Balanced720p)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceUrl);
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
@@ -52,7 +53,8 @@ public sealed class YtDlpMediaDownloader : IMediaDownloader
                 format,
                 new Progress<DownloadProgress>(value => progress?.Report(value)),
                 cancellationToken,
-                quality).ConfigureAwait(false);
+                quality,
+                videoQuality).ConfigureAwait(false);
 
             var produced = ResolveProducedPath(stagingBase, extension);
             if (produced is null)
