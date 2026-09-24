@@ -524,11 +524,18 @@
                                                   Height="34"
                                                   FontSize="10.5"/>
 
-                                        <ComboBox Grid.Column="5"
-                                                  ItemsSource="{Binding Qualities}"
-                                                  SelectedItem="{Binding DesiredQuality, UpdateSourceTrigger=PropertyChanged}"
-                                                  Height="34"
-                                                  FontSize="10.5"/>
+                                        <Grid Grid.Column="5">
+                                            <ComboBox ItemsSource="{Binding Qualities}"
+                                                      SelectedItem="{Binding DesiredQuality, UpdateSourceTrigger=PropertyChanged}"
+                                                      Visibility="{Binding IsAudioFormat, Converter={StaticResource BooleanToVisibilityConverterFallback}}"
+                                                      Height="34"
+                                                      FontSize="10.5"/>
+                                            <ComboBox ItemsSource="{Binding VideoQualities}"
+                                                      SelectedItem="{Binding DesiredVideoQuality, UpdateSourceTrigger=PropertyChanged}"
+                                                      Visibility="{Binding IsVideoFormat, Converter={StaticResource BooleanToVisibilityConverterFallback}}"
+                                                      Height="34"
+                                                      FontSize="10.5"/>
+                                        </Grid>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
