@@ -493,6 +493,15 @@ public partial class DownloadsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void ApplyQualityToAll()
+    {
+        foreach (var item in Items)
+            item.DesiredQuality = SelectedQuality;
+
+        StatusText = $"{SelectedQuality} הוחלה על כל השירים";
+    }
+
+    [RelayCommand]
     private async Task StageSelectedAsync(CancellationToken cancellationToken)
     {
         if (IsBusy)
@@ -825,6 +834,9 @@ public partial class ResolvedMediaItemViewModel : ObservableObject
     [ObservableProperty] private MediaQuality _desiredQuality = MediaQuality.High192K;
 
     public IReadOnlyList<MediaFormat> Formats { get; }
+    public IReadOnlyList<MediaQuality> Qualities { get; } =
+        [MediaQuality.Standard128K, MediaQuality.High192K, MediaQuality.VeryHigh256K, MediaQuality.Maximum320K];
+
     public string VideoId => _item.VideoId;
     public string SourceUrl => _item.SourceUrl;
     public string Artist => _item.Metadata.Artist ?? "YouTube";
