@@ -37,14 +37,14 @@ public sealed class MediaImportService
             items,
             destinationDirectory,
             defaultFormat,
-            MediaQuality.Standard128K,
+            MediaQuality.High192K,
             cancellationToken);
 
     public async Task<IReadOnlyList<StagingOperation>> StageDownloadsAsync(
         IEnumerable<ResolvedMediaItem> items,
         string destinationDirectory,
         MediaFormat defaultFormat,
-        MediaQuality defaultQuality = MediaQuality.Standard128K,
+        MediaQuality defaultQuality = MediaQuality.High192K,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(items);
