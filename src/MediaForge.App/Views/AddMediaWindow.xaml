@@ -522,19 +522,37 @@
                                                   ItemsSource="{Binding Formats}"
                                                   SelectedItem="{Binding DesiredFormat, UpdateSourceTrigger=PropertyChanged}"
                                                   Height="34"
-                                                  FontSize="10.5"/>
+                                                  FontSize="10.5">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource MediaFormatDisplayConverter}}"/>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
 
                                         <Grid Grid.Column="5">
                                             <ComboBox ItemsSource="{Binding Qualities}"
                                                       SelectedItem="{Binding DesiredQuality, UpdateSourceTrigger=PropertyChanged}"
                                                       Visibility="{Binding IsAudioFormat, Converter={StaticResource BooleanToVisibilityConverterFallback}}"
                                                       Height="34"
-                                                      FontSize="10.5"/>
+                                                      FontSize="10.5">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Converter={StaticResource MediaQualityDisplayConverter}}"/>
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
                                             <ComboBox ItemsSource="{Binding VideoQualities}"
                                                       SelectedItem="{Binding DesiredVideoQuality, UpdateSourceTrigger=PropertyChanged}"
                                                       Visibility="{Binding IsVideoFormat, Converter={StaticResource BooleanToVisibilityConverterFallback}}"
                                                       Height="34"
-                                                      FontSize="10.5"/>
+                                                      FontSize="10.5">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Converter={StaticResource MediaVideoQualityDisplayConverter}}"/>
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
                                         </Grid>
                                     </Grid>
                                 </Border>
